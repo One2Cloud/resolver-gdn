@@ -1,0 +1,43 @@
+FROM public.ecr.aws/docker/library/alpine:latest as layer
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG AWS_REGION=ap-southeast-1
+RUN apk add aws-cli curl unzip --no-cache
+RUN mkdir -p /opt
+# https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html#ps-integration-lambda-extensions-add === Parameter Store
+RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn:aws:lambda:ap-southeast-1:114300393969:layer:lumigo-extension:3 --query 'Content.Location' --output text) --output lumigo_layer.zip &&\
+    unzip -o lumigo_layer.zip -d /opt && \
+    rm lumigo_layer.zip
+RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn:aws:lambda:ap-southeast-1:044395824272:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4 --query 'Content.Location' --output text) --output aws_parameters_and_secerts_layer.zip &&\
+    unzip -o aws_parameters_and_secerts_layer.zip -d /opt && \
+    rm aws_parameters_and_secerts_layer.zip
+RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension:33 --query 'Content.Location' --output text) --output aws_cloudwatch_layer.zip &&\
+    unzip -o aws_cloudwatch_layer.zip -d /opt && \
+    rm aws_cloudwatch_layer.zip
+FROM scratch
+
+FROM public.ecr.aws/docker/library/node:lts-alpine as base
+WORKDIR /app
+RUN apk add --no-cache --update python3 make gcc g++
+
+FROM base as builder_dependencies
+COPY package*.json ./
+RUN npm ci
+
+FROM builder_dependencies as builder
+COPY . .
+RUN npm run build
+
+FROM base as packager
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM public.ecr.aws/lambda/nodejs:18
+ENV AWS_NODEJS_CONNECTION_REUSE_ENABLED=1
+WORKDIR ${LAMBDA_TASK_ROOT}
+COPY --from=layer /opt /opt
+COPY --from=builder /app/dist ${LAMBDA_TASK_ROOT}
+COPY --from=packager /app/node_modules ${LAMBDA_TASK_ROOT}/node_modules
+COPY ./static/ ${LAMBDA_TASK_ROOT}/static
+
+CMD ["src/handler.index"]
