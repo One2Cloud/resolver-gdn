@@ -11,8 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.353.0",
     "@aws-sdk/client-sqs": "^3.315.0",
     "@ethersproject/providers": "5.7.2",
+    "axios": "^1.4.0",
     "ethers": "5.7.2",
     "ioredis": "^5.3.2",
     "lodash": "^4.17.21",

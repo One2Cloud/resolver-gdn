@@ -9,7 +9,7 @@ export interface IConfig {
 	};
 }
 
-const config: IConfig = {
+export const getConfig = (): IConfig => ({
 	redis: {
 		url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
 	},
@@ -18,6 +18,8 @@ const config: IConfig = {
 			url: process.env.SQS_HANDLER_URL || "UNKNOWN_SQS_HANDLER_URL",
 		},
 	},
-};
+});
+
+const config = getConfig();
 
 export default config;

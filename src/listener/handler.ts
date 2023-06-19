@@ -1,18 +1,19 @@
 import { SQSHandler } from "aws-lambda";
 import { createLogger } from "./src/utils/create-logger";
 import Redis from "ioredis";
-import config from "./src/config";
+import { getConfig } from "./src/config";
 import _ from "lodash";
 import { EventType } from "./src/constants/event-type.constant";
 import { Chain } from "./src/constants/chain.constant";
-import { ServiceProvider } from "./src/constants/service-provider.constant";
+import { DomainProvider } from "./src/constants/domain-provider.constant";
+import { setEnvironmentVariable } from "src/utils/set-environment-variable";
 
 const logger = createLogger();
 
 let client: Redis | undefined;
 
 export interface IBody {
-	provider: ServiceProvider;
+	provider: DomainProvider;
 	type: EventType;
 	data: any;
 }
@@ -125,6 +126,8 @@ interface ISetHostUserData {
  */
 
 export const index: SQSHandler = async (event, context) => {
+	setEnvironmentVariable();
+	const config = getConfig();
 	if (!client) client = new Redis(config.redis.url);
 	const records = event.Records;
 	for (const record of records) {
@@ -132,7 +135,7 @@ export const index: SQSHandler = async (event, context) => {
 			const body: IBody = JSON.parse(record.body);
 			logger.debug(body);
 			switch (body.provider) {
-				case ServiceProvider.EDNS: {
+				case DomainProvider.EDNS: {
 					switch (body.type) {
 						case EventType.DOMAIN_REGISTERED: {
 							const data: IDomainRegisteredData = body.data;
