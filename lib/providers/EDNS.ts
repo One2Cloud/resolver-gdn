@@ -72,23 +72,38 @@ export class EDNS extends Construct {
 			logging: ecs.LogDrivers.awsLogs({ streamPrefix: "EDNS_Mainnet" }),
 			command: ["node", "listener.js"],
 		});
+		taskDefinition.addContainer("testnet", {
+			image: ecs.ContainerImage.fromDockerImageAsset(props.images.ecs),
+			environment: {
+				MAINNET: "0",
+				PROVIDER: "edns",
+			},
+			secrets: {
+				REDIS_URL: ecs.Secret.fromSecretsManager(props.secret, "REDIS_URL"),
+				INFURA_API_KEY: ecs.Secret.fromSecretsManager(props.secret, "INFURA_API_KEY"),
+				GETBLOCK_API_KEY: ecs.Secret.fromSecretsManager(props.secret, "GETBLOCK_API_KEY"),
+				POKT_PORTAL_ID: ecs.Secret.fromSecretsManager(props.secret, "POKT_PORTAL_ID"),
+			},
+			logging: ecs.LogDrivers.awsLogs({ streamPrefix: "EDNS_Mainnet" }),
+			command: ["node", "listener.js"],
+		});
 
 		new ecs.FargateService(this, "Service", {
 			cluster: props.cluster,
 			taskDefinition: taskDefinition,
-			desiredCount: 3,
+			desiredCount: 1,
 			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
 			assignPublicIp: true,
-			capacityProviderStrategies: [
-				{
-					capacityProvider: "FARGATE_SPOT",
-					weight: 2,
-				},
-				{
-					capacityProvider: "FARGATE",
-					weight: 1,
-				},
-			],
+			// capacityProviderStrategies: [
+			// 	{
+			// 		capacityProvider: "FARGATE_SPOT",
+			// 		weight: 2,
+			// 	},
+			// 	{
+			// 		capacityProvider: "FARGATE",
+			// 		weight: 1,
+			// 	},
+			// ],
 		});
 	}
 }

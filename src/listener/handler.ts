@@ -6,7 +6,7 @@ import _ from "lodash";
 import { EventType } from "./src/constants/event-type.constant";
 import { Chain } from "./src/constants/chain.constant";
 import { DomainProvider } from "./src/constants/domain-provider.constant";
-import { setEnvironmentVariable } from "src/utils/set-environment-variable";
+import { setEnvironmentVariable } from "./src/utils/set-environment-variable";
 
 const logger = createLogger();
 
@@ -15,6 +15,7 @@ let client: Redis | undefined;
 export interface IBody {
 	provider: DomainProvider;
 	type: EventType;
+	mainnet: boolean;
 	data: any;
 }
 
@@ -133,6 +134,7 @@ export const index: SQSHandler = async (event, context) => {
 	for (const record of records) {
 		try {
 			const body: IBody = JSON.parse(record.body);
+			const net = body.mainnet ? "mainnet" : "testnet";
 			logger.debug(body);
 			switch (body.provider) {
 				case DomainProvider.EDNS: {
@@ -146,35 +148,41 @@ export const index: SQSHandler = async (event, context) => {
 							let batch = client.multi();
 
 							// Check is the domain previously registered
-							const prevUser = await client.hget(`edns:domain:${domain}:info`, "owner");
+							const prevUser = await client.hget(`edns:${net}:domain:${domain}:info`, "owner");
 							if (prevUser) {
 								// Remove the domain from the previous owner
-								batch = batch.srem(`edns:account:${data.owner}:domains`, domain);
+								batch = batch.srem(`edns:${net}:account:${data.owner}:domains`, domain);
 
 								// Delete all of the previous domain record;
-								dels.push(`edns:domain:${domain}:info`, `edns:domain:${domain}:user`, `edns:domain:${domain}:hosts`, `edns:domain:${domain}:operators`);
+								dels.push(`edns:${net}:domain:${domain}:info`, `edns:${net}:domain:${domain}:user`, `edns:${net}:domain:${domain}:hosts`, `edns:${net}:domain:${domain}:operators`);
 
 								// Removed the domain from the address relationship
-								const operators = await client.smembers(`edns:domain:${domain}:operators`);
+								const operators = await client.smembers(`edns:${net}:domain:${domain}:operators`);
 								if (operators.length) {
 									operators.forEach((operator) => {
-										batch = batch.srem(`edns:account:${operator}:domain:operators`, domain);
+										batch = batch.srem(`edns:${net}:account:${operator}:domain:operators`, domain);
 									});
 								}
 
 								// Remove all relative data about the host(s) under the domain
-								const _hosts = await client.smembers(`edns:domain:${domain}:hosts`);
+								const _hosts = await client.smembers(`edns:${net}:domain:${domain}:hosts`);
 								if (_hosts.length) {
 									dels.push(
-										..._.flatten(_hosts.map((_host) => [`edns:host:${_host}.${domain}:records`, `edns:host:${_host}.${domain}:user`, `edns:host:${_host}.${domain}:operators`]))
+										..._.flatten(
+											_hosts.map((_host) => [
+												`edns:${net}:host:${_host}.${domain}:records`,
+												`edns:${net}:host:${_host}.${domain}:user`,
+												`edns:${net}:host:${_host}.${domain}:operators`,
+											])
+										)
 									);
 									const queue: Promise<void>[] = [];
 									for (const _host of _hosts) {
 										async function exec(client: Redis): Promise<void> {
-											const _operators = await client.smembers(`edns:host:${_host}.${domain}:operators`);
+											const _operators = await client.smembers(`edns:${net}:host:${_host}.${domain}:operators`);
 											if (_operators.length) {
 												_operators.forEach((operator) => {
-													batch = batch.srem(`edns:account:${operator}:host:operators`, `${_host}.${domain}`);
+													batch = batch.srem(`edns:${net}:account:${operator}:host:operators`, `${_host}.${domain}`);
 												});
 											}
 										}
@@ -187,14 +195,14 @@ export const index: SQSHandler = async (event, context) => {
 							// Add to the batch if there any key(s) need to delete
 							if (dels.length) batch = batch.del(dels);
 
-							// batch = batch.sadd(`edns:account:${data.owner}:domains`, domain);
+							// batch = batch.sadd(`edns:${net}:account:${data.owner}:domains`, domain);
 
 							await batch
-								.sadd(`edns:account:${data.owner}:domains`, domain)
-								.hmset(`edns:domain:${domain}:info`, { owner: data.owner, expiry: data.expiry, chain: data.chain })
-								.hmset(`edns:domain:${domain}:user`, { user: data.owner, expiry: data.expiry, chain: data.chain })
-								.expireat(`edns:domain:${domain}:info`, data.expiry)
-								.expireat(`edns:domain:${domain}:user`, data.expiry)
+								.sadd(`edns:${net}:account:${data.owner}:domains`, domain)
+								.hmset(`edns:${net}:domain:${domain}:info`, { owner: data.owner, expiry: data.expiry, chain: data.chain })
+								.hmset(`edns:${net}:domain:${domain}:user`, { user: data.owner, expiry: data.expiry, chain: data.chain })
+								.expireat(`edns:${net}:domain:${domain}:info`, data.expiry)
+								.expireat(`edns:${net}:domain:${domain}:user`, data.expiry)
 								.exec();
 
 							break;
@@ -206,21 +214,21 @@ export const index: SQSHandler = async (event, context) => {
 							let batch = client.pipeline();
 
 							// Update all the `EXPIRE` of the host(s) relative data
-							const _hosts = await client.smembers(`edns:domain:${domain}:hosts`);
+							const _hosts = await client.smembers(`edns:${net}:domain:${domain}:hosts`);
 							if (_hosts.length) {
 								_hosts.forEach((_host) => {
 									batch = batch
-										.expireat(`edns:host:${_host}.${domain}:records`, data.expiry)
-										.expireat(`edns:host:${_host}.${domain}:user`, data.expiry)
-										.expireat(`edns:host:${_host}.${domain}:operators`, data.expiry);
+										.expireat(`edns:${net}:host:${_host}.${domain}:records`, data.expiry)
+										.expireat(`edns:${net}:host:${_host}.${domain}:user`, data.expiry)
+										.expireat(`edns:${net}:host:${_host}.${domain}:operators`, data.expiry);
 								});
 							}
 
 							// Update all the `EXPIRE` of the domain relative data
 							batch = batch
-								.hset(`edns:domain:${domain}:info`, "expiry", data.expiry)
-								.expireat(`edns:domain:${domain}:info`, data.expiry)
-								.expireat(`edns:domain:${domain}:user`, data.expiry);
+								.hset(`edns:${net}:domain:${domain}:info`, "expiry", data.expiry)
+								.expireat(`edns:${net}:domain:${domain}:info`, data.expiry)
+								.expireat(`edns:${net}:domain:${domain}:user`, data.expiry);
 
 							// Execute
 							await batch.exec();
@@ -236,18 +244,24 @@ export const index: SQSHandler = async (event, context) => {
 							const dels: string[] = [];
 
 							// Remove all relative data about the host(s) under the domain
-							const _hosts = await client.smembers(`edns:domain:${domain}:hosts`);
+							const _hosts = await client.smembers(`edns:${net}:domain:${domain}:hosts`);
 							if (_hosts.length) {
 								dels.push(
-									..._.flatten(_hosts.map((_host) => [`edns:host:${_host}.${domain}:records`, `edns:host:${_host}.${domain}:user`, `edns:host:${_host}.${domain}:operators`]))
+									..._.flatten(
+										_hosts.map((_host) => [
+											`edns:${net}:host:${_host}.${domain}:records`,
+											`edns:${net}:host:${_host}.${domain}:user`,
+											`edns:${net}:host:${_host}.${domain}:operators`,
+										])
+									)
 								);
 								const queue: Promise<void>[] = [];
 								for (const _host of _hosts) {
 									async function exec(client: Redis): Promise<void> {
-										const _operators = await client.smembers(`edns:host:${_host}.${domain}:operators`);
+										const _operators = await client.smembers(`edns:${net}:host:${_host}.${domain}:operators`);
 										if (_operators.length) {
 											_operators.forEach((operator) => {
-												batch = batch.srem(`edns:account:${operator}:host:operators`, `${_host}.${domain}`);
+												batch = batch.srem(`edns:${net}:account:${operator}:host:operators`, `${_host}.${domain}`);
 											});
 										}
 									}
@@ -256,12 +270,12 @@ export const index: SQSHandler = async (event, context) => {
 								await Promise.all(queue);
 							}
 
-							const [owner, expiry] = await client.hmget(`edns:domain:${domain}:info`, "owner", "expiry");
+							const [owner, expiry] = await client.hmget(`edns:${net}:domain:${domain}:info`, "owner", "expiry");
 							if (owner && expiry) {
-								batch = batch.hmset(`edns:domain:${domain}:user`, { user: owner, expiry: expiry });
+								batch = batch.hmset(`edns:${net}:domain:${domain}:user`, { user: owner, expiry: expiry });
 							}
 
-							await batch.hset(`edns:domain:${domain}:info`, "chain", data.dstChain).exec();
+							await batch.hset(`edns:${net}:domain:${domain}:info`, "chain", data.dstChain).exec();
 
 							break;
 						}
@@ -270,9 +284,9 @@ export const index: SQSHandler = async (event, context) => {
 							const domain = `${data.name}.${data.tld}`;
 
 							if (data.approved) {
-								await client.pipeline().sadd(`edns:domain:${domain}:operators`, data.operator).sadd(`edns:account:${data.operator}:domain:operators`, domain).exec();
+								await client.pipeline().sadd(`edns:${net}:domain:${domain}:operators`, data.operator).sadd(`edns:${net}:account:${data.operator}:domain:operators`, domain).exec();
 							} else {
-								await client.pipeline().srem(`edns:domain:${domain}:operators`, data.operator).srem(`edns:account:${data.operator}:domain:operators`, domain).exec();
+								await client.pipeline().srem(`edns:${net}:domain:${domain}:operators`, data.operator).srem(`edns:${net}:account:${data.operator}:domain:operators`, domain).exec();
 							}
 
 							break;
@@ -281,7 +295,7 @@ export const index: SQSHandler = async (event, context) => {
 							const data: ISetDomainResolverData = body.data;
 							const domain = `${data.name}.${data.tld}`;
 
-							await client.hmset(`edns:domain:${domain}:info`, { resolver: data.newResolver });
+							await client.hmset(`edns:${net}:domain:${domain}:info`, { resolver: data.newResolver });
 
 							break;
 						}
@@ -289,7 +303,7 @@ export const index: SQSHandler = async (event, context) => {
 							const data: ISetDomainUserData = body.data;
 							const domain = `${data.name}.${data.tld}`;
 
-							await client.hmset(`edns:domain:${domain}:user`, { user: data.newUser, expiry: data.expiry });
+							await client.hmset(`edns:${net}:domain:${domain}:user`, { user: data.newUser, expiry: data.expiry });
 
 							break;
 						}
@@ -299,9 +313,9 @@ export const index: SQSHandler = async (event, context) => {
 
 							let batch = client.pipeline();
 
-							const [user, expiry] = await client.hmget(`edns:domain:${domain}:user`, "user", "expiry");
+							const [user, expiry] = await client.hmget(`edns:${net}:domain:${domain}:user`, "user", "expiry");
 
-							await batch.sadd(`edns:domain:${domain}:host`, data.host).hmset(`edns:host:${data.host}.${domain}:user`, { user, expiry }).exec();
+							await batch.sadd(`edns:${net}:domain:${domain}:host`, data.host).hmset(`edns:${net}:host:${data.host}.${domain}:user`, { user, expiry }).exec();
 
 							break;
 						}
@@ -310,9 +324,17 @@ export const index: SQSHandler = async (event, context) => {
 							const domain = `${data.name}.${data.tld}`;
 
 							if (data.approved) {
-								await client.pipeline().sadd(`edns:host:${data.host}.${domain}:operators`, data.operator).sadd(`edns:account:${data.operator}:domain:operators`, domain).exec();
+								await client
+									.pipeline()
+									.sadd(`edns:${net}:host:${data.host}.${domain}:operators`, data.operator)
+									.sadd(`edns:${net}:account:${data.operator}:domain:operators`, domain)
+									.exec();
 							} else {
-								await client.pipeline().srem(`edns:domain:${data.host}.${domain}:operators`, data.operator).srem(`edns:account:${data.operator}:host:operators`, domain).exec();
+								await client
+									.pipeline()
+									.srem(`edns:${net}:domain:${data.host}.${domain}:operators`, data.operator)
+									.srem(`edns:${net}:account:${data.operator}:host:operators`, domain)
+									.exec();
 							}
 
 							break;
@@ -321,7 +343,7 @@ export const index: SQSHandler = async (event, context) => {
 							const data: ISetHostUserData = body.data;
 							const domain = `${data.name}.${data.tld}`;
 
-							await client.hmset(`edns:host:${data.host}.${domain}:user`, { user: data.newUser, expiry: data.expiry });
+							await client.hmset(`edns:${net}:host:${data.host}.${domain}:user`, { user: data.newUser, expiry: data.expiry });
 
 							break;
 						}
@@ -329,7 +351,7 @@ export const index: SQSHandler = async (event, context) => {
 							const data: ISetAddressRecordData = body.data;
 							const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-							await client.pipeline().hset(`edns:host:${fqdn}:records`, "address", data.address).sadd(`edns:host:${fqdn}:records:list`, "address").exec();
+							await client.pipeline().hset(`edns:${net}:host:${fqdn}:records`, "address", data.address).sadd(`edns:${net}:host:${fqdn}:records:list`, "address").exec();
 
 							break;
 						}
@@ -339,8 +361,8 @@ export const index: SQSHandler = async (event, context) => {
 
 							await client
 								.pipeline()
-								.hset(`edns:host:${fqdn}:records`, `multi_coin_address:${data.coin}`, data.address)
-								.sadd(`edns:host:${fqdn}:records:list`, `multi_coin_address:${data.coin}`)
+								.hset(`edns:${net}:host:${fqdn}:records`, `multi_coin_address:${data.coin}`, data.address)
+								.sadd(`edns:${net}:host:${fqdn}:records:list`, `multi_coin_address:${data.coin}`)
 								.exec();
 
 							break;
@@ -351,8 +373,8 @@ export const index: SQSHandler = async (event, context) => {
 
 							await client
 								.pipeline()
-								.hset(`edns:host:${fqdn}:records`, `nft:${data.chainId}`, `${data.contractAddress}:${data.tokenId}`)
-								.sadd(`edns:host:${fqdn}:records:list`, `nft:${data.chainId}`)
+								.hset(`edns:${net}:host:${fqdn}:records`, `nft:${data.chainId}`, `${data.contractAddress}:${data.tokenId}`)
+								.sadd(`edns:${net}:host:${fqdn}:records:list`, `nft:${data.chainId}`)
 								.exec();
 
 							break;
@@ -361,7 +383,7 @@ export const index: SQSHandler = async (event, context) => {
 							const data: ISetTextRecordData = body.data;
 							const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-							await client.pipeline().hset(`edns:host:${fqdn}:records`, `text`, data.text).sadd(`edns:host:${fqdn}:records:list`, `text`).exec();
+							await client.pipeline().hset(`edns:${net}:host:${fqdn}:records`, `text`, data.text).sadd(`edns:${net}:host:${fqdn}:records:list`, `text`).exec();
 
 							break;
 						}
@@ -371,8 +393,8 @@ export const index: SQSHandler = async (event, context) => {
 
 							await client
 								.pipeline()
-								.hset(`edns:host:${fqdn}:records`, `typed_text:${data.type}`, data.text)
-								.sadd(`edns:host:${fqdn}:records:list`, `typed_text:${data.type}`)
+								.hset(`edns:${net}:host:${fqdn}:records`, `typed_text:${data.type}`, data.text)
+								.sadd(`edns:${net}:host:${fqdn}:records:list`, `typed_text:${data.type}`)
 								.exec();
 
 							break;

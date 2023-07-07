@@ -15,6 +15,7 @@
     "@aws-sdk/client-sqs": "^3.315.0",
     "@ethersproject/providers": "5.7.2",
     "axios": "^1.4.0",
+    "dotenv": "^16.3.1",
     "ethers": "5.7.2",
     "ioredis": "^5.3.2",
     "lodash": "^4.17.21",

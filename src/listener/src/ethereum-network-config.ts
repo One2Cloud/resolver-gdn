@@ -153,7 +153,6 @@ export interface IConfig {
 const config: INetworkConfig = {
   [Network.ETHEREUM]: {
     chainId: Network.ETHEREUM,
-
     name: 'Ethereum',
     symbol: 'ETH',
     url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
