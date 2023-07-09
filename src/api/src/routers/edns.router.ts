@@ -44,8 +44,12 @@ router.get("/record/:fqdn/text/:type", EdnsController.queryEdnsTypeText, respons
 // router.use("/record", recordRouter, responseHandler as any, errorHandler);
 // -------------------Separate Router---------------------------------------------
 
-router.get('/*', (req: Request, res: Response, next: NextFunction) => {
-  next(new Error('UNKNOWN_ROUTE'))
-}, errorHandler);
+router.get(
+  "/*",
+  (req: Request, res: Response, next: NextFunction) => {
+    next(new Error("UNKNOWN_ROUTE"));
+  },
+  errorHandler,
+);
 
 export default router;

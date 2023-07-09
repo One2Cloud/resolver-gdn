@@ -58,7 +58,8 @@ export default class EdnsEthereumListener {
 				name,
 				tld,
 				owner,
-				expiry,
+				expiry: expiry.toString(),
+				chain: this.id,
 			});
 		});
 	}
@@ -70,7 +71,7 @@ export default class EdnsEthereumListener {
 			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.DOMAIN_RENEWED, {
 				name,
 				tld,
-				expiry,
+				expiry: expiry.toString(),
 			});
 		});
 	}
@@ -120,7 +121,7 @@ export default class EdnsEthereumListener {
 				name,
 				tld,
 				newUser,
-				expiry,
+				expiry: expiry.toString(),
 			});
 		});
 	}
@@ -173,7 +174,7 @@ export default class EdnsEthereumListener {
 				name,
 				tld,
 				newUser,
-				expiry,
+				expiry: expiry.toString(),
 			});
 		});
 	}

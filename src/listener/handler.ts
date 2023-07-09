@@ -26,7 +26,7 @@ interface IBaseSetRecordData {
 }
 
 interface IDomainRegisteredData {
-	chain: Chain;
+	chain: number;
 	name: string;
 	tld: string;
 	owner: string;
@@ -200,7 +200,7 @@ export const index: SQSHandler = async (event, context) => {
 							await batch
 								.sadd(`edns:${net}:account:${data.owner}:domains`, domain)
 								.hmset(`edns:${net}:domain:${domain}:info`, { owner: data.owner, expiry: data.expiry, chain: data.chain })
-								.hmset(`edns:${net}:domain:${domain}:user`, { user: data.owner, expiry: data.expiry, chain: data.chain })
+								.hmset(`edns:${net}:domain:${domain}:user`, { user: data.owner, expiry: data.expiry })
 								.expireat(`edns:${net}:domain:${domain}:info`, data.expiry)
 								.expireat(`edns:${net}:domain:${domain}:user`, data.expiry)
 								.exec();

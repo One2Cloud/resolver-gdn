@@ -18,8 +18,8 @@ router.get("/:address/domain", EdnsController.queryEdnsDomain);
 // Get Address's Text Record with Type
 router.get("/:fqdn/text/:type", EdnsController.queryEdnsTypeText);
 
-router.get('/*', (req: Request, res: Response, next: NextFunction) => {
-  next(new Error('UNKNOWN_ROUTE'))
+router.get("/*", (req: Request, res: Response, next: NextFunction) => {
+  next(new Error("UNKNOWN_ROUTE"));
 });
 
 // router.get(

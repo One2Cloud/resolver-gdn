@@ -10,13 +10,13 @@ export function errorTransform(error: any, message?: string): Error {
     } else if ((error as any).message !== undefined) {
       errorMessage = (error as any).message;
     }
-    console.log('new Error with errorMessage:', errorMessage)
-    const newError = new Error(errorMessage)
-    newError.name = error.name
+    console.log("new Error with errorMessage:", errorMessage);
+    const newError = new Error(errorMessage);
+    newError.name = error.name;
     newError.stack = error.stack;
-    return newError
+    return newError;
   } else {
-    console.log('not a new Error')
-    return error
+    console.log("not a new Error");
+    return error;
   }
 }
