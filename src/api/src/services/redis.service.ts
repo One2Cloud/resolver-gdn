@@ -63,8 +63,6 @@ export class RedisService {
         result: _data,
       };
     }
-
-    // return !!data ? _data : undefined;
   }
 
   public async getDomainUsingAddress(address: string): Promise<IQueryOutput> {

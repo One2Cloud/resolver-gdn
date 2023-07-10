@@ -1,23 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-// export const sendResponse = (res: Response, data: any, status = 200, on_chain = false, func = '') => {
-//   return res.status(status).json({
-//     status,
-//     on_chain,
-//     function: func,
-//     data,
-//     error: null,
-//   });
-// };
-
-// const sendError = (res: Response, message: string, status = 500, on_chain = false, func = '') => {
-//   return res.status(status).json({
-//     status,
-//     on_chain,
-//     function: func,
-//     data: null,
-//     error: message,
-//   });
-// };
 
 export function responseHandler(req: Request, res: Response, next: NextFunction) {
   const status = Number(res.get("Status")) || 200;

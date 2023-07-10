@@ -140,158 +140,6 @@ export class EdnsService {
         }
       }
     }
-
-  //   const result = await Resolver.callStatic
-  //     .getAddress(subdomain, domain, tld)
-  //     .then((address) => {
-  //       console.log({ address });
-  //       // Check if it is a valid address
-  //       if (address !== "0x0000000000000000000000000000000000000000") {
-  //         if (ethers.utils.isAddress(address)) {
-  //           return {
-  //             result: address
-  //           }
-  //         } else {
-  //           console.log({ address });
-  //           // const error = new Error('ON_CHAIN_UNEXPECTED_ERROR')
-  //           // error.result = address
-  //           // throw error
-  //           return {
-  //             result: address, // address that is not 0x00.. and not a valid address
-  //             error: new Error('ON_CHAIN_UNEXPECTED_ERROR')
-  //           }
-  //         }
-  //       } else {
-  //         console.log("went into RECORD_UNDEFINED")
-  //         // return undefined;
-  //         return {
-  //           result: address,
-  //           error: new Error('RECORD_UNDEFINED')
-  //         }
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       // console.log({ Diu: error });
-  //       // throw new Error('ON_CHAIN_UNEXPECTED_ERROR')
-  //       return {
-  //         error: errorTransform(error)
-  //       }
-  //       // return { error };
-  //       // throw new Error(`${error.reason}`);
-  //     });
-
-  //   if (result) {
-  //     //Check if EDNS-V2 Contract return Address or error
-  //     if (Object.keys(result).includes("error")) {
-  //       try {
-  //         //Query EDNS-V1 lookupAddress function
-  //         const resultv1 = await LookupAddress(fqdn, "ETH");
-  //         if (resultv1 !== undefined) {
-  //           console.log("return resultv1");
-  //           return {
-  //             result: resultv1
-  //           };
-  //         } else {
-  //           console.log("return error");
-  //           // return { error: "can not find address" };
-  //           return {
-  //             error: new Error('RECORD_NOT_FOUND')
-  //           }
-  //         }
-  //       } catch (error) {
-  //         // console.error({ lookupAddress_Error: error });
-  //         // throw new Error(`${error}`);
-
-  //         return {
-  //           error: errorTransform(error)
-  //         }
-          
-  //         // if (error instanceof Error) {
-  //         //   const newError = new Error('ON_CHAIN_UNEXPECTED_ERROR')
-  //         //   newError.stack = error.stack;
-  //         //   throw newError
-  //         // } else {
-  //         //   throw error
-  //         // }
-  //       }
-  //     } else {
-  //       console.log("return result");
-  //       return {
-  //         result: result
-  //       }
-  //     }
-  //   } else {
-  //     // throw new Error("No result");
-  //     return {
-  //       error: new Error('ON_CHAIN_UNEXPECTED_ERROR')
-  //     }
-  //     // throw new Error('ON_CHAIN_UNEXPECTED_ERROR')
-  //   }
-  // }
-
-    // } else {
-    //   console.log("No Subdomain");
-
-    //   const _domain = ethers.utils.toUtf8Bytes(fqdn.split(".")[0]);
-    //   const tld = ethers.utils.toUtf8Bytes(fqdn.split(".")[1]);
-
-    //   _subdomain = ethers.utils.toUtf8Bytes("@");
-    //   console.log({
-    //     _domain,
-    //     tld,
-    //     _subdomain,
-    //   });
-
-  //     const result = await Resolver.callStatic
-  //       .getAddress(_subdomain, _domain, tld)
-  //       .then((address) => {
-  //         console.log({ address });
-
-  //         if (address !== "0x0000000000000000000000000000000000000000") {
-  //           if (ethers.utils.isAddress(address)) {
-  //             return { address };
-  //           } else {
-  //             console.log({ address });
-  //           }
-  //         } else {
-  //           return undefined;
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.log({ Diu: error });
-  //         return { error };
-  //         // throw new Error(`${error.reason}`);
-  //       });
-  //     console.log({ result });
-
-  //     if (result) {
-  //       if (Object.keys(result).includes("error")) {
-  //         try {
-  //           console.log("hi");
-
-  //           // console.log("edns.LookupAddress", edns.LookupAddress);
-  //           const resultv1 = await LookupAddress(fqdn, "ETH");
-  //           console.log({ resultv1 });
-  //           if (resultv1 !== undefined) {
-  //             console.log("return resultv1");
-  //             return { address: resultv1 };
-  //           } else {
-  //             console.log("return error");
-  //             return { error: "can not find address" };
-  //           }
-  //         } catch (error) {
-  //           console.error({ lookupAddress_Error: error });
-
-  //           throw new Error(`${error}`);
-  //         }
-  //       } else {
-  //         console.log("return result");
-  //         return result;
-  //       }
-  //     } else {
-  //       throw new Error("No result");
-  //     }
-  //   }
   }
 
   //Get NFT
@@ -301,43 +149,8 @@ export class EdnsService {
       RESOLVER_CONTRACT_ADDRESS,
       provider
     );
-    // let _subdomain;
-    // let _domain;
-    // let tld;
-
-    // if (domain.split(".").length === 3) {
-    //   console.log("wrong subdomain");
-
-    //   _subdomain = ethers.utils.toUtf8Bytes(domain.split(".")[0]);
-    //   _domain = ethers.utils.toUtf8Bytes(domain.split(".")[1]);
-    //   tld = ethers.utils.toUtf8Bytes(domain.split(".")[2]);
-    // } else {
-    //   console.log("No subdomain");
-
-    //   _subdomain = ethers.utils.toUtf8Bytes("@");
-    //   _domain = ethers.utils.toUtf8Bytes(domain.split(".")[0]);
-    //   tld = ethers.utils.toUtf8Bytes(domain.split(".")[1]);
-    // }
-
-    // console.log(_domain);
-    // console.log(tld);
-    // console.log(_subdomain);
 
     const {subdomain, domain, tld} = this.getDomainSubdomainTld(fqdn);
-
-    // method 1
-    // let result;
-    // try {
-    //   result = await Resolver.callStatic.getNFT(subdomain, domain, tld, CHAINID)
-    //     .then((nft) => {
-    //       if (nft[0] === "0x0000000000000000000000000000000000000000") {
-    //         throw new Error('RECORD_NOT_FOUND');
-    //       } else {
-    //         return nft;
-    //       }})
-    // } catch (error) {
-    //   throw new Error('ON_CHAIN_UNEXPECTED_ERROR')
-    // }
 
     let result;
     try {
@@ -364,24 +177,6 @@ export class EdnsService {
         }
       }
     }
-
-    // method 2
-    // const result = await Resolver.callStatic
-    //   .getNFT(subdomain, domain, tld, CHAINID)
-    //   .then((nft) => {
-    //     if (nft[0] === "0x0000000000000000000000000000000000000000") {
-    //       throw new Error('RECORD_NOT_FOUND');
-    //     } else {
-    //       return nft;
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     errorTransform(error)
-    //   });
-
-    // console.log({ result });
-    // return { result };
-
   }
   //Get Text Record
   public async queryEdnsText(fqdn: string): Promise<IQueryOutput> {
@@ -477,33 +272,6 @@ export class EdnsService {
         result: { 'domain': result }
       }
     }
-    // return {
-    //   result: result
-    // }
-    // if (result) {
-    //   if (Object.keys(result).includes("error") || result.domain == "") {
-    //     try {
-    //       const resultv1 = await LookupDomainFromAddress(address);
-    //       console.log({ resultv1 });
-    //       if (resultv1 !== undefined) {
-    //         console.log("return resultv1");
-    //         return { domain: resultv1 };
-    //       } else {
-    //         console.log("return error");
-    //         return { error: "can not find domain" };
-    //       }
-    //     } catch (error) {
-    //       console.error({ lookupdomain_Error: error });
-
-    //       throw new Error(`${error}`);
-    //     }
-    //   } else {
-    //     console.log("return result");
-    //     return result;
-    //   }
-    // } else {
-    //   throw new Error("No result");
-    // }
   }
   /*
   public async queryEdnsMultiCoinAddress(fqdn: string, coin: number) {
@@ -623,61 +391,6 @@ export class EdnsService {
         result: { [type]: result }
       }
     }
-
-      // const result = await Resolver.callStatic
-      //   .getTypedText(_subdomain, _domain, tld, _type)
-      //   .then((typetext) => {
-      //     console.log({ typetext });
-
-      //     if (typetext !== "") {
-      //       return { [type]: typetext };
-      //     } else {
-      //       return undefined;
-      //     }
-      //   })
-      //   .catch((error) => {
-      //     console.log({ Diu: error });
-      //     return { error };
-      //     // throw new Error(`${error.reason}`);
-      //   });
-
-    //   if (Object.keys(TextType).includes(type)) {
-    //     const resultv1 = await LookUpText(fqdn, type as TextType);
-    //     const resultfin = Promise.all([result, resultv1]);
-    //     return resultfin;
-    //   }
-
-    //   console.log(result );
-
-    //   return result;
-    // } else {
-    //   console.log("No Subdomain");
-
-    //   const _domain = ethers.utils.toUtf8Bytes(fqdn.split(".")[0]);
-    //   const tld = ethers.utils.toUtf8Bytes(fqdn.split(".")[1]);
-    //   const _type = ethers.utils.toUtf8Bytes(type);
-    //   _subdomain = ethers.utils.toUtf8Bytes("@");
-    //   console.log({
-    //     _domain,
-    //     tld,
-    //     _subdomain,
-    //   });
-
-    //   const result = await Resolver.callStatic
-    //     .getTypedText(_subdomain, _domain, tld, _type)
-    //     .then((typetext) => {
-    //       console.log({ typetext });
-
-    //       if (typetext !== "") {
-    //         return { [type]: typetext };
-    //       } else {
-    //         throw new Error("Not Record")
-    //       }
-    //     })
-    //   console.log({ result });
-
-    //   return result;
-    // }
   }
 
   // public async queryEdnsMetadata(tokenId: string) {
