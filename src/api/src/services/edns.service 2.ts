@@ -20,6 +20,7 @@ import { isEnumMember } from "typescript";
 import { errorTransform } from './errorTransform';
 import { EdnsV1FromContractService } from './edns-v1.service';
 import { EdnsV2FromContractService, EdnsV2FromRedisService } from './edns-v2.service';
+import { IOptions } from "../interfaces/IOptions.interface";
 
 const contractList: {[key: number]: {resolverAddress: string, rpcUrl: string}} = {
   43113: {
@@ -28,14 +29,6 @@ const contractList: {[key: number]: {resolverAddress: string, rpcUrl: string}} =
   }
 };
 
-export interface IQueryOutput{
-  result?: any;
-  error?: Error;
-}
-
-export interface IOptions{
-  on_chain?: boolean;
-}
 
 export class EdnsService {
 
@@ -46,7 +39,7 @@ export class EdnsService {
 
     let address: string | undefined;
 
-    if (options?.on_chain === undefined || options?.on_chain === true) {
+    if (options?.onChain === undefined || options?.onChain === true) {
       const result = await v2RedisService.getAddressRecord(fqdn);
       if (result) address = result.address;
     } else {

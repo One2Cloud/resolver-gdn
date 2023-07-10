@@ -1,5 +1,4 @@
 import {Resolver, Resolver__factory as ResolverFactory} from "../typechain/edns-v1/typechain";
-import ContractAddress from "../../static/edns/contract.json";
 import { getProvider } from "../utils/get-provider";
 import { extractFqdn } from "../utils/extract-fqdn";
 import NetworkConfig, { Net } from "../network-config";
@@ -7,12 +6,10 @@ import { isValidFqdn } from "../utils/is-valid-fqdn";
 import { InvalidFqdnError } from '../errors/invalid-fqdn.error';
 import { BigNumber, ethers } from "ethers";
 import { DomainNotFoundError } from "../errors/domain-not-found.error";
-
-export interface IOptions {
-  chainId?: number;
-  net?: Net;
-  onChain?: string;
-}
+import { formatsByName } from "@ensdomains/address-encoder";
+import { RESOLVER_CONTRACT_ADDRESS, RPC_ENDPOINT } from "../useContract";
+import { IOptions } from "../interfaces/IOptions.interface";
+import { MissingCoinNameError } from "../errors/missing-coin-name.error";
 
 export interface IGetAddressRecordOutput {
   address: string;
@@ -28,7 +25,7 @@ export interface IEdnsResolverService {
 }
 
 export interface IEdnsRegistryService {
-  isExists(fqdn: string, options?: IOptions): Promise<boolean>;
+  // isExists(fqdn: string, options?: IOptions): Promise<boolean>;
 }
 
 export const namehash = (domain: string): string => {
@@ -41,21 +38,22 @@ export const namehash = (domain: string): string => {
 
 export class EdnsV1FromContractService implements IEdnsResolverService, IEdnsRegistryService {
 
-  public async getAddressRecord(domain: string, coinName: string): Promise<IGetAddressRecordOutput | undefined> {
+  public async getAddressRecord(domain: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
 
-    // --- temp ----------------------------------------------------------------
-    const RPC_ENDPOINT = "https://api.avax-test.network/ext/bc/C/rpc";
-    const RESOLVER_CONTRACT_ADDRESS = "0x044FB12f7E570c059e4E202e35EA1b68ee1CB8B4";
+    if (options?.coinName === undefined) {
+      throw new MissingCoinNameError();
+    }
 
     const provider = new ethers.providers.JsonRpcProvider(RPC_ENDPOINT);
     const Resolver = ResolverFactory.connect(RESOLVER_CONTRACT_ADDRESS, provider);
     const hash = namehash(domain);
-    const address_ = await Resolver.callStatic['addr(bytes32,uint256)'](hash, "ETH"); // REVIEW
+    const address_ = await Resolver.callStatic['addr(bytes32,uint256)'](hash, formatsByName[options.coinName].coinType);
     if (address_ !== '0x') {
         if (ethers.utils.isAddress(address_)) {
-            return {address : address_};
+          return {address : address_};
         } else {
-            return undefined; // REVIEW
+          return undefined; 
+            // return formatsByName[coinName].encoder(Buffer.from(ethers.utils.toUtf8String(address_), 'hex'))
         }
     } else {
         return undefined;
