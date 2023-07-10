@@ -1,34 +1,44 @@
 import { Request, Response, NextFunction } from "express";
 import { EdnsService } from "../services/edns.service";
 import { RedisService } from "../services/redis.service";
+
+import { EdnsV1FromContractService } from "../services/edns-v1.service";
+
 export default class EdnsController {
-  public static async queryEdnsAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
-    let output;
-    try {
-      const { fqdn } = req.params;
-      res.set("Function", "GetAddressUsingFqdn");
-      if (req.query.redis) {
-        // Call redis service
-        res.set("On-Chain", "false");
-        const redisService = new RedisService();
-        output = await redisService.getValueUsingFqdn(fqdn, "address");
-      } else {
-        res.set("On-Chain", "true");
-        // Call edns service (blockchain)
-        const ednsService = new EdnsService();
-        output = await ednsService.queryEdnsAddress(`${fqdn}`);
-      }
-      if (output.error) {
-        throw output.error;
-      }
-      res.locals.result = output?.result;
-      next();
-      // console.log(result)
-    } catch (error) {
-      res.locals.result = output?.result;
-      next(error);
-    }
-  }
+
+  // public static async queryEdnsAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+  //   const v1Service = new EdnsV1FromContractService()
+  //   output = await v1Service.queryEdnsAddress(fqdn)
+  // }
+
+
+  // public static async queryEdnsAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+  //   let output;
+  //   try {
+  //     const { fqdn } = req.params;
+  //     res.set("Function", "GetAddressUsingFqdn");
+  //     if (req.query.redis) {
+  //       // Call redis service
+  //       res.set("On-Chain", "false");
+  //       const redisService = new RedisService();
+  //       output = await redisService.getValueUsingFqdn(fqdn, "address");
+  //     } else {
+  //       res.set("On-Chain", "true");
+  //       // Call edns service (blockchain)
+  //       const ednsService = new EdnsService();
+  //       output = await ednsService.queryEdnsAddress(`${fqdn}`);
+  //     }
+  //     if (output.error) {
+  //       throw output.error;
+  //     }
+  //     res.locals.result = output?.result;
+  //     next();
+  //     // console.log(result)
+  //   } catch (error) {
+  //     res.locals.result = output?.result;
+  //     next(error);
+  //   }
+  // }
 
   public static async queryEdnsNft(req: Request, res: Response, next: NextFunction): Promise<void> {
     let output;
