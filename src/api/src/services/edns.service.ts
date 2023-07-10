@@ -18,6 +18,7 @@ import {
 } from "@edns/sdk";
 import { isEnumMember } from "typescript";
 import { errorTransform } from './errorTransform';
+import { EdnsV2FromContractService, EdnsV2FromRedisService } from './edns-v2.service';
 
 const contractList: {[key: number]: {resolverAddress: string, rpcUrl: string}} = {
   43113: {
@@ -29,6 +30,10 @@ const contractList: {[key: number]: {resolverAddress: string, rpcUrl: string}} =
 export interface IQueryOutput{
   result?: any;
   error?: Error;
+}
+
+export interface IOptions{
+  on_chain?: boolean;
 }
 
 export class EdnsService {
@@ -68,7 +73,24 @@ export class EdnsService {
 
   // Get Domain Record
   //fqdn - web3 domain name
-  public async queryEdnsAddress(fqdn: string): Promise<IQueryOutput>{
+  public async queryEdnsAddress(fqdn: string, options?: IOptions){
+
+    const v2RedisService = new EdnsV2FromRedisService();
+    const v2ContractService = new EdnsV2FromContractService();
+
+    let address: string  | undefined;
+
+    if (options?.on_chain === undefined || options?.on_chain === true) {
+      const result = await v2RedisService.getAddressRecord(fqdn);
+      if (result) address = result.address;
+    } else {
+      const result = await v2ContractService.getAddressRecord(fqdn);
+      if (result) address = result.address;
+    }
+
+    if (address) return { address };
+
+
     const provider = new JsonRpcProvider(RPC_ENDPOINT);
     const Resolver = ResolverFactory.connect(
       RESOLVER_CONTRACT_ADDRESS,
