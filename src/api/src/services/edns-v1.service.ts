@@ -40,10 +40,6 @@ export class EdnsV1FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getAddressRecord(domain: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
 
-    if (options?.coinName === undefined) {
-      throw new MissingCoinNameError();
-    }
-
     const provider = new ethers.providers.JsonRpcProvider(RPC_ENDPOINT);
     const Resolver = ResolverFactory.connect(RESOLVER_CONTRACT_ADDRESS, provider);
     const hash = namehash(domain);

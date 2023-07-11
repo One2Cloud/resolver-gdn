@@ -7,11 +7,19 @@ import { isValidFqdn } from "../utils/is-valid-fqdn";
 import { extractFqdn } from "../utils/extract-fqdn";
 import _ from "lodash";
 import { BigNumber, ethers } from "ethers";
-import { InvalidFqdnError } from '../errors/invalid-fqdn.error';
+import { InvalidFqdnError } from "../errors/invalid-fqdn.error";
 import { DomainNotFoundError } from "../errors/domain-not-found.error";
-import { IGetMultiCoinAddressRecordOutput, IGetTextRecordOutput, IGetTypedTextRecordOutput, IGetNftRecordOutput, IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsResolverService.interface";
-import { IEdnsResolverService, IEdnsRegistryService, IOptions, IGetAddressRecordOutput } from "./edns-v1.service";
+import {
+  IGetMultiCoinAddressRecordOutput,
+  IGetTextRecordOutput,
+  IGetTypedTextRecordOutput,
+  IGetNftRecordOutput,
+  IGetDomainOutput,
+  IGetHostOutput,
+} from "../interfaces/IEdnsResolverService.interface";
+import { IEdnsResolverService, IEdnsRegistryService, IGetAddressRecordOutput } from "./edns-v1.service";
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../../typechain";
+import { IOptions } from "../interfaces/IOptions.interface";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const network = NetworkConfig[chainId];
@@ -179,7 +187,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     const isExists = await this.isExists(fqdn, options);
-    console.log({isExists})
+    console.log({ isExists });
     if (!isExists) throw new DomainNotFoundError(fqdn);
 
     const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
@@ -190,9 +198,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
       return {
         address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
       };
-    }else if(name && tld){
+    } else if (name && tld) {
       return {
-        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes('@'), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
+        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
       };
     }
     return undefined;
@@ -275,9 +283,13 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const { host, name, tld } = extractFqdn(fqdn);
     if (host && name && tld) {
-      return await contracts.Registry["isExists(bytes32,bytes32,bytes32)"](ethers.utils.solidityKeccak256(['string'],[host]), ethers.utils.solidityKeccak256(['string'],[name]), ethers.utils.solidityKeccak256(['string'],[tld]));
+      return await contracts.Registry["isExists(bytes32,bytes32,bytes32)"](
+        ethers.utils.solidityKeccak256(["string"], [host]),
+        ethers.utils.solidityKeccak256(["string"], [name]),
+        ethers.utils.solidityKeccak256(["string"], [tld]),
+      );
     } else if (name && tld) {
-      return await contracts.Registry["isExists(bytes32,bytes32)"](ethers.utils.solidityKeccak256(['string'],[name]), ethers.utils.solidityKeccak256(['string'],[tld]));
+      return await contracts.Registry["isExists(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
     } else {
       return await contracts.Registry["isExists(bytes32)"](ethers.utils.keccak256(tld));
     }
