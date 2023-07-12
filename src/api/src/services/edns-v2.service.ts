@@ -17,11 +17,11 @@ import {
   IGetDomainOutput,
   IGetHostOutput,
   IGetAddressRecordOutput,
-  IEdnsResolverServiceV2,
+  IEdnsResolverService,
 } from "../interfaces/IEdnsResolverService.interface";
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../../typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
-import { IEdnsRegistryServiceV2 } from "../interfaces/IEdnsRegistryService.interface";
+import { IEdnsRegistryService } from "../interfaces/IEdnsRegistryService.interface";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const network = NetworkConfig[chainId];
@@ -38,7 +38,7 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
   }
 };
 
-export class EdnsV2FromRedisService implements IEdnsResolverServiceV2, IEdnsRegistryServiceV2 {
+export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegistryService {
   public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     const redis = createRedisClient();
 
@@ -178,7 +178,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverServiceV2, IEdnsRegi
   }
 }
 
-export class EdnsV2FromContractService implements IEdnsResolverServiceV2, IEdnsRegistryServiceV2 {
+export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsRegistryService {
   private async _getDomainChainId(domain: string, options?: IOptions): Promise<number> {
     const redis = createRedisClient();
     const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`, "chain");
@@ -256,7 +256,7 @@ export class EdnsV2FromContractService implements IEdnsResolverServiceV2, IEdnsR
 
     const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
     const contracts = getContracts(_chainId);
-    const _typed = ethers.utils.toUtf8Bytes(typed)
+    const _typed = ethers.utils.toUtf8Bytes(typed);
 
     const { host, name, tld } = extractFqdn(fqdn);
     if (host && name && tld) {
@@ -279,25 +279,24 @@ export class EdnsV2FromContractService implements IEdnsResolverServiceV2, IEdnsR
 
     const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
     const contracts = getContracts(_chainId);
-    
+
     const { host, name, tld } = extractFqdn(fqdn);
     if (host && name && tld) {
       const [contractAddress, tokenId] = await contracts.Resolver.getNFT(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), chainId);
       return {
         chainId,
         contractAddress,
-        tokenId: `${tokenId.toNumber()}`
+        tokenId: `${tokenId.toNumber()}`,
       };
     } else if (name && tld) {
-      const [contractAddress, tokenId] = await contracts.Resolver.getNFT(ethers.utils.toUtf8Bytes('@'), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), chainId);
+      const [contractAddress, tokenId] = await contracts.Resolver.getNFT(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), chainId);
       return {
         chainId,
         contractAddress,
-        tokenId: `${tokenId.toNumber()}`
+        tokenId: `${tokenId.toNumber()}`,
       };
     }
     return undefined;
-
   }
 
   public async isExists(fqdn: string, options?: IOptions): Promise<boolean> {

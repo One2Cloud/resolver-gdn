@@ -1,4 +1,5 @@
 import { IOptions } from "./IOptions.interface";
+import * as luxon from "luxon";
 
 export interface IGetAddressRecordOutput {
   address: string;
@@ -43,16 +44,7 @@ export interface IGetHostOutput {
   records: string[];
 }
 
-export interface IEdnsResolverServiceV1 {
-  getAddressRecord(fqdn: string, coinName: string): Promise<IGetAddressRecordOutput | undefined>;
-  getMultiCoinAddressRecord(fqdn: string, coin: string, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined>;
-  getTextRecord(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined>;
-  getTypedTextRecord(fqdn: string, typed: string, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined>;
-  getNftRecord(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined>;
-  // getAllRecords(fqdn: string): Promise<IGetAddressRecordOutput[] | undefined>;
-}
-
-export interface IEdnsResolverServiceV2 {
+export interface IEdnsResolverService {
   getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined>;
   getMultiCoinAddressRecord(fqdn: string, coin: string, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined>;
   getTextRecord(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined>;
