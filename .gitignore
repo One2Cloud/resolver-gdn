@@ -5,7 +5,8 @@
 node_modules
 build/
 dist/
-!src/listener/src/contracts/ethereum/typechain/**/*.d.ts
+typechain/**/*.d.ts
+typechain-types/**/*.d.ts
 .DS_Store
 
 # CDK asset staging directory

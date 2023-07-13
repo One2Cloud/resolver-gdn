@@ -1,13 +1,8 @@
-import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers";
 import { putEvent } from "../utils/put-event";
 import { EventType } from "../constants/event-type.constant";
 import { DomainProvider } from "../constants/domain-provider.constant";
-import { IRegistry } from "../contracts/ethereum/typechain/IRegistry";
-import { PublicResolver } from "../contracts/ethereum/typechain/PublicResolver";
-import { Registrar } from "../contracts/ethereum/typechain/Registrar";
-import { IRegistry__factory } from "../contracts/ethereum/typechain/factories/IRegistry__factory";
-import { PublicResolver__factory } from "../contracts/ethereum/typechain/factories/PublicResolver__factory";
-import { Registrar__factory } from "../contracts/ethereum/typechain/factories/Registrar__factory";
+import { PublicResolver, Registrar, IRegistry, PublicResolver__factory, Registrar__factory, IRegistry__factory } from "src/contracts/ethereum/typechain-types";
+import { JsonRpcProvider, WebSocketProvider } from "ethers";
 
 export interface IEthereumListenerConstructorProps {
 	id: number;
@@ -24,7 +19,7 @@ export default class EdnsEthereumListener {
 	private readonly id: number;
 	private readonly name: string;
 	private readonly rpc: string;
-	public readonly provider: JsonRpcProvider;
+	public readonly provider: JsonRpcProvider | WebSocketProvider;
 	public readonly mainnet: boolean;
 	public readonly contracts: {
 		resolver: PublicResolver;
