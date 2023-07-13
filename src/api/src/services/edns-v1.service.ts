@@ -11,8 +11,11 @@ import {
   IGetTextRecordOutput,
   IGetTypedTextRecordOutput,
 } from "../interfaces/IEdnsResolverService.interface";
-import { EDNSRegistry__factory, PublicResolver, PublicResolver__factory } from "../typechain/edns-v1/typechain";
-import { EDNSRegistry } from "../typechain/edns-v1/typechain/EDNSRegistry";
+import { EDNSRegistry, EDNSRegistry__factory, PublicResolver, PublicResolver__factory } from "../typechain/edns-v1/typechain";
+import { createRedisClient } from "../utils/create-redis-client";
+import { isValidFqdn } from "../utils/is-valid-fqdn";
+import { InvalidFqdnError } from "../errors/invalid-fqdn.error";
+import { extractFqdn } from "../utils/extract-fqdn";
 
 export interface IGetAddressRecordOutput {
   address: string;
@@ -101,5 +104,65 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
     const { registry } = this._getContract(provider);
     const hash = namehash(fqdn);
     return registry.recordExists(hash);
+  }
+}
+
+export class EdnsV1FromRedisService implements IEdnsResolverService {
+  public async getAddressRecord(fqdn: string, options?: IOptions | undefined): Promise<IGetAddressRecordOutput | undefined> {
+    const redis = createRedisClient();
+
+    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+
+    const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, "address");
+    if (!address) return undefined;
+    return { address };
+  }
+  public async getMultiCoinAddressRecord(fqdn: string, coin: string, options?: IOptions | undefined): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
+    const redis = createRedisClient();
+
+    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+
+    const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `multi_coin_address:${coin}`);
+    if (!address) return undefined;
+    return { coin, address };
+  }
+  public async getTextRecord(fqdn: string, options?: IOptions | undefined): Promise<IGetTextRecordOutput | undefined> {
+    throw new Error("UNSUPPORTED_FEATURES");
+  }
+  public async getTypedTextRecord(fqdn: string, typed: string, options?: IOptions | undefined): Promise<IGetTypedTextRecordOutput | undefined> {
+    const redis = createRedisClient();
+
+    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+
+    const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `typed_text:${typed}`);
+    if (!text) return undefined;
+    return { text, typed };
+  }
+  public async getNftRecord(fqdn: string, chainId: string, options?: IOptions | undefined): Promise<IGetNftRecordOutput | undefined> {
+    const redis = createRedisClient();
+    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+    const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `text`);
+    if (!result) return undefined;
+    const [contractAddress, tokenId] = result.split(":");
+    return { contractAddress, tokenId, chainId };
+  }
+
+  public async isExists(fqdn: string, options?: IOptions): Promise<boolean> {
+    const redis = createRedisClient();
+
+    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+
+    const { host, name, tld } = extractFqdn(fqdn);
+    if (host && name && tld) {
+      return !!(await redis.exists(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:info`));
+    } else if (name && tld) {
+      return !!(await redis.exists(`edns:${options?.net || Net.MAINNET}:domain:${name}.${tld}:info`));
+    } else {
+      return true; // TODO:
+    }
   }
 }

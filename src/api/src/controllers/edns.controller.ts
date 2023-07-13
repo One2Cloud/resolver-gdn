@@ -5,12 +5,10 @@ import { RedisService } from "../services/redis.service";
 import { EdnsV1FromContractService } from "../services/edns-v1.service";
 
 export default class EdnsController {
-
   // public static async queryEdnsAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
   //   const v1Service = new EdnsV1FromContractService()
   //   output = await v1Service.queryEdnsAddress(fqdn)
   // }
-
 
   // public static async queryEdnsAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
   //   let output;

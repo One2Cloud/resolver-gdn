@@ -9,3 +9,6 @@ node_modules/
 !.env.sample
 *.log
 .idea/
+
+!./src/typechain/edns-v1/typechain/*.d.ts
+!./src/typechain/edns-v2/typechain/*.d.ts

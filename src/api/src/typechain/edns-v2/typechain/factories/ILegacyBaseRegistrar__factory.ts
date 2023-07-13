@@ -13,6 +13,19 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "controller",
+        type: "address",
+      },
+    ],
+    name: "addController",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "id",
         type: "uint256",
@@ -31,7 +44,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "nameExpiry",
+    name: "nameExpires",
     outputs: [
       {
         internalType: "uint256",

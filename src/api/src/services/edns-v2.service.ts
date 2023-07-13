@@ -19,7 +19,7 @@ import {
   IGetAddressRecordOutput,
   IEdnsResolverService,
 } from "../interfaces/IEdnsResolverService.interface";
-import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../../typechain";
+import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../typechain/edns-v2/typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
 import { IEdnsRegistryService } from "../interfaces/IEdnsRegistryService.interface";
 
