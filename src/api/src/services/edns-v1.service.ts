@@ -118,6 +118,7 @@ export class EdnsV1FromRedisService implements IEdnsResolverService {
     if (!address) return undefined;
     return { address };
   }
+
   public async getMultiCoinAddressRecord(fqdn: string, coin: string, options?: IOptions | undefined): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
     const redis = createRedisClient();
 
@@ -128,9 +129,11 @@ export class EdnsV1FromRedisService implements IEdnsResolverService {
     if (!address) return undefined;
     return { coin, address };
   }
+
   public async getTextRecord(fqdn: string, options?: IOptions | undefined): Promise<IGetTextRecordOutput | undefined> {
     throw new Error("UNSUPPORTED_FEATURES");
   }
+
   public async getTypedTextRecord(fqdn: string, typed: string, options?: IOptions | undefined): Promise<IGetTypedTextRecordOutput | undefined> {
     const redis = createRedisClient();
 
@@ -141,6 +144,7 @@ export class EdnsV1FromRedisService implements IEdnsResolverService {
     if (!text) return undefined;
     return { text, typed };
   }
+
   public async getNftRecord(fqdn: string, chainId: string, options?: IOptions | undefined): Promise<IGetNftRecordOutput | undefined> {
     const redis = createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);

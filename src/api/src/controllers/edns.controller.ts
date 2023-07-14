@@ -10,33 +10,25 @@ export default class EdnsController {
   //   output = await v1Service.queryEdnsAddress(fqdn)
   // }
 
-  // public static async queryEdnsAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
-  //   let output;
-  //   try {
-  //     const { fqdn } = req.params;
-  //     res.set("Function", "GetAddressUsingFqdn");
-  //     if (req.query.redis) {
-  //       // Call redis service
-  //       res.set("On-Chain", "false");
-  //       const redisService = new RedisService();
-  //       output = await redisService.getValueUsingFqdn(fqdn, "address");
-  //     } else {
-  //       res.set("On-Chain", "true");
-  //       // Call edns service (blockchain)
-  //       const ednsService = new EdnsService();
-  //       output = await ednsService.queryEdnsAddress(`${fqdn}`);
-  //     }
-  //     if (output.error) {
-  //       throw output.error;
-  //     }
-  //     res.locals.result = output?.result;
-  //     next();
-  //     // console.log(result)
-  //   } catch (error) {
-  //     res.locals.result = output?.result;
-  //     next(error);
-  //   }
-  // }
+  public static async queryEdnsAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    let output;
+    try {
+      const { fqdn } = req.params;
+      res.set("Function", "GetAddressUsingFqdn");
+      const ednsService = new EdnsService();
+      res.set("On-Chain", `${req.query.redis}`);
+      output = await ednsService.getAddressRecord(`${fqdn}`, { onChain: Boolean(req.query.redis) });
+      if (output.error) {
+        throw output.error;
+      }
+      res.locals.result = output?.result;
+      next();
+      // console.log(result)
+    } catch (error) {
+      res.locals.result = output?.result;
+      next(error);
+    }
+  }
 
   public static async queryEdnsNft(req: Request, res: Response, next: NextFunction): Promise<void> {
     let output;

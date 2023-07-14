@@ -10,8 +10,28 @@ const contractList: { [key: number]: { resolverAddress: string; rpcUrl: string }
 };
 
 export class EdnsService {
-  public async queryEdnsNft(arg0: string): Promise<any> {
-    throw new Error("Method not implemented.");
+  public async queryEdnsNft(fqdn: string, options?: IOptions): Promise<any> {
+    const v2RedisService = new EdnsV2FromRedisService();
+    const v2ContractService = new EdnsV2FromContractService();
+
+    let nftresult;
+
+    if (options?.onChain === undefined || options?.onChain === true) {
+      const result = await v2RedisService.getNftRecord(fqdn, `${options?.chainId}`);
+      if (result) nftresult = result;
+    } else {
+      const result = await v2ContractService.getNftRecord(fqdn, `${options?.chainId}`);
+      if (result) nftresult = result;
+    }
+
+    if (!nftresult) {
+      const v1ContractService = new EdnsV1FromContractService();
+      const result = await v1ContractService.getNftRecord(fqdn, `${options?.chainId}`);
+      if (result) nftresult = result;
+    }
+    if (nftresult) {
+      return { nftresult };
+    }
   }
   public async queryEdnsText(arg0: string): Promise<any> {
     throw new Error("Method not implemented.");
