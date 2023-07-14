@@ -11,11 +11,14 @@ import {
   IGetTextRecordOutput,
   IGetTypedTextRecordOutput,
 } from "../interfaces/IEdnsResolverService.interface";
-import { EDNSRegistry, EDNSRegistry__factory, PublicResolver, PublicResolver__factory } from "../typechain/edns-v1/typechain";
 import { createRedisClient } from "../utils/create-redis-client";
 import { isValidFqdn } from "../utils/is-valid-fqdn";
 import { InvalidFqdnError } from "../errors/invalid-fqdn.error";
 import { extractFqdn } from "../utils/extract-fqdn";
+import { PublicResolver__factory } from "../typechain/edns-v1/typechain/factories/PublicResolver__factory";
+import { EDNSRegistry__factory } from "../typechain/edns-v1/typechain/factories/EDNSRegistry__factory";
+import { PublicResolver } from "../typechain/edns-v1/typechain/PublicResolver";
+import { EDNSRegistry } from "../typechain/edns-v1/typechain/EDNSRegistry";
 
 export interface IGetAddressRecordOutput {
   address: string;
