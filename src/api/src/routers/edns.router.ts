@@ -1,24 +1,16 @@
 import { Request, Response, NextFunction } from "express";
 import * as express from "express";
 import EdnsController from "../controllers/edns.controller";
-import { errorHandler, responseHandler } from "../middleware/returnHandler";
+import { errorHandler } from "../middleware/returnHandler";
 
 const router = express.Router();
 
-// Get Domain's Address Record
-router.get("/record/:fqdn/address", EdnsController.queryEdnsAddress, responseHandler, errorHandler);
-
-// Get Address's NFT Record
-router.get("/record/:fqdn/:chainId/nft", EdnsController.queryEdnsNft, responseHandler, errorHandler);
-
-// Get Address's Text Record
-router.get("/record/:fqdn/text", EdnsController.queryEdnsText, responseHandler, errorHandler);
-
-// Get Address's Domain Record
-router.get("/record/:address/domain", EdnsController.queryEdnsDomain, responseHandler, errorHandler);
-
-// Get Address's Text Record with Type
-router.get("/record/:fqdn/text/:type", EdnsController.queryEdnsTypeText, responseHandler, errorHandler);
+router.get("/record/:address/domain", EdnsController.getReverseAddressRecord, errorHandler);
+router.get("/record/:fqdn/address/:coin", EdnsController.getMultiCoinAddressRecord, errorHandler);
+router.get("/record/:fqdn/address", EdnsController.getAddressRecord, errorHandler);
+router.get("/record/:fqdn/nft/:chainId", EdnsController.getNftRecord, errorHandler);
+router.get("/record/:fqdn/text/:typed", EdnsController.getTypedTextRecord, errorHandler);
+router.get("/record/:fqdn/text", EdnsController.getTextRecord, errorHandler);
 
 router.get(
   "/*",

@@ -1,19 +1,46 @@
 import { IOptions } from "./IOptions.interface";
-import * as luxon from "luxon";
+
+export interface IGenericInput {
+  fqdn: string;
+}
+
+export interface IGetReverseAddressRecordInput {
+  address: string;
+}
+
+export interface IGetReverseAddressRecordOutput {
+  fqdn: string;
+}
+
+export interface IGetAddressRecordInput extends IGenericInput {}
 
 export interface IGetAddressRecordOutput {
   address: string;
+}
+
+export interface IGetMultiCoinAddressRecordInput extends IGenericInput {
+  coin: string;
 }
 export interface IGetMultiCoinAddressRecordOutput {
   coin: string;
   address: string;
 }
+
+export interface IGetTextRecordInput extends IGenericInput {}
 export interface IGetTextRecordOutput {
   text: string;
+}
+
+export interface IGetTypedTextRecordInput extends IGenericInput {
+  typed: string;
 }
 export interface IGetTypedTextRecordOutput {
   typed: string;
   text: string;
+}
+
+export interface IGetNftRecordInput extends IGenericInput {
+  chainId: string;
 }
 
 export interface IGetNftRecordOutput {
@@ -22,33 +49,12 @@ export interface IGetNftRecordOutput {
   tokenId: string;
 }
 
-export interface IGetDomainOutput {
-  chain: number;
-  owner: string;
-  expiry: luxon.DateTime;
-  resolver: string;
-  operators: string[];
-  user: {
-    address: string;
-    expiry: luxon.DateTime;
-  };
-  hosts: string[];
-}
-
-export interface IGetHostOutput {
-  operators: string[];
-  user: {
-    address: string;
-    expiry: luxon.DateTime;
-  };
-  records: string[];
-}
-
 export interface IEdnsResolverService {
-  getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined>;
-  getMultiCoinAddressRecord(fqdn: string, coin: string, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined>;
-  getTextRecord(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined>;
-  getTypedTextRecord(fqdn: string, typed: string, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined>;
-  getNftRecord(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined>;
+  getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined>;
+  getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined>;
+  getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined>;
+  getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined>;
+  getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined>;
+  getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined>;
   // getAllRecords(fqdn: string): Promise<IGetAddressRecordOutput[] | undefined>;
 }

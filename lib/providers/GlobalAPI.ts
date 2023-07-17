@@ -25,6 +25,7 @@ export class GlobalApi extends Construct {
 
 		const certificate = new acm.Certificate(this, "Certificate", {
 			domainName: `resolver.gdn`,
+			subjectAlternativeNames: [`api.resolver.gdn`],
 			validation: acm.CertificateValidation.fromDns(props.hostedzone),
 		});
 

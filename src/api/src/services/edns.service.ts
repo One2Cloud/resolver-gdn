@@ -1,155 +1,84 @@
-import { EdnsV1FromContractService, IGetAddressRecordOutput } from "./edns-v1.service";
+import { EdnsV1FromContractService } from "./edns-v1.service";
 import { EdnsV2FromContractService, EdnsV2FromRedisService } from "./edns-v2.service";
 import { IOptions } from "../interfaces/IOptions.interface";
-import { IGetDomainOutput, IGetNftRecordOutput, IGetTextRecordOutput, IGetTypedTextRecordOutput } from "../interfaces/IEdnsResolverService.interface";
+import {
+  IEdnsResolverService,
+  IGetAddressRecordInput,
+  IGetAddressRecordOutput,
+  IGetMultiCoinAddressRecordInput,
+  IGetMultiCoinAddressRecordOutput,
+  IGetNftRecordInput,
+  IGetNftRecordOutput,
+  IGetReverseAddressRecordInput,
+  IGetReverseAddressRecordOutput,
+  IGetTextRecordInput,
+  IGetTextRecordOutput,
+  IGetTypedTextRecordInput,
+  IGetTypedTextRecordOutput,
+} from "../interfaces/IEdnsResolverService.interface";
 
-export class EdnsService {
-  public async queryEdnsNft(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined | Error> {
-    const v1ContractService = new EdnsV1FromContractService();
-    const v2RedisService = new EdnsV2FromRedisService();
-    const v2ContractService = new EdnsV2FromContractService();
+export class EdnsService implements IEdnsResolverService {
+  private readonly _v2RedisService: EdnsV2FromRedisService;
+  private readonly _v2ContractService: EdnsV2FromContractService;
+  private readonly _v1ContractService: EdnsV1FromContractService;
 
-    // ---------- Version 1: More Clear ------------- //
-    // let result;
-    // if (options?.version === undefined) {
-    //   if (options?.onChain === undefined || options?.onChain === true) {
-    //     result = await v2ContractService.getNftRecord(fqdn, chainId, options);
-    //   } else {
-    //     result = await v2RedisService.getNftRecord(fqdn, chainId, options);
-    //   }
-    //   if (!result) {
-    //     result = await v1ContractService.getNftRecord(fqdn, chainId, options);
-    //   }
-    // } else if (options?.version === "v2") {
-    //   if (options?.onChain === undefined || options?.onChain === true) {
-    //     result = await v2ContractService.getNftRecord(fqdn, chainId, options);
-    //   } else {
-    //     result = await v2RedisService.getNftRecord(fqdn, chainId, options);
-    //   }
-    // } else if (options?.version === "v1") {
-    //   if (options?.onChain === undefined || options?.onChain === true) {
-    //     result = await v1ContractService.getNftRecord(fqdn, chainId, options);
-    //   } else {
-    //     throw new Error; // TODO
-    //   }
-    // }
-    // return result;
-    // ---------- End of Version 1 ------------- //
-
-    // ---------- Version 2: More concise ------------- //
-    let result; 
-    if (options?.version !== "v1" && (options?.onChain === undefined || options?.onChain === true)) {
-      result = await v2ContractService.getNftRecord(fqdn, chainId, options);
-    } else {
-      result = await v2RedisService.getNftRecord(fqdn, chainId, options);
-    }
-    if ((options?.version === undefined && !result) || options?.version === "v1") {
-      result = await v1ContractService.getNftRecord(fqdn, chainId, options);
-    }
-    if (options?.version === "v1" && options?.onChain === false) {
-      throw new Error; // TODO
-    }
-    return result;
-    // ---------- End of Version 2 ------------- //
+  constructor() {
+    this._v2RedisService = new EdnsV2FromRedisService();
+    this._v2ContractService = new EdnsV2FromContractService();
+    this._v1ContractService = new EdnsV1FromContractService();
   }
-  public async queryEdnsText(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
-    const v2RedisService = new EdnsV2FromRedisService();
-    const v2ContractService = new EdnsV2FromContractService();
 
-    let text: string | undefined;
-    try {
-      if (options?.onChain === undefined || options?.onChain === true) {
-        const result = await v2RedisService.getTextRecord(fqdn, options);
-        if (result) text = result.text;
-      } else {
-        const result = await v2ContractService.getTextRecord(fqdn, options);
-        if (result) text = result.text;
-      }
-
-      if (!text) {
-        const v1ContractService = new EdnsV1FromContractService();
-        const result = await v1ContractService.getTextRecord(fqdn, options);
-        if (result) text = result.text;
-      }
-
-      if (text) {
-        return { text };
-      }
-    } catch (error: any) {
-      return error;
-    }
+  public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
+    let output: IGetReverseAddressRecordOutput | undefined;
+    if (options?.version === "v1") return this._v1ContractService.getReverseAddressRecord(input, options);
+    if (!output && options?.onchain) output = await this._v2ContractService.getReverseAddressRecord(input, options);
+    if (!output && !options?.onchain) output = await this._v2RedisService.getReverseAddressRecord(input, options);
+    if (!output) output = await this._v2ContractService.getReverseAddressRecord(input, options);
+    return output;
   }
-  public async queryEdnsDomain(address: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
-    const v2RedisService = new EdnsV2FromRedisService();
-    const v2ContractService = new EdnsV2FromContractService();
 
-    let domain: IGetDomainOutput | undefined;
-
-    if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2RedisService.getDomain(address);
-      if (result) domain = result;
-    } else {
-      const result = await v2ContractService.getDomain(address);
-      if (result) domain = result;
-    }
-
-    if (!domain) {
-      const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getDomain(address);
-      if (result) domain = result;
-    }
-
-    if (domain) {
-      return domain;
-    }
+  public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
+    let output: IGetAddressRecordOutput | undefined;
+    if (options?.version === "v1") return this._v1ContractService.getAddressRecord(input, options);
+    if (!output && options?.onchain) output = await this._v2ContractService.getAddressRecord(input, options);
+    if (!output && !options?.onchain) output = await this._v2RedisService.getAddressRecord(input, options);
+    if (!output) output = await this._v2ContractService.getAddressRecord(input, options);
+    return output;
   }
-  public async queryEdnsTypeText(fqdn: string, typed: string, options?: IOptions): Promise<String | undefined> {
-    const v2RedisService = new EdnsV2FromRedisService();
-    const v2ContractService = new EdnsV2FromContractService();
 
-    let typeText: string | undefined;
-
-    if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2RedisService.getTypedTextRecord(fqdn, typed, options);
-      if (result) typeText = result.text;
-    } else {
-      const result = await v2ContractService.getTypedTextRecord(fqdn, typed, options);
-      if (result) typeText = result.text;
-    }
-
-    if (!typeText) {
-      const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getTypedTextRecord(fqdn, typed, options);
-      if (result) typeText = result.text;
-    }
-
-    if (typeText) {
-      return typeText;
-    }
+  public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
+    let output: IGetMultiCoinAddressRecordOutput | undefined;
+    if (options?.version === "v1") return this._v1ContractService.getMultiCoinAddressRecord(input, options);
+    if (!output && options?.onchain) output = await this._v2ContractService.getMultiCoinAddressRecord(input, options);
+    if (!output && !options?.onchain) output = await this._v2RedisService.getMultiCoinAddressRecord(input, options);
+    if (!output) output = await this._v2ContractService.getMultiCoinAddressRecord(input, options);
+    return output;
   }
-  
-  public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
-    const v2RedisService = new EdnsV2FromRedisService();
-    const v2ContractService = new EdnsV2FromContractService();
 
-    let address: string | undefined;
+  public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
+    let output: IGetTextRecordOutput | undefined;
+    if (options?.version === "v1") return this._v1ContractService.getTextRecord(input, options);
+    if (!output && options?.onchain) output = await this._v2ContractService.getTextRecord(input, options);
+    if (!output && !options?.onchain) output = await this._v2RedisService.getTextRecord(input, options);
+    if (!output) output = await this._v2ContractService.getTextRecord(input, options);
+    return output;
+  }
 
-    if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2ContractService.getAddressRecord(fqdn, options);
-      if (result) address = result.address;
-    } else {
-      const result = await v2RedisService.getAddressRecord(fqdn, options);
-      if (result) address = result.address;
-    }
+  public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
+    let output: IGetTypedTextRecordOutput | undefined;
+    if (options?.version === "v1") return this._v1ContractService.getTypedTextRecord(input, options);
+    if (!output && options?.onchain) output = await this._v2ContractService.getTypedTextRecord(input, options);
+    if (!output && !options?.onchain) output = await this._v2RedisService.getTypedTextRecord(input, options);
+    if (!output) output = await this._v2ContractService.getTypedTextRecord(input, options);
+    return output;
+  }
 
-    if (!address) {
-      const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getAddressRecord(fqdn, options);
-      if (result) address = result.address;
-    }
-
-    if (address) {
-      return { address };
-    }
+  public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
+    let output: IGetNftRecordOutput | undefined;
+    if (options?.version === "v1") return this._v1ContractService.getNftRecord(input, options);
+    if (!output && options?.onchain) output = await this._v2ContractService.getNftRecord(input, options);
+    if (!output && !options?.onchain) output = await this._v2RedisService.getNftRecord(input, options);
+    if (!output) output = await this._v2ContractService.getNftRecord(input, options);
+    return output;
   }
 }
