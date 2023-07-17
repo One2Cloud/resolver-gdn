@@ -12,7 +12,7 @@ const contractList: { [key: number]: { resolverAddress: string; rpcUrl: string }
 };
 
 export class EdnsService {
-  public async queryEdnsNft(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
+  public async queryEdnsNft(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined | Error> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
 
@@ -40,24 +40,26 @@ export class EdnsService {
     const v2ContractService = new EdnsV2FromContractService();
 
     let text: string | undefined;
+    try {
+      if (options?.onChain === undefined || options?.onChain === true) {
+        const result = await v2RedisService.getTextRecord(fqdn, options);
+        if (result) text = result.text;
+      } else {
+        const result = await v2ContractService.getTextRecord(fqdn, options);
+        if (result) text = result.text;
+      }
 
-    if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2RedisService.getTextRecord(fqdn, options);
-      if (result) text = result.text;
-      console.log({ result });
-    } else {
-      const result = await v2ContractService.getTextRecord(fqdn, options);
-      if (result) text = result.text;
-    }
+      if (!text) {
+        const v1ContractService = new EdnsV1FromContractService();
+        const result = await v1ContractService.getTextRecord(fqdn, options);
+        if (result) text = result.text;
+      }
 
-    if (!text) {
-      const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getTextRecord(fqdn, options);
-      if (result) text = result.text;
-    }
-
-    if (text) {
-      return { text };
+      if (text) {
+        return { text };
+      }
+    } catch (error: any) {
+      return error;
     }
   }
   public async queryEdnsDomain(address: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
