@@ -6,10 +6,10 @@ import { errorHandler, responseHandler } from "../middleware/returnHandler";
 const router = express.Router();
 
 // Get Domain's Address Record
-// router.get("/record/:fqdn/address", EdnsController.queryEdnsAddress, responseHandler, errorHandler);
+router.get("/record/:fqdn/address", EdnsController.queryEdnsAddress, responseHandler, errorHandler);
 
 // Get Address's NFT Record
-router.get("/record/:fqdn/nft", EdnsController.queryEdnsNft, responseHandler, errorHandler);
+router.get("/record/:fqdn/:chainId/nft", EdnsController.queryEdnsNft, responseHandler, errorHandler);
 
 // Get Address's Text Record
 router.get("/record/:fqdn/text", EdnsController.queryEdnsText, responseHandler, errorHandler);
