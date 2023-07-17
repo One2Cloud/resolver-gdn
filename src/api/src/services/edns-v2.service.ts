@@ -25,16 +25,28 @@ import { IEdnsRegistryService } from "../interfaces/IEdnsRegistryService.interfa
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const network = NetworkConfig[chainId];
+
   const contracts = ContractAddress.find((contract) => contract.chainId === network.chainId);
-  if (contracts?.addresses["Registrar"] && contracts?.addresses["Registrar"] && contracts?.addresses["PublicResolver"]) {
+
+  if (contracts?.addresses["Registrar"] && contracts?.addresses["Registry.Diamond"] && contracts?.addresses["PublicResolver"]) {
     const provider = getProvider(network.chainId);
+    const RegistrarContract = Registrar__factory.connect(contracts.addresses["Registrar"], provider);
+    const ResolverContract = PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider);
+    const RegistryContract = IRegistry__factory.connect(contracts.addresses["Registry.Diamond"], provider);
+    // return {
+    //   Registrar: Registrar__factory.connect(contracts.addresses["Registrar"], provider),
+    //   Registry: IRegistry__factory.connect(contracts.addresses["Registry.Diamond"], provider),
+    //   Resolver: PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider),
+    // };
+    console.log(ResolverContract);
+
     return {
-      Registrar: Registrar__factory.connect(contracts.addresses["Registrar"], provider),
-      Registry: IRegistry__factory.connect(contracts.addresses["Registry.Diamond"], provider),
-      Resolver: PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider),
+      Registrar: RegistrarContract,
+      Registry: RegistryContract,
+      Resolver: ResolverContract,
     };
   } else {
-    throw new Error(""); // TODO:
+    throw new Error("Unable to connect contract"); // TODO:
   }
 };
 
@@ -187,7 +199,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const redis = createRedisClient();
     const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`, "chain");
     console.log(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`);
-    if (!result) throw new Error(""); //TODO:
+    if (!result) throw new Error("Unable to get Chain ID"); //TODO:
     return parseInt(result);
   }
 
@@ -196,11 +208,10 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const isExists = await this.isExists(fqdn, options);
     console.log({ isExists });
     if (!isExists) throw new DomainNotFoundError(fqdn);
-
     const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
     const contracts = getContracts(_chainId);
-
     const { host, name, tld } = extractFqdn(fqdn);
+
     if (host && name && tld) {
       return {
         address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),

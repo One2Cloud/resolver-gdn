@@ -3,6 +3,7 @@ import { EdnsService } from "../services/edns.service";
 import { RedisService } from "../services/redis.service";
 
 import { EdnsV1FromContractService } from "../services/edns-v1.service";
+import { Net } from "../network-config";
 
 export default class EdnsController {
   // public static async queryEdnsAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -17,7 +18,12 @@ export default class EdnsController {
       res.set("Function", "GetAddressUsingFqdn");
       const ednsService = new EdnsService();
       res.set("On-Chain", `${req.query.redis}`);
-      output = await ednsService.getAddressRecord(`${fqdn}`, { onChain: Boolean(req.query.redis) });
+      output = await ednsService.getAddressRecord(`${fqdn}`, {
+        onChain: Boolean(req.query.redis),
+        version: `${req.query.version}`,
+        chainId: Number(`${req.query.chainId}`),
+        net: <Net>req.query.net,
+      });
       res.locals.result = output?.address;
       next();
       // console.log(result)

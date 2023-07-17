@@ -113,9 +113,9 @@ export class EdnsService {
   public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
+    console.log(options?.net);
 
     let address: string | undefined;
-
     if (options?.onChain === undefined || options?.onChain === true) {
       const result = await v2ContractService.getAddressRecord(fqdn, options);
       if (result) address = result.address;
