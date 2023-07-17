@@ -33,14 +33,77 @@ export class EdnsService {
       return { nftresult };
     }
   }
-  public async queryEdnsText(arg0: string): Promise<any> {
-    throw new Error("Method not implemented.");
+  public async queryEdnsText(fqdn: string, options?: IOptions) {
+    const v2RedisService = new EdnsV2FromRedisService();
+    const v2ContractService = new EdnsV2FromContractService();
+
+    let text: string | undefined;
+
+    if (options?.onChain === undefined || options?.onChain === true) {
+      const result = await v2RedisService.getTextRecord(fqdn);
+      if (result) text = result.text;
+    } else {
+      const result = await v2ContractService.getTextRecord(fqdn);
+      if (result) text = result.text;
+    }
+
+    if (!text) {
+      const v1ContractService = new EdnsV1FromContractService();
+      const result = await v1ContractService.getTextRecord(fqdn);
+      if (result) text = result.text;
+    }
+
+    if (text) {
+      return { text };
+    }
   }
-  public async queryEdnsDomain(arg0: string): Promise<any> {
-    throw new Error("Method not implemented.");
+  public async queryEdnsDomain(fqdn: string, options?: IOptions) {
+    const v2RedisService = new EdnsV2FromRedisService();
+    const v2ContractService = new EdnsV2FromContractService();
+
+    let domain: string | undefined;
+
+    if (options?.onChain === undefined || options?.onChain === true) {
+      const result = await v2RedisService.getDomain(fqdn);
+      if (result) domain = result.domain;
+    } else {
+      const result = await v2ContractService.getDomain(fqdn);
+      if (result) domain = result.domain;
+    }
+
+    if (!domain) {
+      const v1ContractService = new EdnsV1FromContractService();
+      const result = await v1ContractService.getDomain(fqdn);
+      if (result) domain = result.domain;
+    }
+
+    if (domain) {
+      return { domain };
+    }
   }
-  public async queryEdnsTypeText(arg0: string, arg1: string): Promise<any> {
-    throw new Error("Method not implemented.");
+  public async queryEdnsTypeText(fqdn: string, options?: IOptions) {
+    const v2RedisService = new EdnsV2FromRedisService();
+    const v2ContractService = new EdnsV2FromContractService();
+
+    let address: string | undefined;
+
+    if (options?.onChain === undefined || options?.onChain === true) {
+      const result = await v2RedisService.getAddressRecord(fqdn);
+      if (result) address = result.address;
+    } else {
+      const result = await v2ContractService.getAddressRecord(fqdn);
+      if (result) address = result.address;
+    }
+
+    if (!address) {
+      const v1ContractService = new EdnsV1FromContractService();
+      const result = await v1ContractService.getAddressRecord(fqdn);
+      if (result) address = result.address;
+    }
+
+    if (address) {
+      return { address };
+    }
   }
   public async getAddressRecord(fqdn: string, options?: IOptions) {
     const v2RedisService = new EdnsV2FromRedisService();

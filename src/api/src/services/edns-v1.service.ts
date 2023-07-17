@@ -6,6 +6,7 @@ import { IOptions } from "../interfaces/IOptions.interface";
 import { namehash } from "../utils/namehash";
 import {
   IEdnsResolverService,
+  IGetDomainOutput,
   IGetMultiCoinAddressRecordOutput,
   IGetNftRecordOutput,
   IGetTextRecordOutput,
@@ -16,6 +17,7 @@ import { createRedisClient } from "../utils/create-redis-client";
 import { isValidFqdn } from "../utils/is-valid-fqdn";
 import { InvalidFqdnError } from "../errors/invalid-fqdn.error";
 import { extractFqdn } from "../utils/extract-fqdn";
+import luxon from "luxon";
 
 export interface IGetAddressRecordOutput {
   address: string;
@@ -105,6 +107,8 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
     const hash = namehash(fqdn);
     return registry.recordExists(hash);
   }
+
+  public async getDomain(address: string, options?: IOptions) {}
 }
 
 export class EdnsV1FromRedisService implements IEdnsResolverService {
@@ -168,5 +172,43 @@ export class EdnsV1FromRedisService implements IEdnsResolverService {
     } else {
       return true; // TODO:
     }
+  }
+
+  public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
+    const redis = createRedisClient();
+
+    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+
+    const { name, tld } = extractFqdn(fqdn);
+    if (!name) throw new Error(""); //TODO:
+    const _domain = `${name}.${tld}`;
+
+    const results = await redis
+      .pipeline()
+      .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:info`, "owner")
+      .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:info`, "expiry")
+      .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:info`, "chain")
+      .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:info`, "resolver")
+      .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:user`, "user")
+      .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:user`, "expiry")
+      .smembers(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:operators`)
+      .smembers(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:hosts`)
+      .exec();
+
+    if (!results) return undefined;
+
+    return {
+      owner: results[0][1] as string,
+      expiry: luxon.DateTime.fromSeconds(parseInt(results[1][1] as string)),
+      chain: parseInt(results[2][1] as string),
+      resolver: results[3][1] as string,
+      user: {
+        address: results[4][1] as string,
+        expiry: luxon.DateTime.fromSeconds(parseInt(results[5][1] as string)),
+      },
+      operators: results[6][1] as string[],
+      hosts: results[7][1] as string[],
+    };
   }
 }
