@@ -21,7 +21,6 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
   let func = res.get("Function") || null;
   let data = res.locals.result || null;
   let errorMessage = "There is an internal server error";
-
   switch (err.message) {
     // From new error
     case "UNKNOWN_ROUTE":
@@ -63,6 +62,7 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
       status = 404;
       errorMessage = "Your domain have already been expired.";
       break;
+    // case "DOMAIN_NOT_FOUND":
     case "DOMAIN_NOT_EXISTS":
       status = 404;
       errorMessage = "Your domain does not exist on chain.";

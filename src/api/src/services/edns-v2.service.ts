@@ -63,11 +63,15 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
   public async getTextRecord(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
     const redis = createRedisClient();
+    console.log("reach service");
 
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+    const res = await this.isExists(fqdn, options);
+
+    if (!res) throw new DomainNotFoundError(fqdn);
 
     const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `text`);
+
     if (!text) return undefined;
     return { text };
   }
