@@ -111,7 +111,9 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
     return registry.recordExists(hash);
   }
 
-  public async getDomain(address: string, options?: IOptions) {}
+  public async getDomain(address: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
+    return new EdnsV1FromContractService().getDomain(address, options);
+  }
 }
 
 export class EdnsV1FromRedisService implements IEdnsResolverService {

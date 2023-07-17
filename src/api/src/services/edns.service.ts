@@ -1,6 +1,8 @@
-import { EdnsV1FromContractService } from "./edns-v1.service";
+import { EdnsV1FromContractService, IGetAddressRecordOutput } from "./edns-v1.service";
 import { EdnsV2FromContractService, EdnsV2FromRedisService } from "./edns-v2.service";
 import { IOptions } from "../interfaces/IOptions.interface";
+import { IGetDomainOutput, IGetNftRecordOutput, IGetTextRecordOutput, IGetTypedTextRecordOutput } from "../interfaces/IEdnsResolverService.interface";
+import { type } from "os";
 
 const contractList: { [key: number]: { resolverAddress: string; rpcUrl: string } } = {
   43113: {
@@ -10,7 +12,7 @@ const contractList: { [key: number]: { resolverAddress: string; rpcUrl: string }
 };
 
 export class EdnsService {
-  public async queryEdnsNft(fqdn: string, chainId: string, options?: IOptions): Promise<any> {
+  public async queryEdnsNft(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
 
@@ -30,10 +32,10 @@ export class EdnsService {
       if (result) nftresult = result;
     }
     if (nftresult) {
-      return { nftresult };
+      return nftresult;
     }
   }
-  public async queryEdnsText(fqdn: string, options?: IOptions) {
+  public async queryEdnsText(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
 
@@ -57,55 +59,55 @@ export class EdnsService {
       return { text };
     }
   }
-  public async queryEdnsDomain(fqdn: string, options?: IOptions) {
+  public async queryEdnsDomain(address: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
 
-    let domain: string | undefined;
+    let domain: IGetDomainOutput | undefined;
 
     if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2RedisService.getDomain(fqdn);
-      if (result) domain = result.domain;
+      const result = await v2RedisService.getDomain(address);
+      if (result) domain = result;
     } else {
-      const result = await v2ContractService.getDomain(fqdn);
-      if (result) domain = result.domain;
+      const result = await v2ContractService.getDomain(address);
+      if (result) domain = result;
     }
 
     if (!domain) {
       const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getDomain(fqdn);
-      if (result) domain = result.domain;
+      const result = await v1ContractService.getDomain(address);
+      if (result) domain = result;
     }
 
     if (domain) {
-      return { domain };
+      return domain;
     }
   }
-  public async queryEdnsTypeText(fqdn: string, options?: IOptions) {
+  public async queryEdnsTypeText(fqdn: string, typed: string, options?: IOptions): Promise<String | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
 
-    let address: string | undefined;
+    let typeText: string | undefined;
 
     if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2RedisService.getAddressRecord(fqdn);
-      if (result) address = result.address;
+      const result = await v2RedisService.getTypedTextRecord(fqdn, typed, options);
+      if (result) typeText = result.text;
     } else {
-      const result = await v2ContractService.getAddressRecord(fqdn);
-      if (result) address = result.address;
+      const result = await v2ContractService.getTypedTextRecord(fqdn, typed, options);
+      if (result) typeText = result.text;
     }
 
-    if (!address) {
+    if (!typeText) {
       const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getAddressRecord(fqdn);
-      if (result) address = result.address;
+      const result = await v1ContractService.getTypedTextRecord(fqdn, typed, options);
+      if (result) typeText = result.text;
     }
 
-    if (address) {
-      return { address };
+    if (typeText) {
+      return typeText;
     }
   }
-  public async getAddressRecord(fqdn: string, options?: IOptions) {
+  public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
 

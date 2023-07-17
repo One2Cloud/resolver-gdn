@@ -182,7 +182,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   private async _getDomainChainId(domain: string, options?: IOptions): Promise<number> {
     const redis = createRedisClient();
     const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`, "chain");
-    console.log(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`)
+    console.log(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`);
     if (!result) throw new Error(""); //TODO:
     return parseInt(result);
   }
