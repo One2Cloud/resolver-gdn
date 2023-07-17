@@ -42,16 +42,17 @@ export class EdnsService {
     let text: string | undefined;
 
     if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2RedisService.getTextRecord(fqdn);
+      const result = await v2RedisService.getTextRecord(fqdn, options);
       if (result) text = result.text;
+      console.log({ result });
     } else {
-      const result = await v2ContractService.getTextRecord(fqdn);
+      const result = await v2ContractService.getTextRecord(fqdn, options);
       if (result) text = result.text;
     }
 
     if (!text) {
       const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getTextRecord(fqdn);
+      const result = await v1ContractService.getTextRecord(fqdn, options);
       if (result) text = result.text;
     }
 

@@ -158,7 +158,7 @@ export class EdnsV1FromRedisService implements IEdnsResolverService {
     const redis = createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
-    const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `text`);
+    const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `nft`);
     if (!result) return undefined;
     const [contractAddress, tokenId] = result.split(":");
     return { contractAddress, tokenId, chainId };
