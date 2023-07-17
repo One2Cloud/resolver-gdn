@@ -1,10 +1,10 @@
-import app from "./src";
+import app from "./src/app";
 import _ from "lodash";
 import { join } from "path";
-import express, { NextFunction, Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from "express";
 import router from "./src/routers";
 
-app.use('/', router)
+app.use("/", router);
 
 try {
   const port: number = _.toNumber(process.env.PORT) || 3000;

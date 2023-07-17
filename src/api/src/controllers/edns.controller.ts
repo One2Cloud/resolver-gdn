@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { EdnsService } from "../services/edns.service";
-import { RedisService } from "../services/redis.service";
 
 import { EdnsV1FromContractService } from "../services/edns-v1.service";
 import { IOptions } from "../interfaces/IOptions.interface";

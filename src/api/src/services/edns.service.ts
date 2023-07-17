@@ -2,14 +2,6 @@ import { EdnsV1FromContractService, IGetAddressRecordOutput } from "./edns-v1.se
 import { EdnsV2FromContractService, EdnsV2FromRedisService } from "./edns-v2.service";
 import { IOptions } from "../interfaces/IOptions.interface";
 import { IGetDomainOutput, IGetNftRecordOutput, IGetTextRecordOutput, IGetTypedTextRecordOutput } from "../interfaces/IEdnsResolverService.interface";
-import { type } from "os";
-
-const contractList: { [key: number]: { resolverAddress: string; rpcUrl: string } } = {
-  43113: {
-    resolverAddress: "0xa869",
-    rpcUrl: "https://api.avax-test.network/ext/bc/C/rpc",
-  },
-};
 
 export class EdnsService {
   public async queryEdnsNft(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined | Error> {
@@ -110,6 +102,7 @@ export class EdnsService {
       return typeText;
     }
   }
+  
   public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
