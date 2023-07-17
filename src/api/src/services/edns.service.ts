@@ -10,23 +10,23 @@ const contractList: { [key: number]: { resolverAddress: string; rpcUrl: string }
 };
 
 export class EdnsService {
-  public async queryEdnsNft(fqdn: string, options?: IOptions): Promise<any> {
+  public async queryEdnsNft(fqdn: string, chainId: string, options?: IOptions): Promise<any> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
 
     let nftresult;
 
     if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2RedisService.getNftRecord(fqdn, `${options?.chainId}`);
+      const result = await v2ContractService.getNftRecord(fqdn, chainId, options);
       if (result) nftresult = result;
     } else {
-      const result = await v2ContractService.getNftRecord(fqdn, `${options?.chainId}`);
+      const result = await v2RedisService.getNftRecord(fqdn, chainId, options);
       if (result) nftresult = result;
     }
 
     if (!nftresult) {
       const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getNftRecord(fqdn, `${options?.chainId}`);
+      const result = await v1ContractService.getNftRecord(fqdn, chainId, options);
       if (result) nftresult = result;
     }
     if (nftresult) {
@@ -112,16 +112,16 @@ export class EdnsService {
     let address: string | undefined;
 
     if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2RedisService.getAddressRecord(fqdn);
+      const result = await v2ContractService.getAddressRecord(fqdn, options);
       if (result) address = result.address;
     } else {
-      const result = await v2ContractService.getAddressRecord(fqdn);
+      const result = await v2RedisService.getAddressRecord(fqdn, options);
       if (result) address = result.address;
     }
 
     if (!address) {
       const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getAddressRecord(fqdn);
+      const result = await v1ContractService.getAddressRecord(fqdn, options);
       if (result) address = result.address;
     }
 

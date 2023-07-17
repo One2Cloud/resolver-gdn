@@ -18,7 +18,7 @@ export default class EdnsController {
       const ednsService = new EdnsService();
       res.set("On-Chain", `${req.query.redis}`);
       output = await ednsService.getAddressRecord(`${fqdn}`, { onChain: Boolean(req.query.redis) });
-      if (output.error) {
+      if (output && output.error) {
         throw output.error;
       }
       res.locals.result = output?.result;
