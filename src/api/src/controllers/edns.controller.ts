@@ -35,12 +35,17 @@ function queryHandler(req: Request): IOptions {
   }
   // Handle chainId
   const validChainId = Object.values(Network).filter(value => typeof value === 'number');
+  console.log(validChainId)
   if (req.query.chainId === undefined) {
     options.chainId = undefined;
-  } else if (typeof req.query.chainId === "number" && validChainId.includes(parseInt(req.query.chainId))) {
-    options.chainId = parseInt(req.query.chainId)
   } else {
-    throw new InvalidQueryError({chainId: req.query.chainId})
+    const chainId = Number(req.query.chainId)
+    // chainId will be NaN if req.query.chainId is not a number
+    if (!Number.isNaN(chainId) && validChainId.includes(chainId)) {
+      options.chainId = chainId
+    } else {
+      throw new InvalidQueryError({chainId: req.query.chainId})
+    }
   }
   console.log(options)
   return options
@@ -73,10 +78,11 @@ export default class EdnsController {
     let output;
     try {
       const { fqdn, chainId } = req.params;
+      const options = queryHandler(req)
       res.set("Function", "GetNftUsingFqdn");
+      res.set("On-Chain", String(options.onChain === undefined ? true : options.onChain));
       const ednsService = new EdnsService();
-      res.set("On-Chain", `${req.query.redis}`);
-      output = await ednsService.queryEdnsNft(`${fqdn}`, chainId, { onChain: Boolean(req.query.redis), chainId: Number(chainId) });
+      output = await ednsService.queryEdnsNft(`${fqdn}`, chainId, options);
       res.locals.result = output;
       next();
     } catch (error) {
@@ -89,10 +95,11 @@ export default class EdnsController {
     let output;
     try {
       const { fqdn } = req.params;
+      const options = queryHandler(req)
       res.set("Function", "GetTextUsingFqdn");
+      res.set("On-Chain", String(options.onChain === undefined ? true : options.onChain));
       const ednsService = new EdnsService();
-      res.set("On-Chain", `${req.query.redis}`);
-      output = await ednsService.queryEdnsText(`${fqdn}`, { onChain: Boolean(req.query.redis) });
+      output = await ednsService.queryEdnsText(`${fqdn}`, options);
       res.locals.result = output;
       next();
     } catch (error) {
@@ -105,10 +112,11 @@ export default class EdnsController {
     let output;
     try {
       const { address } = req.params;
+      const options = queryHandler(req)
       res.set("Function", "GetDomainUsingAddress");
+      res.set("On-Chain", String(options.onChain === undefined ? true : options.onChain));
       const ednsService = new EdnsService();
-      res.set("On-Chain", `${req.query.redis}`);
-      output = await ednsService.queryEdnsDomain(`${address}`, { onChain: Boolean(req.query.redis) });
+      output = await ednsService.queryEdnsDomain(`${address}`, options);
       res.locals.result = output;
       next();
     } catch (error) {
@@ -140,10 +148,11 @@ export default class EdnsController {
     let output;
     try {
       const { fqdn, type } = req.params;
+      const options = queryHandler(req)
       res.set("Function", "GetTypedTextUsingFqdn");
+      res.set("On-Chain", String(options.onChain === undefined ? true : options.onChain));
       const ednsService = new EdnsService();
-      res.set("On-Chain", `${req.query.redis}`);
-      output = await ednsService.queryEdnsTypeText(`${fqdn}`, type, { onChain: Boolean(req.query.redis) });
+      output = await ednsService.queryEdnsTypeText(`${fqdn}`, type, options);
       res.locals.result = output;
       next();
     } catch (error) {
