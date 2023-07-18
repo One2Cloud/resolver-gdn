@@ -1,0 +1,26 @@
+on: [push]
+jobs:
+  aws_cdk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTION_IAM_ROLE }}
+          aws-region: "us-east-1"
+      - name: Install
+        run: npm install
+      - name: Synth
+        run: npx cdk synth
+      - name: Deploy
+        run: npx cdk deploy --all --require-approval never
+        env:
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          GETBLOCK_API_KEY: ${{ secrets.GETBLOCK_API_KEY }}
+          POKT_PORTAL_ID: ${{ secrets.POKT_PORTAL_ID }}

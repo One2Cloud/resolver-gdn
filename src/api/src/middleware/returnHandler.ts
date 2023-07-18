@@ -20,9 +20,9 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
   let status = 500;
   let onchain = !!req.query.onchain;
 
-  const errorCode = err.message || "UNKNOWN_ERROR";
-  let errorMessage = "There is an internal server error";
-  switch (err.message) {
+  const errorCode = err.name || "UNKNOWN_ERROR";
+  let errorMessage = err.message;
+  switch (err.name) {
     // From new error
     case "UNKNOWN_ROUTE":
       status = 404;
@@ -63,10 +63,10 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
       status = 404;
       errorMessage = "Your domain have already been expired.";
       break;
-    // case "DOMAIN_NOT_FOUND":
-    case "DOMAIN_NOT_EXISTS":
+    case "DOMAIN_NOT_FOUND":
+      // case "DOMAIN_NOT_EXISTS":
       status = 404;
-      errorMessage = "Your domain does not exist on chain.";
+      if (!errorMessage) errorMessage = "Your domain does not exist on chain.";
       break;
   }
 
