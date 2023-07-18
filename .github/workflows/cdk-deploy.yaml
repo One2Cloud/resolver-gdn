@@ -1,20 +1,27 @@
-on: [push]
+name: CDK Deploy
+on:
+  workflow_dispatch:
+    push:
+      branches:
+        - master
 jobs:
   aws_cdk:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
         with:
           node-version: "18"
+          cache: npm
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
           role-to-assume: ${{ secrets.AWS_GITHUB_ACTION_IAM_ROLE }}
           aws-region: "us-east-1"
       - name: Install
-        run: npm install
+        run: npm ci
       - name: Synth
         run: npx cdk synth
       - name: Deploy
