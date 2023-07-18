@@ -6,5 +6,9 @@
     "us-east-1d",
     "us-east-1e",
     "us-east-1f"
-  ]
+  ],
+  "hosted-zone:account=578721297310:domainName=resolver.gdn:region=us-east-1": {
+    "Id": "/hostedzone/Z06428592K7XVIRJY95LB",
+    "Name": "resolver.gdn."
+  }
 }

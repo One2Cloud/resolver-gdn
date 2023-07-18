@@ -1,8 +1,8 @@
 import { putEvent } from "../utils/put-event";
 import { EventType } from "../constants/event-type.constant";
 import { DomainProvider } from "../constants/domain-provider.constant";
-import { PublicResolver, Registrar, IRegistry, PublicResolver__factory, Registrar__factory, IRegistry__factory } from "src/contracts/ethereum/typechain-types";
-import { JsonRpcProvider, WebSocketProvider } from "ethers";
+import { PublicResolver, Registrar, IRegistry, PublicResolver__factory, Registrar__factory, IRegistry__factory } from "../contracts/ethereum/edns-v2";
+import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers";
 
 export interface IEthereumListenerConstructorProps {
 	id: number;
@@ -37,7 +37,7 @@ export default class EdnsEthereumListener {
 		} else if (this.rpc.startsWith("ws")) {
 			this.provider = new WebSocketProvider(this.rpc, { name: this.name, chainId: this.id });
 		}
-		// this.provider.pollingInterval = 10000;
+		this.provider.pollingInterval = 10000;
 		this.contracts = {
 			resolver: PublicResolver__factory.connect(props.contracts.resolver, this.provider),
 			registrar: Registrar__factory.connect(props.contracts.registrar, this.provider),

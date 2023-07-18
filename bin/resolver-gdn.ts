@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 import "source-map-support/register";
+import * as dotenv from "dotenv";
 import * as cdk from "aws-cdk-lib";
 import { ResolverGdnStack } from "../lib/resolver-gdn-stack";
+
+dotenv.config();
 
 const app = new cdk.App();
 new ResolverGdnStack(app, "ResolverGdnStack", {

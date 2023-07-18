@@ -2,38 +2,55 @@ import { EdnsV1FromContractService, IGetAddressRecordOutput } from "./edns-v1.se
 import { EdnsV2FromContractService, EdnsV2FromRedisService } from "./edns-v2.service";
 import { IOptions } from "../interfaces/IOptions.interface";
 import { IGetDomainOutput, IGetNftRecordOutput, IGetTextRecordOutput, IGetTypedTextRecordOutput } from "../interfaces/IEdnsResolverService.interface";
-import { type } from "os";
-
-const contractList: { [key: number]: { resolverAddress: string; rpcUrl: string } } = {
-  43113: {
-    resolverAddress: "0xa869",
-    rpcUrl: "https://api.avax-test.network/ext/bc/C/rpc",
-  },
-};
 
 export class EdnsService {
   public async queryEdnsNft(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined | Error> {
+    const v1ContractService = new EdnsV1FromContractService();
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
 
-    let nftresult;
+    // ---------- Version 1: More Clear ------------- //
+    // let result;
+    // if (options?.version === undefined) {
+    //   if (options?.onChain === undefined || options?.onChain === true) {
+    //     result = await v2ContractService.getNftRecord(fqdn, chainId, options);
+    //   } else {
+    //     result = await v2RedisService.getNftRecord(fqdn, chainId, options);
+    //   }
+    //   if (!result) {
+    //     result = await v1ContractService.getNftRecord(fqdn, chainId, options);
+    //   }
+    // } else if (options?.version === "v2") {
+    //   if (options?.onChain === undefined || options?.onChain === true) {
+    //     result = await v2ContractService.getNftRecord(fqdn, chainId, options);
+    //   } else {
+    //     result = await v2RedisService.getNftRecord(fqdn, chainId, options);
+    //   }
+    // } else if (options?.version === "v1") {
+    //   if (options?.onChain === undefined || options?.onChain === true) {
+    //     result = await v1ContractService.getNftRecord(fqdn, chainId, options);
+    //   } else {
+    //     throw new Error; // TODO
+    //   }
+    // }
+    // return result;
+    // ---------- End of Version 1 ------------- //
 
-    if (options?.onChain === undefined || options?.onChain === true) {
-      const result = await v2ContractService.getNftRecord(fqdn, chainId, options);
-      if (result) nftresult = result;
+    // ---------- Version 2: More concise ------------- //
+    let result; 
+    if (options?.version !== "v1" && (options?.onChain === undefined || options?.onChain === true)) {
+      result = await v2ContractService.getNftRecord(fqdn, chainId, options);
     } else {
-      const result = await v2RedisService.getNftRecord(fqdn, chainId, options);
-      if (result) nftresult = result;
+      result = await v2RedisService.getNftRecord(fqdn, chainId, options);
     }
-
-    if (!nftresult) {
-      const v1ContractService = new EdnsV1FromContractService();
-      const result = await v1ContractService.getNftRecord(fqdn, chainId, options);
-      if (result) nftresult = result;
+    if ((options?.version === undefined && !result) || options?.version === "v1") {
+      result = await v1ContractService.getNftRecord(fqdn, chainId, options);
     }
-    if (nftresult) {
-      return nftresult;
+    if (options?.version === "v1" && options?.onChain === false) {
+      throw new Error; // TODO
     }
+    return result;
+    // ---------- End of Version 2 ------------- //
   }
   public async queryEdnsText(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
@@ -110,6 +127,7 @@ export class EdnsService {
       return typeText;
     }
   }
+  
   public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     const v2RedisService = new EdnsV2FromRedisService();
     const v2ContractService = new EdnsV2FromContractService();
