@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { IGeneralResponse } from "../interfaces/IGeneralOutput.interface";
 
 export function responseHandler(req: Request, res: Response, next: NextFunction) {
   const status = Number(res.get("Status")) || 200;
@@ -16,10 +17,10 @@ export function responseHandler(req: Request, res: Response, next: NextFunction)
 }
 
 export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
-  let status = Number(res.get("Status")) || 500;
-  let isOnChain = res.get("On-Chain") || undefined;
-  let func = res.get("Function") || null;
-  let data = res.locals.result || null;
+  let status = 500;
+  let onchain = !!req.query.onchain;
+
+  const errorCode = err.message || "UNKNOWN_ERROR";
   let errorMessage = "There is an internal server error";
   switch (err.message) {
     // From new error
@@ -69,15 +70,17 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
       break;
   }
 
-  console.log(err);
-  return res.status(status).json({
+  console.error(err);
+
+  const response: IGeneralResponse<undefined> = {
     status,
-    isOnChain,
-    function: func,
-    data,
+    onchain,
+    success: false,
     error: {
-      code: err.message,
-      message: errorMessage,
+      code: errorCode,
+      reason: errorMessage,
     },
-  });
+  };
+
+  return res.status(status).json(response);
 }

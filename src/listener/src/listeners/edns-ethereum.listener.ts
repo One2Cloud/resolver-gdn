@@ -20,7 +20,6 @@ export default class EdnsEthereumListener {
 	private readonly name: string;
 	private readonly rpc: string;
 	public readonly provider: JsonRpcProvider | WebSocketProvider;
-	public readonly mainnet: boolean;
 	public readonly contracts: {
 		resolver: PublicResolver;
 		registrar: Registrar;
@@ -31,7 +30,6 @@ export default class EdnsEthereumListener {
 		this.id = props.id;
 		this.name = props.name;
 		this.rpc = props.rpc;
-		this.mainnet = process.env.MAINNET == "1";
 		if (this.rpc.startsWith("http")) {
 			this.provider = new JsonRpcProvider(this.rpc, { name: this.name, chainId: this.id });
 		} else if (this.rpc.startsWith("ws")) {
@@ -49,7 +47,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registrar.filters["DomainRegistered"]();
 		this.contracts.registrar.on(filter, async (name, tld, owner, expiry, event) => {
 			const fqdn = `${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.DOMAIN_REGISTERED, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_REGISTERED, {
 				name,
 				tld,
 				owner,
@@ -63,7 +61,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registrar.filters["DomainRenewed"]();
 		this.contracts.registrar.on(filter, async (name, tld, expiry, event) => {
 			const fqdn = `${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.DOMAIN_RENEWED, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_RENEWED, {
 				name,
 				tld,
 				expiry: expiry.toString(),
@@ -75,7 +73,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registry.filters["DomainBridged"]();
 		this.contracts.resolver.on(filter, async (name, tld, dstChain, event) => {
 			const fqdn = `${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.DOMAIN_BRIDGED, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_BRIDGED, {
 				name,
 				tld,
 				dstChain,
@@ -87,7 +85,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registry.filters["SetDomainResolver"]();
 		this.contracts.resolver.on(filter, async (name, tld, newResolver, event) => {
 			const fqdn = `$${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.DOMAIN_RENEWED, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_RENEWED, {
 				name,
 				tld,
 				newResolver,
@@ -99,7 +97,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registry.filters["SetDomainOperator"]();
 		this.contracts.resolver.on(filter, async (name, tld, operator, approved, event) => {
 			const fqdn = `${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_OPERATOR, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_OPERATOR, {
 				name,
 				tld,
 				operator,
@@ -112,7 +110,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registry.filters["SetDomainUser"]();
 		this.contracts.resolver.on(filter, async (name, tld, newUser, expiry, event) => {
 			const fqdn = `${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_USER, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_USER, {
 				name,
 				tld,
 				newUser,
@@ -125,7 +123,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registry.filters["NewHost"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, ttl, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.NEW_HOST, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.NEW_HOST, {
 				host,
 				name,
 				tld,
@@ -138,7 +136,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registry.filters["RemoveHost"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.REMOVE_HOST, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.REMOVE_HOST, {
 				host,
 				name,
 				tld,
@@ -150,7 +148,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registry.filters["SetHostOperator"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, operator, approved, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_HOST_OPERATOR, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_HOST_OPERATOR, {
 				host,
 				name,
 				tld,
@@ -164,7 +162,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.registry.filters["SetHostUser"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, newUser, expiry, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_HOST_USER, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_HOST_USER, {
 				host,
 				name,
 				tld,
@@ -174,11 +172,37 @@ export default class EdnsEthereumListener {
 		});
 	}
 
+	private _listen_Resolver_SetReverseAddressRecord() {
+		const filter = this.contracts.resolver.filters["SetReverseAddress"]();
+		this.contracts.resolver.on(filter, async (host, name, tld, address, event) => {
+			const fqdn = `${host}.${name}.${tld}`;
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_REVERSE_ADDRESS_RECORD, {
+				host,
+				name,
+				tld,
+				address,
+			});
+		});
+	}
+
+	private _listen_Resolver_UnsetReverseAddressRecord() {
+		const filter = this.contracts.resolver.filters["SetReverseAddress"]();
+		this.contracts.resolver.on(filter, async (host, name, tld, address, event) => {
+			const fqdn = `${host}.${name}.${tld}`;
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_REVERSE_ADDRESS_RECORD, {
+				host,
+				name,
+				tld,
+				address,
+			});
+		});
+	}
+
 	private _listen_Resolver_SetAddressRecord() {
 		const filter = this.contracts.resolver.filters["SetAddress"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, address, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -191,7 +215,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["UnsetAddress"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.UNSET_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -203,7 +227,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["SetMultiCoinAddress"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, coin, address, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_MULTI_COIN_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_MULTI_COIN_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -217,7 +241,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["UnsetMultiCoinAddress"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, coin, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.UNSET_MULTI_COIN_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_MULTI_COIN_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -230,7 +254,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["SetText"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, text, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_TEXT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_TEXT_RECORD, {
 				host,
 				name,
 				tld,
@@ -243,7 +267,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["UnsetText"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.UNSET_TEXT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_TEXT_RECORD, {
 				host,
 				name,
 				tld,
@@ -255,7 +279,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["SetTypedText"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, type, text, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_TYPED_TEXT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_TYPED_TEXT_RECORD, {
 				host,
 				name,
 				tld,
@@ -269,7 +293,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["UnsetTypedText"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, type, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.UNSET_TYPED_TEXT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_TYPED_TEXT_RECORD, {
 				host,
 				name,
 				tld,
@@ -282,7 +306,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["SetNFT"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, chainId, contractAddress, tokenId, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_NFT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_NFT_RECORD, {
 				host,
 				name,
 				tld,
@@ -297,7 +321,7 @@ export default class EdnsEthereumListener {
 		const filter = this.contracts.resolver.filters["UnsetNFT"]();
 		this.contracts.resolver.on(filter, async (host, name, tld, chainId, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
-			await putEvent(this.mainnet, DomainProvider.EDNS, fqdn, EventType.SET_NFT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_NFT_RECORD, {
 				host,
 				name,
 				tld,
@@ -320,6 +344,8 @@ export default class EdnsEthereumListener {
 		this._listen_Registry_SetHostOperator();
 		this._listen_Registry_SetHostUser();
 
+		this._listen_Resolver_SetReverseAddressRecord();
+		this._listen_Resolver_UnsetReverseAddressRecord();
 		this._listen_Resolver_SetAddressRecord();
 		this._listen_Resolver_UnsetAddressRecord();
 		this._listen_Resolver_SetMultiCoinAddressRecord();

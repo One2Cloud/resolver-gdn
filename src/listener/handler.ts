@@ -15,6 +15,7 @@ let client: Redis | undefined;
 export interface IBody {
 	provider: DomainProvider;
 	type: EventType;
+	chainId: number;
 	mainnet: boolean;
 	data: any;
 }
@@ -43,6 +44,10 @@ interface IDomainBridgedData {
 	name: string;
 	tld: string;
 	dstChain: Chain;
+}
+
+interface ISetReverseAddressRecordData extends IBaseSetRecordData {
+	address: string;
 }
 
 interface ISetAddressRecordData extends IBaseSetRecordData {
@@ -121,6 +126,7 @@ interface ISetHostUserData {
  * edns:host:FQDN:records:list => SET - The list of type of records has been set for the host
  * edns:host:FQDN:user => Hash - The user info of the host
  * edns:host:FQDN:operators => Set - The operators of the host
+ * edns:account:ADDRESS:reverse_domain => Key - The reverse domain of the address
  * edns:account:ADDRESS:domains => Set - The list of the domains owned by the address
  * edns:account:ADDRESS:domain:operators => Set - The list of domains which is a operator by the address
  * edns:account:ADDRESS:host:operators => Set - The list of hosts which is a operator by the address
@@ -344,6 +350,14 @@ export const index: SQSHandler = async (event, context) => {
 							const domain = `${data.name}.${data.tld}`;
 
 							await client.hmset(`edns:${net}:host:${data.host}.${domain}:user`, { user: data.newUser, expiry: data.expiry });
+
+							break;
+						}
+						case EventType.SET_REVERSE_ADDRESS_RECORD: {
+							const data: ISetReverseAddressRecordData = body.data;
+							const fqdn = `${data.host}.${data.name}.${data.tld}`;
+
+							await client.pipeline().set(`edns:${net}:account:${data.address}:reverse_domain`, fqdn).sadd(`edns:${net}:host:${fqdn}:records:list`, "reverse_address").exec();
 
 							break;
 						}

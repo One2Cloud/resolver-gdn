@@ -1,8 +1,5 @@
 import Redis from "ioredis";
 
-// --- For dev --- //
-// --- For dev --- //
-
 let client: Redis | undefined;
 
 export const createRedisClient = () => {

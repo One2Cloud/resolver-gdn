@@ -14,14 +14,19 @@ import {
   IGetTextRecordOutput,
   IGetTypedTextRecordOutput,
   IGetNftRecordOutput,
-  IGetDomainOutput,
-  IGetHostOutput,
   IGetAddressRecordOutput,
   IEdnsResolverService,
+  IGetAddressRecordInput,
+  IGetMultiCoinAddressRecordInput,
+  IGetTypedTextRecordInput,
+  IGetNftRecordInput,
+  IGetTextRecordInput,
+  IGetReverseAddressRecordInput,
+  IGetReverseAddressRecordOutput,
 } from "../interfaces/IEdnsResolverService.interface";
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../typechain/edns-v2/typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
-import { IEdnsRegistryService } from "../interfaces/IEdnsRegistryService.interface";
+import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const network = NetworkConfig[chainId];
@@ -51,62 +56,70 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
 };
 
 export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegistryService {
-  public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
+  public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
     const redis = createRedisClient();
 
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+    const fqdn = await redis.get(`edns:${options?.net || Net.MAINNET}:account:${input.address}:reverse_domain`);
+    if (!fqdn) return undefined;
+    return { fqdn };
+  }
 
-    const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, "address");
+  public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
+    const redis = createRedisClient();
+
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
+
+    const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, "address");
     if (!address) return undefined;
     return { address };
   }
 
-  public async getMultiCoinAddressRecord(fqdn: string, coin: string, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
+  public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
     const redis = createRedisClient();
 
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
-    const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `multi_coin_address:${coin}`);
+    const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `multi_coin_address:${input.coin}`);
     if (!address) return undefined;
-    return { coin, address };
+    return { coin: input.coin, address };
   }
 
-  public async getTextRecord(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
+  public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
     const redis = createRedisClient();
     console.log("reach service");
 
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    const res = await this.isExists(fqdn, options);
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    const res = await this.isExists(input.fqdn, options);
 
-    if (!res) throw new DomainNotFoundError(fqdn);
+    if (!res) throw new DomainNotFoundError(input.fqdn);
 
-    const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `text`);
+    const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `text`);
 
     if (!text) return undefined;
     return { text };
   }
 
-  public async getTypedTextRecord(fqdn: string, typed: string, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
+  public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
     const redis = createRedisClient();
 
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
-    const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `typed_text:${typed}`);
+    const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `typed_text:${input.typed}`);
     if (!text) return undefined;
-    return { text, typed };
+    return { text, typed: input.typed };
   }
 
-  public async getNftRecord(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
+  public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
     const redis = createRedisClient();
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
-    const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records`, `text`);
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
+    const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `text`);
     if (!result) return undefined;
     const [contractAddress, tokenId] = result.split(":");
-    return { contractAddress, tokenId, chainId };
+    return { contractAddress, tokenId, chainId: input.chainId };
   }
 
   public async isExists(fqdn: string, options?: IOptions): Promise<boolean> {
@@ -203,15 +216,25 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     return parseInt(result);
   }
 
-  public async getAddressRecord(fqdn: string, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    const isExists = await this.isExists(fqdn, options);
-    console.log({ isExists });
-    if (!isExists) throw new DomainNotFoundError(fqdn);
-    const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
-    const contracts = getContracts(_chainId);
-    const { host, name, tld } = extractFqdn(fqdn);
+  public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
+    if (!options?.chainId) throw new Error(""); //TODO:
+    const contracts = getContracts(options.chainId);
 
+    const fqdn = await contracts.Resolver.getReverseAddress(input.address);
+    if (fqdn) return { fqdn };
+    return undefined;
+  }
+
+  public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    const isExists = await this.isExists(input.fqdn, options);
+    console.log({ isExists });
+    if (!isExists) throw new DomainNotFoundError(input.fqdn);
+
+    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    const contracts = getContracts(_chainId);
+
+    const { host, name, tld } = extractFqdn(input.fqdn);
     if (host && name && tld) {
       return {
         address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
@@ -224,36 +247,46 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     return undefined;
   }
 
-  public async getMultiCoinAddressRecord(fqdn: string, coin: string, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+  public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
-    const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
+    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     const contracts = getContracts(_chainId);
 
-    const { host, name, tld } = extractFqdn(fqdn);
+    const { host, name, tld } = extractFqdn(input.fqdn);
     if (host && name && tld) {
       return {
-        coin,
-        address: await contracts.Resolver.getMultiCoinAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), BigNumber.from(coin)),
+        coin: input.coin,
+        address: await contracts.Resolver.getMultiCoinAddress(
+          ethers.utils.toUtf8Bytes(host),
+          ethers.utils.toUtf8Bytes(name),
+          ethers.utils.toUtf8Bytes(tld),
+          BigNumber.from(input.coin),
+        ),
       };
     } else if (name && tld) {
       return {
-        coin,
-        address: await contracts.Resolver.getMultiCoinAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), BigNumber.from(coin)),
+        coin: input.coin,
+        address: await contracts.Resolver.getMultiCoinAddress(
+          ethers.utils.toUtf8Bytes("@"),
+          ethers.utils.toUtf8Bytes(name),
+          ethers.utils.toUtf8Bytes(tld),
+          BigNumber.from(input.coin),
+        ),
       };
     }
     return undefined;
   }
 
-  public async getTextRecord(fqdn: string, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+  public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
-    const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
+    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     const contracts = getContracts(_chainId);
 
-    const { host, name, tld } = extractFqdn(fqdn);
+    const { host, name, tld } = extractFqdn(input.fqdn);
     if (host && name && tld) {
       return {
         text: await contracts.Resolver.getText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
@@ -266,48 +299,58 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     return undefined;
   }
 
-  public async getTypedTextRecord(fqdn: string, typed: string, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+  public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
-    const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
+    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     const contracts = getContracts(_chainId);
-    const _typed = ethers.utils.toUtf8Bytes(typed);
+    const _typed = ethers.utils.toUtf8Bytes(input.typed);
 
-    const { host, name, tld } = extractFqdn(fqdn);
+    const { host, name, tld } = extractFqdn(input.fqdn);
     if (host && name && tld) {
       return {
-        typed,
+        typed: input.typed,
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     } else if (name && tld) {
       return {
-        typed,
+        typed: input.typed,
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     }
     return undefined;
   }
 
-  public async getNftRecord(fqdn: string, chainId: string, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
-    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+  public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
-    const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
+    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     const contracts = getContracts(_chainId);
 
-    const { host, name, tld } = extractFqdn(fqdn);
+    const { host, name, tld } = extractFqdn(input.fqdn);
     if (host && name && tld) {
-      const [contractAddress, tokenId] = await contracts.Resolver.getNFT(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), chainId);
+      const [contractAddress, tokenId] = await contracts.Resolver.getNFT(
+        ethers.utils.toUtf8Bytes(host),
+        ethers.utils.toUtf8Bytes(name),
+        ethers.utils.toUtf8Bytes(tld),
+        input.chainId,
+      );
       return {
-        chainId,
+        chainId: input.chainId,
         contractAddress,
         tokenId: `${tokenId.toNumber()}`,
       };
     } else if (name && tld) {
-      const [contractAddress, tokenId] = await contracts.Resolver.getNFT(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), chainId);
+      const [contractAddress, tokenId] = await contracts.Resolver.getNFT(
+        ethers.utils.toUtf8Bytes("@"),
+        ethers.utils.toUtf8Bytes(name),
+        ethers.utils.toUtf8Bytes(tld),
+        input.chainId,
+      );
       return {
-        chainId,
+        chainId: input.chainId,
         contractAddress,
         tokenId: `${tokenId.toNumber()}`,
       };
