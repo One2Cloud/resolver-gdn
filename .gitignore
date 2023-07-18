@@ -8,6 +8,8 @@ dist/
 
 !*/**/typechain/**/*.d.ts
 !*/**/typechain-types/**/*.d.ts
+!*/**/edns-v2/**/*.d.ts
+!*/**/edns-v1/**/*.d.ts
 
 .DS_Store
 
