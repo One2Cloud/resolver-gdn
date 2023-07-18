@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - master
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   aws_cdk:
     runs-on: ubuntu-latest
@@ -18,8 +23,9 @@ jobs:
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_ACTION_IAM_ROLE }}
           aws-region: "us-east-1"
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTION_IAM_ROLE }}
+          role-session-name: GitHubActions
       - name: Install
         run: npm ci
       - name: Synth
