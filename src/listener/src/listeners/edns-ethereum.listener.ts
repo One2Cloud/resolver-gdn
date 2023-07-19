@@ -71,7 +71,7 @@ export default class EdnsEthereumListener {
 
 	private _listen_Registry_DomainBridged() {
 		const filter = this.contracts.registry.filters["DomainBridged"]();
-		this.contracts.resolver.on(filter, async (name, tld, dstChain, event) => {
+		this.contracts.registry.on(filter, async (name, tld, dstChain, event) => {
 			const fqdn = `${name}.${tld}`;
 			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_BRIDGED, {
 				name,
@@ -83,7 +83,7 @@ export default class EdnsEthereumListener {
 
 	private _listen_Registry_SetDomainResolver() {
 		const filter = this.contracts.registry.filters["SetDomainResolver"]();
-		this.contracts.resolver.on(filter, async (name, tld, newResolver, event) => {
+		this.contracts.registry.on(filter, async (name, tld, newResolver, event) => {
 			const fqdn = `$${name}.${tld}`;
 			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_RENEWED, {
 				name,
@@ -95,7 +95,7 @@ export default class EdnsEthereumListener {
 
 	private _listen_Registry_SetDomainOperator() {
 		const filter = this.contracts.registry.filters["SetDomainOperator"]();
-		this.contracts.resolver.on(filter, async (name, tld, operator, approved, event) => {
+		this.contracts.registry.on(filter, async (name, tld, operator, approved, event) => {
 			const fqdn = `${name}.${tld}`;
 			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_OPERATOR, {
 				name,
@@ -108,7 +108,7 @@ export default class EdnsEthereumListener {
 
 	private _listen_Registry_SetDomainUser() {
 		const filter = this.contracts.registry.filters["SetDomainUser"]();
-		this.contracts.resolver.on(filter, async (name, tld, newUser, expiry, event) => {
+		this.contracts.registry.on(filter, async (name, tld, newUser, expiry, event) => {
 			const fqdn = `${name}.${tld}`;
 			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_USER, {
 				name,
@@ -121,7 +121,7 @@ export default class EdnsEthereumListener {
 
 	private _listen_Registry_NewHost() {
 		const filter = this.contracts.registry.filters["NewHost"]();
-		this.contracts.resolver.on(filter, async (host, name, tld, ttl, event) => {
+		this.contracts.registry.on(filter, async (host, name, tld, ttl, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
 			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.NEW_HOST, {
 				host,
@@ -134,7 +134,7 @@ export default class EdnsEthereumListener {
 
 	private _listen_Registry_RemoveHost() {
 		const filter = this.contracts.registry.filters["RemoveHost"]();
-		this.contracts.resolver.on(filter, async (host, name, tld, event) => {
+		this.contracts.registry.on(filter, async (host, name, tld, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
 			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.REMOVE_HOST, {
 				host,
@@ -146,7 +146,7 @@ export default class EdnsEthereumListener {
 
 	private _listen_Registry_SetHostOperator() {
 		const filter = this.contracts.registry.filters["SetHostOperator"]();
-		this.contracts.resolver.on(filter, async (host, name, tld, operator, approved, event) => {
+		this.contracts.registry.on(filter, async (host, name, tld, operator, approved, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
 			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_HOST_OPERATOR, {
 				host,
@@ -160,7 +160,7 @@ export default class EdnsEthereumListener {
 
 	private _listen_Registry_SetHostUser() {
 		const filter = this.contracts.registry.filters["SetHostUser"]();
-		this.contracts.resolver.on(filter, async (host, name, tld, newUser, expiry, event) => {
+		this.contracts.registry.on(filter, async (host, name, tld, newUser, expiry, event) => {
 			const fqdn = `${host}.${name}.${tld}`;
 			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_HOST_USER, {
 				host,
