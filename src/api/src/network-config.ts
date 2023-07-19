@@ -212,7 +212,6 @@ const config: INetworkConfig = {
   },
   [Network.GOERLI]: {
     chainId: Network.GOERLI,
-
     name: "Ethereum Goerli",
     symbol: "gETH",
     url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -244,7 +243,6 @@ const config: INetworkConfig = {
   },
   [Network.BNB_CHAIN]: {
     chainId: Network.BNB_CHAIN,
-
     name: "BNB Chain",
     symbol: "BNB",
     url: `https://bsc.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,

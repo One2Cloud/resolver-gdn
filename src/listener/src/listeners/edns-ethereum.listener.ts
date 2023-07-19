@@ -34,10 +34,10 @@ export default class EdnsEthereumListener {
 		this.rpc = props.rpc;
 		if (this.rpc.startsWith("http")) {
 			this.provider = new JsonRpcProvider(this.rpc, { name: this.name, chainId: this.id });
+			this.provider.pollingInterval = 10000;
 		} else if (this.rpc.startsWith("ws")) {
 			this.provider = new WebSocketProvider(this.rpc, { name: this.name, chainId: this.id });
 		}
-		this.provider.pollingInterval = 10000;
 		this.contracts = {
 			resolver: PublicResolver__factory.connect(props.contracts.resolver, this.provider),
 			registrar: Registrar__factory.connect(props.contracts.registrar, this.provider),
