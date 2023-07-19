@@ -5,6 +5,7 @@ export interface IGetDomainOutput {
   owner: string;
   expiry: luxon.DateTime;
   resolver: string;
+  bridging: boolean;
   operators: string[];
   user: {
     address: string;

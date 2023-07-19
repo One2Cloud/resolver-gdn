@@ -1,7 +1,8 @@
 export enum EventType {
 	DOMAIN_REGISTERED = "domain-registered",
 	DOMAIN_RENEWED = "domain-renewed",
-	DOMAIN_BRIDGED = "domain-bridged",
+	// DOMAIN_BRIDGED = "domain-bridged",
+	SET_DOMAIN_OWNER = "set-domain-owner",
 	SET_DOMAIN_RESOLVER = "set-domain-resolver",
 	SET_DOMAIN_OPERATOR = "set-domain-operator",
 	SET_DOMAIN_USER = "set-domain-user",
@@ -22,4 +23,7 @@ export enum EventType {
 	UNSET_NFT_RECORD = "unset-nft-record",
 	SET_REVERSE_ADDRESS_RECORD = "set-reverse-address-record",
 	UNSET_REVERSE_ADDRESS_RECORD = "unset-reverse-address-record",
+	// Bridge
+	BRIDGE_REQUESTED = "bridge-requested",
+	BRIDGE_ACCEPTED = "bridge-accepted",
 }

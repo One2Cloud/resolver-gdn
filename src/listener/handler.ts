@@ -7,6 +7,10 @@ import { EventType } from "./src/constants/event-type.constant";
 import { Chain } from "./src/constants/chain.constant";
 import { DomainProvider } from "./src/constants/domain-provider.constant";
 import { setEnvironmentVariable } from "./src/utils/set-environment-variable";
+import { getContractAddress } from "ethers/lib/utils";
+import { createProvider } from "src/utils/create-provider";
+import { Bridge__factory } from "src/contracts/ethereum/edns-v2";
+import EdnsContractsAddress from "./static/edns-contracts-address.json";
 
 const logger = createLogger();
 
@@ -40,10 +44,20 @@ interface IDomainRenewedData {
 	expiry: number;
 }
 
-interface IDomainBridgedData {
-	name: string;
-	tld: string;
-	dstChain: Chain;
+// interface IDomainBridgedData {
+// 	name: string;
+// 	tld: string;
+// 	dstChain: Chain;
+// }
+
+interface IBridgeRequestedData {
+	chainId: number;
+	ref: string;
+}
+
+interface IBridgeAcceptedData {
+	chainId: number;
+	ref: string;
 }
 
 interface ISetReverseAddressRecordData extends IBaseSetRecordData {
@@ -130,6 +144,8 @@ interface ISetHostUserData {
  * edns:account:ADDRESS:domains => Set - The list of the domains owned by the address
  * edns:account:ADDRESS:domain:operators => Set - The list of domains which is a operator by the address
  * edns:account:ADDRESS:host:operators => Set - The list of hosts which is a operator by the address
+ * edns:account:ADDRESS:bridge:requested => Set - The list of bridge requests by the address
+ * edns:account:ADDRESS:bridge:accepted => Set - The list of bridge accepted requests by the address
  */
 
 export const index: SQSHandler = async (event, context) => {
@@ -241,50 +257,50 @@ export const index: SQSHandler = async (event, context) => {
 
 							break;
 						}
-						case EventType.DOMAIN_BRIDGED: {
-							const data: IDomainBridgedData = body.data;
-							const domain = `${data.name}.${data.tld}`;
+						// case EventType.DOMAIN_BRIDGED: {
+						// 	const data: IDomainBridgedData = body.data;
+						// 	const domain = `${data.name}.${data.tld}`;
 
-							let batch = client.pipeline();
+						// 	let batch = client.pipeline();
 
-							const dels: string[] = [];
+						// 	const dels: string[] = [];
 
-							// Remove all relative data about the host(s) under the domain
-							const _hosts = await client.smembers(`edns:${net}:domain:${domain}:hosts`);
-							if (_hosts.length) {
-								dels.push(
-									..._.flatten(
-										_hosts.map((_host) => [
-											`edns:${net}:host:${_host}.${domain}:records`,
-											`edns:${net}:host:${_host}.${domain}:user`,
-											`edns:${net}:host:${_host}.${domain}:operators`,
-										])
-									)
-								);
-								const queue: Promise<void>[] = [];
-								for (const _host of _hosts) {
-									async function exec(client: Redis): Promise<void> {
-										const _operators = await client.smembers(`edns:${net}:host:${_host}.${domain}:operators`);
-										if (_operators.length) {
-											_operators.forEach((operator) => {
-												batch = batch.srem(`edns:${net}:account:${operator}:host:operators`, `${_host}.${domain}`);
-											});
-										}
-									}
-									queue.push(exec(client));
-								}
-								await Promise.all(queue);
-							}
+						// 	// Remove all relative data about the host(s) under the domain
+						// 	const _hosts = await client.smembers(`edns:${net}:domain:${domain}:hosts`);
+						// 	if (_hosts.length) {
+						// 		dels.push(
+						// 			..._.flatten(
+						// 				_hosts.map((_host) => [
+						// 					`edns:${net}:host:${_host}.${domain}:records`,
+						// 					`edns:${net}:host:${_host}.${domain}:user`,
+						// 					`edns:${net}:host:${_host}.${domain}:operators`,
+						// 				])
+						// 			)
+						// 		);
+						// 		const queue: Promise<void>[] = [];
+						// 		for (const _host of _hosts) {
+						// 			async function exec(client: Redis): Promise<void> {
+						// 				const _operators = await client.smembers(`edns:${net}:host:${_host}.${domain}:operators`);
+						// 				if (_operators.length) {
+						// 					_operators.forEach((operator) => {
+						// 						batch = batch.srem(`edns:${net}:account:${operator}:host:operators`, `${_host}.${domain}`);
+						// 					});
+						// 				}
+						// 			}
+						// 			queue.push(exec(client));
+						// 		}
+						// 		await Promise.all(queue);
+						// 	}
 
-							const [owner, expiry] = await client.hmget(`edns:${net}:domain:${domain}:info`, "owner", "expiry");
-							if (owner && expiry) {
-								batch = batch.hmset(`edns:${net}:domain:${domain}:user`, { user: owner, expiry: expiry });
-							}
+						// 	const [owner, expiry] = await client.hmget(`edns:${net}:domain:${domain}:info`, "owner", "expiry");
+						// 	if (owner && expiry) {
+						// 		batch = batch.hmset(`edns:${net}:domain:${domain}:user`, { user: owner, expiry: expiry });
+						// 	}
 
-							await batch.hset(`edns:${net}:domain:${domain}:info`, "chain", data.dstChain).exec();
+						// 	await batch.hset(`edns:${net}:domain:${domain}:info`, "chain", data.dstChain).exec();
 
-							break;
-						}
+						// 	break;
+						// }
 						case EventType.SET_DOMAIN_OPERATOR: {
 							const data: ISetDomainOperatorData = body.data;
 							const domain = `${data.name}.${data.tld}`;
@@ -411,6 +427,74 @@ export const index: SQSHandler = async (event, context) => {
 								.sadd(`edns:${net}:host:${fqdn}:records:list`, `typed_text:${data.type}`)
 								.exec();
 
+							break;
+						}
+						case EventType.BRIDGE_REQUESTED: {
+							const data: IBridgeRequestedData = body.data;
+							const provider = createProvider(data.chainId);
+							const contracts = EdnsContractsAddress.find((contract) => contract.chainId === data.chainId);
+							if (contracts?.addresses["Bridge"]) {
+								const bridge = Bridge__factory.connect(contracts?.addresses["Bridge"], provider);
+								const req = await bridge.getBridgedRequest(data.ref);
+								if (req) {
+									const domain = `${req.name}.${req.tld}`;
+									let batch = client.pipeline();
+									const dels: string[] = [];
+									// Remove all relative data about the host(s) under the domain
+									const _hosts = await client.smembers(`edns:${net}:domain:${domain}:hosts`);
+									if (_hosts.length) {
+										dels.push(
+											..._.flatten(
+												_hosts.map((_host) => [
+													`edns:${net}:host:${_host}.${domain}:records`,
+													`edns:${net}:host:${_host}.${domain}:user`,
+													`edns:${net}:host:${_host}.${domain}:operators`,
+												])
+											)
+										);
+										const queue: Promise<void>[] = [];
+										for (const _host of _hosts) {
+											async function exec(client: Redis): Promise<void> {
+												const _operators = await client.smembers(`edns:${net}:host:${_host}.${domain}:operators`);
+												if (_operators.length) {
+													_operators.forEach((operator) => {
+														batch = batch.srem(`edns:${net}:account:${operator}:host:operators`, `${_host}.${domain}`);
+													});
+												}
+											}
+											queue.push(exec(client));
+										}
+										await Promise.all(queue);
+									}
+									const [owner, expiry] = await client.hmget(`edns:${net}:domain:${domain}:info`, "owner", "expiry");
+									if (owner && expiry) {
+										batch = batch.hmset(`edns:${net}:domain:${domain}:user`, { user: owner, expiry: expiry });
+									}
+
+									batch = batch.hset(`edns:${net}:domain:${domain}:info`, "bridging", "1");
+									batch = batch.sadd(`edns:${net}:account:${req.owner}:bridge:requested`, data.ref);
+
+									await batch.exec();
+								}
+							}
+							break;
+						}
+						case EventType.BRIDGE_ACCEPTED: {
+							const data: IBridgeAcceptedData = body.data;
+							const provider = createProvider(data.chainId);
+							const contracts = EdnsContractsAddress.find((contract) => contract.chainId === data.chainId);
+							if (contracts?.addresses["Bridge"]) {
+								const bridge = Bridge__factory.connect(contracts?.addresses["Bridge"], provider);
+								const req = await bridge.getAcceptedRequest(data.ref);
+								if (req) {
+									const domain = `${req.name}.${req.tld}`;
+									let batch = client.pipeline();
+									batch = batch.hset(`edns:${net}:domain:${domain}:info`, "chain", data.chainId);
+									batch = batch.hdel(`edns:${net}:domain:${domain}:info`, "bridging");
+									batch = batch.sadd(`edns:${net}:account:${req.owner}:bridge:accepted`, data.ref);
+									await batch.exec();
+								}
+							}
 							break;
 						}
 					}

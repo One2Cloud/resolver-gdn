@@ -1,7 +1,7 @@
 import { putEvent } from "../utils/put-event";
 import { EventType } from "../constants/event-type.constant";
 import { DomainProvider } from "../constants/domain-provider.constant";
-import { PublicResolver, Registrar, IRegistry, PublicResolver__factory, Registrar__factory, IRegistry__factory } from "../contracts/ethereum/edns-v2";
+import { PublicResolver, Registrar, IRegistry, PublicResolver__factory, Registrar__factory, IRegistry__factory, Bridge, Bridge__factory } from "../contracts/ethereum/edns-v2";
 import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers";
 
 export interface IEthereumListenerConstructorProps {
@@ -12,6 +12,7 @@ export interface IEthereumListenerConstructorProps {
 		resolver: string;
 		registrar: string;
 		registry: string;
+		bridge?: string;
 	};
 }
 
@@ -24,6 +25,7 @@ export default class EdnsEthereumListener {
 		resolver: PublicResolver;
 		registrar: Registrar;
 		registry: IRegistry;
+		bridge?: Bridge;
 	};
 
 	constructor(props: IEthereumListenerConstructorProps) {
@@ -41,6 +43,41 @@ export default class EdnsEthereumListener {
 			registrar: Registrar__factory.connect(props.contracts.registrar, this.provider),
 			registry: IRegistry__factory.connect(props.contracts.registry, this.provider),
 		};
+		if (props.contracts.bridge) {
+			this.contracts.bridge = Bridge__factory.connect(props.contracts.bridge, this.provider);
+		}
+	}
+
+	private _listen_Bridge_Bridged() {
+		if (this.contracts.bridge) {
+			const filter = this.contracts.bridge.filters["Bridged"]();
+			this.contracts.bridge.on(filter, async (nonce, sender, ref, event) => {
+				const data = await this.contracts.bridge!.getBridgedRequest(ref);
+				if (data) {
+					const fqdn = `${data.name}.${data.tld}`;
+					await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.BRIDGE_REQUESTED, {
+						chainId: this.id,
+						ref,
+					});
+				}
+			});
+		}
+	}
+
+	private _listen_Bridge_Accepted() {
+		if (this.contracts.bridge) {
+			const filter = this.contracts.bridge.filters["Accepted"]();
+			this.contracts.bridge.on(filter, async (nonce, sender, ref, event) => {
+				const data = await this.contracts.bridge!.getAcceptedRequest(ref);
+				if (data) {
+					const fqdn = `${data.name}.${data.tld}`;
+					await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.BRIDGE_ACCEPTED, {
+						chainId: this.id,
+						ref,
+					});
+				}
+			});
+		}
 	}
 
 	private _listen_Registrar_DomainRegistered() {
@@ -69,14 +106,26 @@ export default class EdnsEthereumListener {
 		});
 	}
 
-	private _listen_Registry_DomainBridged() {
-		const filter = this.contracts.registry.filters["DomainBridged"]();
-		this.contracts.registry.on(filter, async (name, tld, dstChain, event) => {
-			const fqdn = `${name}.${tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_BRIDGED, {
+	// private _listen_Registry_DomainBridged() {
+	// 	const filter = this.contracts.registry.filters["DomainBridged"]();
+	// 	this.contracts.registry.on(filter, async (name, tld, dstChain, event) => {
+	// 		const fqdn = `${name}.${tld}`;
+	// 		await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_BRIDGED, {
+	// 			name,
+	// 			tld,
+	// 			dstChain,
+	// 		});
+	// 	});
+	// }
+
+	private _listen_Registry_SetDomainOwner() {
+		const filter = this.contracts.registry.filters["SetDomainOwner"]();
+		this.contracts.registry.on(filter, async (name, tld, newOwner, event) => {
+			const fqdn = `$${name}.${tld}`;
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_OWNER, {
 				name,
 				tld,
-				dstChain,
+				newOwner,
 			});
 		});
 	}
@@ -335,12 +384,13 @@ export default class EdnsEthereumListener {
 
 		this._listen_Registrar_DomainRegistered();
 		this._listen_Registrar_DomainRenewed();
-		this._listen_Registry_DomainBridged();
+		// this._listen_Registry_DomainBridged();
 		this._listen_Registry_SetDomainResolver();
 		this._listen_Registry_SetDomainOperator();
 		this._listen_Registry_SetDomainUser();
 		this._listen_Registry_NewHost();
 		this._listen_Registry_RemoveHost();
+		this._listen_Registry_SetDomainOwner();
 		this._listen_Registry_SetHostOperator();
 		this._listen_Registry_SetHostUser();
 
@@ -356,5 +406,10 @@ export default class EdnsEthereumListener {
 		this._listen_Resolver_UnsetTypedTextRecord();
 		this._listen_Resolver_SetNFTRecord();
 		this._listen_Resolver_UnsetNFTRecord();
+
+		if (this.contracts.bridge) {
+			this._listen_Bridge_Bridged();
+			this._listen_Bridge_Accepted();
+		}
 	}
 }

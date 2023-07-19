@@ -155,7 +155,7 @@ const config: INetworkConfig = {
 		chainId: Network.ETHEREUM,
 		name: "Ethereum",
 		symbol: "ETH",
-		url: `https://eth.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/`,
+		url: `wss://eth.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 60,
 		},
@@ -206,7 +206,7 @@ const config: INetworkConfig = {
 		chainId: Network.GOERLI,
 		name: "Ethereum Goerli",
 		symbol: "gETH",
-		url: `https://eth.getblock.io/${process.env.GET_BLOCK_API_KEY}/goerli/`,
+		url: `wss://eth.getblock.io/${process.env.GET_BLOCK_API_KEY}/goerli/`,
 		slip44: {
 			coinId: 60,
 		},
@@ -235,10 +235,9 @@ const config: INetworkConfig = {
 	},
 	[Network.BNB_CHAIN]: {
 		chainId: Network.BNB_CHAIN,
-
 		name: "BNB Chain",
 		symbol: "BNB",
-		url: `https://bsc.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+		url: `wss://bsc.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 714,
 		},
@@ -267,10 +266,9 @@ const config: INetworkConfig = {
 	},
 	[Network.BNB_CHAIN_TESTNET]: {
 		chainId: Network.BNB_CHAIN_TESTNET,
-
 		name: "BNB Chain Testnet",
 		symbol: "tBNB",
-		url: `https://bsc.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/`,
+		url: `wss://bsc.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/`,
 		slip44: {
 			coinId: 714,
 		},
@@ -301,7 +299,7 @@ const config: INetworkConfig = {
 		chainId: Network.AVALANCHE,
 		name: "Avalanche C-Chain",
 		symbol: "AVAX",
-		url: `https://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/ext/bc/C/rpc`,
+		url: `wss://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/ext/bc/C/rpc`,
 		slip44: {
 			coinId: 9005,
 		},
@@ -332,7 +330,7 @@ const config: INetworkConfig = {
 		chainId: Network.AVALANCHE_FUJI,
 		name: "Avalanche Fuji",
 		symbol: "AVAX",
-		url: `https://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/ext/bc/C/rpc`,
+		url: `wss://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/ext/bc/C/rpc`,
 		slip44: {
 			coinId: 9005,
 		},
@@ -355,7 +353,7 @@ const config: INetworkConfig = {
 		chainId: Network.POLYGON,
 		name: "Polygon",
 		symbol: "MATIC",
-		url: `https://matic.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/`,
+		url: `wss://matic.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 966,
 		},
@@ -386,7 +384,7 @@ const config: INetworkConfig = {
 		chainId: Network.POLYGON_MUMBAI,
 		name: "Polygon Mumbai",
 		symbol: "MATIC",
-		url: `https://matic.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/`,
+		url: `wss://matic.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/`,
 		slip44: {
 			coinId: 966,
 		},
@@ -463,7 +461,7 @@ const config: INetworkConfig = {
 		chainId: Network.OPTIMISM,
 		name: "Optimism",
 		symbol: "ETH",
-		url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+		url: `wss://op.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 614,
 		},
@@ -492,7 +490,6 @@ const config: INetworkConfig = {
 	},
 	[Network.OPTIMISM_GOERLI]: {
 		chainId: Network.OPTIMISM_GOERLI,
-
 		name: "Optimism Goerli",
 		symbol: "ETH",
 		url: `https://optimism-goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -518,7 +515,7 @@ const config: INetworkConfig = {
 		chainId: Network.FANTOM,
 		name: "Fantom",
 		symbol: "FTM",
-		url: `https://ftm.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+		url: `wss://ftm.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 1007,
 		},
@@ -547,10 +544,9 @@ const config: INetworkConfig = {
 	},
 	[Network.FANTOM_TESTNET]: {
 		chainId: Network.FANTOM_TESTNET,
-
 		name: "Fantom testnet",
 		symbol: "FTM",
-		url: `https://rpc.ankr.com/fantom_testnet`,
+		url: `wss://ftm.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/`,
 		slip44: {
 			coinId: 1007,
 		},
@@ -579,7 +575,6 @@ const config: INetworkConfig = {
 	},
 	[Network.IOTEX]: {
 		chainId: Network.IOTEX,
-
 		name: "IoTeX Mainnet",
 		symbol: "IOTX",
 		url: `https://iotex-mainnet.gateway.pokt.network/v1/lb/${process.env.POKT_PORTAL_ID}`,
@@ -597,7 +592,6 @@ const config: INetworkConfig = {
 	},
 	[Network.IOTEX_TESTNET]: {
 		chainId: Network.IOTEX_TESTNET,
-
 		name: "IoTeX Testnet",
 		symbol: "IOTX-T",
 		url: `https://babel-api.testnet.iotex.io`,
@@ -605,10 +599,8 @@ const config: INetworkConfig = {
 			coinId: 304,
 		},
 	},
-
 	[Network.OKC_TESTNET]: {
 		chainId: Network.OKC_TESTNET,
-
 		name: "OKC Testnet",
 		symbol: "OKT",
 		url: `https://exchaintestrpc.okex.org`,
@@ -621,10 +613,9 @@ const config: INetworkConfig = {
 	},
 	[Network.OKC]: {
 		chainId: Network.OKC,
-
 		name: "OKC Mainnet",
 		symbol: "OKT",
-		url: `https://oKc-mainnet.gateway.pokt.network/v1/lb/${process.env.POKT_PORTAL_ID}`,
+		url: `wss://okt.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		layerzero: {
 			chainId: 155,
 			endpoint: {
@@ -654,7 +645,7 @@ const config: INetworkConfig = {
 		chainId: Network.GNOSIS,
 		name: "Gnosis Chain",
 		symbol: "XDAI",
-		url: `https://rpc.gnosis.gateway.fm`,
+		url: `wss://gno.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 700,
 		},
@@ -719,7 +710,7 @@ const config: INetworkConfig = {
 		chainId: Network.MOONRIVER,
 		name: "Moonriver",
 		symbol: "MOVR",
-		url: `https://moonriver.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+		url: `wss://moonriver.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 1285,
 		},
@@ -814,7 +805,7 @@ const config: INetworkConfig = {
 		chainId: Network.HARMONY,
 		name: "Harmony One",
 		symbol: "ONE",
-		url: `https://one.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+		url: `wss://one.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		layerzero: {
 			chainId: 116,
 			endpoint: {

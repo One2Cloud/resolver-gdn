@@ -21,6 +21,7 @@ const main = async () => {
 					registrar: contracts.addresses["Registrar"],
 					registry: contracts.addresses["Registry.Diamond"],
 					resolver: contracts.addresses["PublicResolver"],
+					bridge: contracts.addresses["Bridge"],
 				},
 			});
 			_listener.start();

@@ -153,6 +153,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
       .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:info`, "expiry")
       .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:info`, "chain")
       .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:info`, "resolver")
+      .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:info`, "bridging")
       .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:user`, "user")
       .hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:user`, "expiry")
       .smembers(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:operators`)
@@ -166,12 +167,13 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
       expiry: luxon.DateTime.fromSeconds(parseInt(results[1][1] as string)),
       chain: parseInt(results[2][1] as string),
       resolver: results[3][1] as string,
+      bridging: (results[4][1] as string) === "1",
       user: {
-        address: results[4][1] as string,
-        expiry: luxon.DateTime.fromSeconds(parseInt(results[5][1] as string)),
+        address: results[5][1] as string,
+        expiry: luxon.DateTime.fromSeconds(parseInt(results[6][1] as string)),
       },
-      operators: results[6][1] as string[],
-      hosts: results[7][1] as string[],
+      operators: results[7][1] as string[],
+      hosts: results[8][1] as string[],
     };
   }
 
