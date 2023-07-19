@@ -54,8 +54,8 @@ export class EDNS extends Construct {
 
 		const taskDefinition = new ecs.FargateTaskDefinition(this, "TaskDefinition", {
 			family: "EDNS",
-			cpu: 256,
-			memoryLimitMiB: 512,
+			cpu: 1024,
+			memoryLimitMiB: 2048,
 		});
 		taskDefinition.addContainer("mainnet", {
 			image: ecs.ContainerImage.fromDockerImageAsset(props.images.ecs),
