@@ -299,7 +299,7 @@ const config: INetworkConfig = {
 		chainId: Network.AVALANCHE,
 		name: "Avalanche C-Chain",
 		symbol: "AVAX",
-		url: `wss://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/ext/bc/C/rpc`,
+		url: `wss://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/ext/bc/C/ws`,
 		slip44: {
 			coinId: 9005,
 		},
@@ -330,7 +330,7 @@ const config: INetworkConfig = {
 		chainId: Network.AVALANCHE_FUJI,
 		name: "Avalanche Fuji",
 		symbol: "AVAX",
-		url: `wss://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/ext/bc/C/rpc`,
+		url: `wss://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/ext/bc/C/ws`,
 		slip44: {
 			coinId: 9005,
 		},

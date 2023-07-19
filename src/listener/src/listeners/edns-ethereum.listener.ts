@@ -412,4 +412,8 @@ export default class EdnsEthereumListener {
 			this._listen_Bridge_Accepted();
 		}
 	}
+
+	public stop(): void {
+		this.provider.removeAllListeners();
+	}
 }

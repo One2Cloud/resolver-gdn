@@ -13,18 +13,25 @@ const main = async () => {
 		const network = EthereumNetworkConfig[_network];
 		const contracts = EdnsContractsAddress.find((contract) => contract.chainId === network.chainId);
 		if (contracts?.addresses["Registrar"] && contracts?.addresses["Registrar"] && contracts?.addresses["PublicResolver"]) {
-			const _listener = new EdnsEthereumListener({
-				id: network.chainId,
-				name: network.name,
-				rpc: network.url,
-				contracts: {
-					registrar: contracts.addresses["Registrar"],
-					registry: contracts.addresses["Registry.Diamond"],
-					resolver: contracts.addresses["PublicResolver"],
-					bridge: contracts.addresses["Bridge"],
-				},
-			});
-			_listener.start();
+			let _listener: EdnsEthereumListener | undefined;
+			try {
+				const _listener = new EdnsEthereumListener({
+					id: network.chainId,
+					name: network.name,
+					rpc: network.url,
+					contracts: {
+						registrar: contracts.addresses["Registrar"],
+						registry: contracts.addresses["Registry.Diamond"],
+						resolver: contracts.addresses["PublicResolver"],
+						bridge: contracts.addresses["Bridge"],
+					},
+				});
+				_listener.start();
+			} catch (err) {
+				logger.error(`Failed to start listener for network ${network.chainId} - ${network.name}`);
+				console.error(err);
+				if (_listener) _listener.stop();
+			}
 		}
 	}
 };
