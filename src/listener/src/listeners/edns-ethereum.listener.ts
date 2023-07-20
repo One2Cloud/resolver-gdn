@@ -34,7 +34,7 @@ export default class EdnsEthereumListener {
 		this.rpc = props.rpc;
 		if (this.rpc.startsWith("http")) {
 			this.provider = new JsonRpcProvider(this.rpc, { name: this.name, chainId: this.id });
-			this.provider.pollingInterval = 10000;
+			// this.provider.pollingInterval = 10000;
 		} else if (this.rpc.startsWith("ws")) {
 			this.provider = new WebSocketProvider(this.rpc, { name: this.name, chainId: this.id });
 			// (this.provider as WebSocketProvider).websocket.onerror!((err: any) => console.error(`Error occurred on [${this.id}]: ${err}`));
