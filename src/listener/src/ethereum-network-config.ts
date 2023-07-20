@@ -155,7 +155,7 @@ const config: INetworkConfig = {
 		chainId: Network.ETHEREUM,
 		name: "Ethereum",
 		symbol: "ETH",
-		url: `wss://eth.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/`,
+		url: `wss://eth.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 60,
 		},
@@ -206,7 +206,7 @@ const config: INetworkConfig = {
 		chainId: Network.GOERLI,
 		name: "Ethereum Goerli",
 		symbol: "gETH",
-		url: `wss://eth.getblock.io/${process.env.GET_BLOCK_API_KEY}/goerli/`,
+		url: `wss://eth.getblock.io/${process.env.GETBLOCK_API_KEY}/goerli/`,
 		slip44: {
 			coinId: 60,
 		},
@@ -299,7 +299,7 @@ const config: INetworkConfig = {
 		chainId: Network.AVALANCHE,
 		name: "Avalanche C-Chain",
 		symbol: "AVAX",
-		url: `wss://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/ext/bc/C/ws`,
+		url: `wss://avax.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/ext/bc/C/ws`,
 		slip44: {
 			coinId: 9005,
 		},
@@ -330,7 +330,7 @@ const config: INetworkConfig = {
 		chainId: Network.AVALANCHE_FUJI,
 		name: "Avalanche Fuji",
 		symbol: "AVAX",
-		url: `wss://avax.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/ext/bc/C/ws`,
+		url: `wss://avax.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/ext/bc/C/ws`,
 		slip44: {
 			coinId: 9005,
 		},
@@ -353,7 +353,7 @@ const config: INetworkConfig = {
 		chainId: Network.POLYGON,
 		name: "Polygon",
 		symbol: "MATIC",
-		url: `wss://matic.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/`,
+		url: `wss://matic.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 966,
 		},
@@ -384,7 +384,7 @@ const config: INetworkConfig = {
 		chainId: Network.POLYGON_MUMBAI,
 		name: "Polygon Mumbai",
 		symbol: "MATIC",
-		url: `wss://matic.getblock.io/${process.env.GET_BLOCK_API_KEY}/testnet/`,
+		url: `wss://matic.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/`,
 		slip44: {
 			coinId: 966,
 		},
@@ -407,7 +407,7 @@ const config: INetworkConfig = {
 		chainId: Network.ARBITRUM,
 		name: "Arbitrum",
 		symbol: "ETH",
-		url: `wss://arb.getblock.io/${process.env.GET_BLOCK_API_KEY}/mainnet/`,
+		url: `wss://arb.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
 		slip44: {
 			coinId: 9001,
 		},
@@ -438,7 +438,7 @@ const config: INetworkConfig = {
 		chainId: Network.ARBITRUM_GOERLI,
 		name: "Arbitrum Goerli",
 		symbol: "ETH",
-		url: `wss://arb.getblock.io/${process.env.GET_BLOCK_API_KEY}/goerli/`,
+		url: `wss://arb.getblock.io/${process.env.GETBLOCK_API_KEY}/goerli/`,
 		slip44: {
 			coinId: 9001,
 		},
