@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/alpine:latest as layer
+FROM alpine:latest as layer
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 ARG AWS_SESSION_TOKEN
@@ -21,7 +21,7 @@ RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn
     rm aws_cloudwatch_layer.zip
 FROM scratch
 
-FROM public.ecr.aws/docker/library/node:lts-alpine as base
+FROM node:lts-alpine as base
 WORKDIR /app
 RUN apk add --no-cache --update python3 make gcc g++
 
