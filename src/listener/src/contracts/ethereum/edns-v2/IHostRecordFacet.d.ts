@@ -21,6 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface IHostRecordFacetInterface extends ethers.utils.Interface {
   functions: {
+    "getName(bytes32,bytes32,bytes32)": FunctionFragment;
     "getTokenId(bytes,bytes,bytes)": FunctionFragment;
     "getTtl(bytes32,bytes32,bytes32)": FunctionFragment;
     "getUser(bytes32,bytes32,bytes32)": FunctionFragment;
@@ -33,6 +34,10 @@ interface IHostRecordFacetInterface extends ethers.utils.Interface {
     "unsetRecord(bytes32,bytes32,bytes32)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "getName",
+    values: [BytesLike, BytesLike, BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "getTokenId",
     values: [BytesLike, BytesLike, BytesLike]
@@ -74,6 +79,7 @@ interface IHostRecordFacetInterface extends ethers.utils.Interface {
     values: [BytesLike, BytesLike, BytesLike]
   ): string;
 
+  decodeFunctionResult(functionFragment: "getName", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getTokenId", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getTtl", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getUser", data: BytesLike): Result;
@@ -184,6 +190,13 @@ export class IHostRecordFacet extends BaseContract {
   interface: IHostRecordFacetInterface;
 
   functions: {
+    getName(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     getTokenId(
       host: BytesLike,
       name: BytesLike,
@@ -260,6 +273,13 @@ export class IHostRecordFacet extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  getName(
+    host: BytesLike,
+    name: BytesLike,
+    tld: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   getTokenId(
     host: BytesLike,
@@ -338,6 +358,13 @@ export class IHostRecordFacet extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    getName(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     getTokenId(
       host: BytesLike,
       name: BytesLike,
@@ -524,6 +551,13 @@ export class IHostRecordFacet extends BaseContract {
   };
 
   estimateGas: {
+    getName(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getTokenId(
       host: BytesLike,
       name: BytesLike,
@@ -602,6 +636,13 @@ export class IHostRecordFacet extends BaseContract {
   };
 
   populateTransaction: {
+    getName(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getTokenId(
       host: BytesLike,
       name: BytesLike,

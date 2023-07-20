@@ -23,6 +23,7 @@ interface IDomainRecordFacetInterface extends ethers.utils.Interface {
   functions: {
     "bridge(bytes32,bytes32)": FunctionFragment;
     "getExpiry(bytes32,bytes32)": FunctionFragment;
+    "getName(bytes32,bytes32)": FunctionFragment;
     "getOwner(bytes32,bytes32)": FunctionFragment;
     "getResolver(bytes32,bytes32)": FunctionFragment;
     "getTokenId(bytes,bytes)": FunctionFragment;
@@ -45,6 +46,10 @@ interface IDomainRecordFacetInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getExpiry",
+    values: [BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getName",
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
@@ -106,6 +111,7 @@ interface IDomainRecordFacetInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(functionFragment: "bridge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getExpiry", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getName", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getResolver",
@@ -257,6 +263,12 @@ export class IDomainRecordFacet extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getName(
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     getOwner(
       name: BytesLike,
       tld: BytesLike,
@@ -365,6 +377,12 @@ export class IDomainRecordFacet extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getName(
+    name: BytesLike,
+    tld: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   getOwner(
     name: BytesLike,
     tld: BytesLike,
@@ -472,6 +490,12 @@ export class IDomainRecordFacet extends BaseContract {
       tld: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getName(
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     getOwner(
       name: BytesLike,
@@ -726,6 +750,12 @@ export class IDomainRecordFacet extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getName(
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getOwner(
       name: BytesLike,
       tld: BytesLike,
@@ -830,6 +860,12 @@ export class IDomainRecordFacet extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getExpiry(
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getName(
       name: BytesLike,
       tld: BytesLike,
       overrides?: CallOverrides

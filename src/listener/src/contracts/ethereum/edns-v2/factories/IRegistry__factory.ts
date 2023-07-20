@@ -783,6 +783,78 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
+        name: "tld",
+        type: "bytes32",
+      },
+    ],
+    name: "getName",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "name",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "tld",
+        type: "bytes32",
+      },
+    ],
+    name: "getName",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "host",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "name",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "tld",
+        type: "bytes32",
+      },
+    ],
+    name: "getName",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
         name: "name",
         type: "bytes32",
       },
