@@ -19,7 +19,6 @@ export interface ConstructProps {
     ecs: ecra.DockerImageAsset;
     lambda: ecra.DockerImageAsset;
   };
-  sqs: sqs.Queue;
   secret: secretmanager.Secret;
 }
 
