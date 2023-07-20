@@ -37,6 +37,7 @@ export default class EdnsEthereumListener {
 			this.provider.pollingInterval = 10000;
 		} else if (this.rpc.startsWith("ws")) {
 			this.provider = new WebSocketProvider(this.rpc, { name: this.name, chainId: this.id });
+			(this.provider as WebSocketProvider).websocket.onerror!((err: any) => console.error(`Error occurred on [${this.id}]: ${err}`));
 		}
 		this.contracts = {
 			resolver: PublicResolver__factory.connect(props.contracts.resolver, this.provider),
