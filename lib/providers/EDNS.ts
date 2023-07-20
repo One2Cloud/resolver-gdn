@@ -54,14 +54,15 @@ export class EDNS extends Construct {
 
 		const taskDefinition = new ecs.FargateTaskDefinition(this, "TaskDefinition", {
 			family: "EDNS",
-			cpu: 1024,
-			memoryLimitMiB: 2048,
+			cpu: 2048,
+			memoryLimitMiB: 4096,
 		});
 		taskDefinition.addContainer("mainnet", {
 			image: ecs.ContainerImage.fromDockerImageAsset(props.images.ecs),
 			environment: {
 				MAINNET: "1",
 				PROVIDER: "edns",
+				SQS_HANDLER_URL: queue.queueUrl,
 			},
 			secrets: {
 				REDIS_URL: ecs.Secret.fromSecretsManager(props.secret, "REDIS_URL"),
@@ -77,6 +78,7 @@ export class EDNS extends Construct {
 			environment: {
 				MAINNET: "0",
 				PROVIDER: "edns",
+				SQS_HANDLER_URL: queue.queueUrl,
 			},
 			secrets: {
 				REDIS_URL: ecs.Secret.fromSecretsManager(props.secret, "REDIS_URL"),
@@ -84,7 +86,7 @@ export class EDNS extends Construct {
 				GETBLOCK_API_KEY: ecs.Secret.fromSecretsManager(props.secret, "GETBLOCK_API_KEY"),
 				POKT_PORTAL_ID: ecs.Secret.fromSecretsManager(props.secret, "POKT_PORTAL_ID"),
 			},
-			logging: ecs.LogDrivers.awsLogs({ streamPrefix: "EDNS_Mainnet" }),
+			logging: ecs.LogDrivers.awsLogs({ streamPrefix: "EDNS_Testnet" }),
 			command: ["node", "listener.js"],
 		});
 
