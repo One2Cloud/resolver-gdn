@@ -43,7 +43,7 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
     //   Registry: IRegistry__factory.connect(contracts.addresses["Registry.Diamond"], provider),
     //   Resolver: PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider),
     // };
-    console.log(ResolverContract);
+    // console.log(ResolverContract);
 
     return {
       Registrar: RegistrarContract,
@@ -88,7 +88,6 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
   public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
     const redis = createRedisClient();
-    console.log("reach service");
 
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     const res = await this.isExists(input.fqdn, options);
@@ -213,7 +212,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   private async _getDomainChainId(domain: string, options?: IOptions): Promise<number> {
     const redis = createRedisClient();
     const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`, "chain");
-    console.log(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`);
+    // console.log(`await redis.hget(edns:${options?.net || Net.MAINNET}:domain:${domain}:info, "chain");`)
     if (!result) throw new Error("Unable to get Chain ID"); //TODO:
     return parseInt(result);
   }
@@ -229,11 +228,10 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
-    const isExists = await this.isExists(input.fqdn, options);
-    console.log({ isExists });
-    if (!isExists) throw new DomainNotFoundError(input.fqdn);
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+    
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -251,9 +249,10 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
-    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+    
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -283,9 +282,10 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
-    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -303,9 +303,10 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
-    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+
     const contracts = getContracts(_chainId);
     const _typed = ethers.utils.toUtf8Bytes(input.typed);
 
@@ -326,9 +327,10 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
-    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+    
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -360,11 +362,11 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     return undefined;
   }
 
-  public async isExists(fqdn: string, options?: IOptions): Promise<boolean> {
+  public async isExists(fqdn: string, options?: IOptions, _chainId?: number): Promise<boolean> {
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
 
-    const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
-    const contracts = getContracts(_chainId);
+    // const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
+    const contracts = getContracts(_chainId!)
 
     const { host, name, tld } = extractFqdn(fqdn);
     if (host && name && tld) {

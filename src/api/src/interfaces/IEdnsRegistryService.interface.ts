@@ -24,7 +24,7 @@ export interface IGetHostOutput {
 }
 
 export interface IEdnsRegistryService{
-  isExists(fqdn: string, options?: IOptions): Promise<boolean>;
+  isExists(fqdn: string, options?: IOptions, _chainId?: number): Promise<boolean>;
   getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined>;
   getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[] | undefined>;
   getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined>;
