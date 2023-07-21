@@ -30,6 +30,7 @@ export class EdnsService implements IEdnsResolverService {
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
     let output: IGetReverseAddressRecordOutput | undefined;
+    console.log({ chainid: options?.chainId });
     if (options?.version === "v1") return this._v1ContractService.getReverseAddressRecord(input, options);
     if (!output && options?.onchain) output = await this._v2ContractService.getReverseAddressRecord(input, options);
     if (!output && !options?.onchain) output = await this._v2RedisService.getReverseAddressRecord(input, options);
