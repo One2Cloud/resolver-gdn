@@ -40,7 +40,7 @@ export class EDNS extends Construct {
       handler: lambda.Handler.FROM_IMAGE,
       runtime: lambda.Runtime.FROM_IMAGE,
       timeout: cdk.Duration.minutes(1),
-      memorySize: 256,
+      memorySize: 512,
       environment: {
         GLOBAL_SECRET_ARN: props.secret.secretArn,
         SQS_HANDLER_URL: queue.queueUrl,
@@ -113,7 +113,7 @@ export class EDNS extends Construct {
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "EDNS_Testnet" }),
       command: ["node", "listener.js"],
     });
-
+    queue.grantSendMessages(taskDefinition.taskRole);
     new ecs.FargateService(this, "Service", {
       cluster: props.cluster,
       taskDefinition: taskDefinition,

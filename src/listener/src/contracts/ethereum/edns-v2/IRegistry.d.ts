@@ -33,6 +33,7 @@ interface IRegistryInterface extends ethers.utils.Interface {
     "getClass(bytes32)": FunctionFragment;
     "getExpiry(bytes32)": FunctionFragment;
     "getGracePeriod()": FunctionFragment;
+    "getName(bytes32)": FunctionFragment;
     "getOwner(bytes32,bytes32)": FunctionFragment;
     "getResolver(bytes32,bytes32)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
@@ -105,6 +106,7 @@ interface IRegistryInterface extends ethers.utils.Interface {
     functionFragment: "getGracePeriod",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "getName", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "getOwner",
     values: [BytesLike, BytesLike]
@@ -245,6 +247,7 @@ interface IRegistryInterface extends ethers.utils.Interface {
     functionFragment: "getGracePeriod",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getName", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getResolver",
@@ -559,6 +562,24 @@ export class IRegistry extends BaseContract {
     ): Promise<[BigNumber]>;
 
     getGracePeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "getName(bytes32)"(
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "getName(bytes32,bytes32)"(
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "getName(bytes32,bytes32,bytes32)"(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     "getOwner(bytes32,bytes32)"(
       name: BytesLike,
@@ -888,6 +909,24 @@ export class IRegistry extends BaseContract {
 
   getGracePeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
+  "getName(bytes32)"(
+    tld: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "getName(bytes32,bytes32)"(
+    name: BytesLike,
+    tld: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "getName(bytes32,bytes32,bytes32)"(
+    host: BytesLike,
+    name: BytesLike,
+    tld: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   "getOwner(bytes32,bytes32)"(
     name: BytesLike,
     tld: BytesLike,
@@ -1213,6 +1252,24 @@ export class IRegistry extends BaseContract {
     ): Promise<BigNumber>;
 
     getGracePeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getName(bytes32)"(
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "getName(bytes32,bytes32)"(
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "getName(bytes32,bytes32,bytes32)"(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     "getOwner(bytes32,bytes32)"(
       name: BytesLike,
@@ -1941,6 +1998,24 @@ export class IRegistry extends BaseContract {
 
     getGracePeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
+    "getName(bytes32)"(
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getName(bytes32,bytes32)"(
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getName(bytes32,bytes32,bytes32)"(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     "getOwner(bytes32,bytes32)"(
       name: BytesLike,
       tld: BytesLike,
@@ -2268,6 +2343,24 @@ export class IRegistry extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getGracePeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getName(bytes32)"(
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getName(bytes32,bytes32)"(
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getName(bytes32,bytes32,bytes32)"(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     "getOwner(bytes32,bytes32)"(
       name: BytesLike,
