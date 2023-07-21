@@ -113,7 +113,7 @@ export class EDNS extends Construct {
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "EDNS_Testnet" }),
       command: ["node", "listener.js"],
     });
-    queue.grantSendMessages(taskDefinition.taskRole);
+
     new ecs.FargateService(this, "Service", {
       cluster: props.cluster,
       taskDefinition: taskDefinition,
