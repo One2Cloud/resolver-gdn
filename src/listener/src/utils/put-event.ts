@@ -19,9 +19,9 @@ export const putEvent = async (
   try {
     await sqs.sendMessage({
       QueueUrl: config.sqs.handler.url,
-      MessageDeduplicationId: Buffer.from(
+      MessageDeduplicationId: `${Buffer.from(
         `${provider}:${fqdn}:${type}`
-      ).toString("hex"),
+      ).toString("hex")}`,
       MessageBody: JSON.stringify({
         type,
         data,
