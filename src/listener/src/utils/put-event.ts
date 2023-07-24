@@ -16,6 +16,11 @@ export const putEvent = async (
 ) => {
   const sqs = new SQS({ region: process.env.AWS_REGION });
   logger.debug(`Putting event to SQS: ${fqdn}`);
+  logger.debug(
+    `Event: ${typeof Buffer.from(`${provider}:${fqdn}:${type}`).toString(
+      "hex"
+    )}`
+  );
   try {
     await sqs.sendMessage({
       QueueUrl: config.sqs.handler.url,
