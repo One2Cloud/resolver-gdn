@@ -149,7 +149,7 @@ interface ISetHostUserData {
  */
 
 export const index: SQSHandler = async (event, context) => {
-  setEnvironmentVariable();
+  await setEnvironmentVariable();
   const config = getConfig();
   if (!client) client = new Redis(config.redis.url);
   const records = event.Records;
