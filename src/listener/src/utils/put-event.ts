@@ -20,7 +20,7 @@ export const putEvent = async (
   try {
     await sqs.sendMessage({
       QueueUrl: config.sqs.handler.url,
-      MessageDeduplicationId: randomUUID().toString(),
+      MessageGroupId: randomUUID(),
       MessageBody: JSON.stringify({
         type,
         data,
