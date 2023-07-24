@@ -27,6 +27,10 @@ import {
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../typechain/edns-v2/typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
 import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
+import { CantConnectContractError } from "../errors/cant-connect-contract.error";
+import { CantGetDomainNameError } from "../errors/cant-get-domain-name.error";
+import { CantGetChainIdError } from "../errors/cant-get-chain-id.error";
+import { MissingChainIdError } from "../errors/missing-chain-id.error";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const network = NetworkConfig[chainId];
@@ -51,7 +55,7 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
       Resolver: ResolverContract,
     };
   } else {
-    throw new Error("Unable to connect contract"); // TODO:
+    throw new CantConnectContractError(chainId); // REVIEW
   }
 };
 
@@ -143,7 +147,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
 
     const { name, tld } = extractFqdn(fqdn);
-    if (!name) throw new Error(""); //TODO:
+    if (!name) throw new CantGetDomainNameError(fqdn); // REVIEW
     const _domain = `${name}.${tld}`;
 
     const results = await redis
@@ -213,12 +217,12 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const redis = createRedisClient();
     const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`, "chain");
     // console.log(`await redis.hget(edns:${options?.net || Net.MAINNET}:domain:${domain}:info, "chain");`)
-    if (!result) throw new Error("Unable to get Chain ID"); //TODO:
+    if (!result) throw new CantGetChainIdError(domain); // REVIEW
     return parseInt(result);
   }
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
-    if (!options?.chainId) throw new Error(""); //TODO:
+    if (!options?.chainId) throw new MissingChainIdError; // REVIEW
     const contracts = getContracts(options.chainId);
 
     const fqdn = await contracts.Resolver.getReverseAddress(input.address);
@@ -228,23 +232,32 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    // console.log('Entered: onchain getaddressrecord v2')
 
-    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options)); // REVIEW
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
     
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
+
+    let result = undefined;
     if (host && name && tld) {
-      return {
-        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
-      };
+        result = {
+          address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld))
+        }
     } else if (name && tld) {
-      return {
-        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
-      };
+        result = {
+          address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld))
+        }
     }
-    return undefined;
+    // console.log(`LOG: address = ${address}`)
+    // console.log(`LOG: isAddress = ${ethers.utils.isAddress(address!)}`)
+    if (!result || result.address === "0x0000000000000000000000000000000000000000") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
@@ -256,8 +269,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
+    let result = undefined;
     if (host && name && tld) {
-      return {
+      result = {
         coin: input.coin,
         address: await contracts.Resolver.getMultiCoinAddress(
           ethers.utils.toUtf8Bytes(host),
@@ -267,7 +281,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         ),
       };
     } else if (name && tld) {
-      return {
+      result = {
         coin: input.coin,
         address: await contracts.Resolver.getMultiCoinAddress(
           ethers.utils.toUtf8Bytes("@"),
@@ -277,7 +291,11 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         ),
       };
     }
-    return undefined;
+    if (!result || result.address === "0x") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
@@ -288,17 +306,22 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const contracts = getContracts(_chainId);
 
+    let result;
     const { host, name, tld } = extractFqdn(input.fqdn);
     if (host && name && tld) {
-      return {
+      result = {
         text: await contracts.Resolver.getText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
       };
     } else if (name && tld) {
-      return {
+      result = {
         text: await contracts.Resolver.getText(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
       };
     }
-    return undefined;
+    if (!result || result.text === "") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
@@ -311,18 +334,23 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const _typed = ethers.utils.toUtf8Bytes(input.typed);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
+    let result;
     if (host && name && tld) {
-      return {
+      result = {
         typed: input.typed,
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     } else if (name && tld) {
-      return {
+      result = {
         typed: input.typed,
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     }
-    return undefined;
+    if (!result || result.text === "") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
@@ -334,6 +362,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
+    let result;
     if (host && name && tld) {
       const [contractAddress, tokenId] = await contracts.Resolver.getNFT(
         ethers.utils.toUtf8Bytes(host),
@@ -341,7 +370,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         ethers.utils.toUtf8Bytes(tld),
         input.chainId,
       );
-      return {
+      result = {
         chainId: input.chainId,
         contractAddress,
         tokenId: `${tokenId.toNumber()}`,
@@ -353,13 +382,17 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         ethers.utils.toUtf8Bytes(tld),
         input.chainId,
       );
-      return {
+      result = {
         chainId: input.chainId,
         contractAddress,
         tokenId: `${tokenId.toNumber()}`,
       };
     }
-    return undefined;
+    if (!result || result.contractAddress === "0x0000000000000000000000000000000000000000") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async isExists(fqdn: string, options?: IOptions, _chainId?: number): Promise<boolean> {

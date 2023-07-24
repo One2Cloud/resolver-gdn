@@ -80,6 +80,7 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
       code: errorCode,
       reason: errorMessage,
     },
+    empty: true
   };
 
   return res.status(status).json(response);

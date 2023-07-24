@@ -7,4 +7,5 @@ export interface IGeneralResponse<Data> {
     code: string;
     reason?: string;
   };
+  empty: boolean;
 }

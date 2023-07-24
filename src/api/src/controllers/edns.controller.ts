@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { EdnsService } from "../services/edns.service";
 
 import { IOptions } from "../interfaces/IOptions.interface";
-import { InvalidQueryError } from "../errors/invalid-query.error";
 import { Net, Network } from "../network-config";
 import { extract } from "../utils/extract-options-from-request";
 import { IGeneralResponse } from "../interfaces/IGeneralOutput.interface";
@@ -68,6 +67,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -86,6 +86,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -104,6 +105,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -122,6 +124,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -140,6 +143,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -158,6 +162,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
