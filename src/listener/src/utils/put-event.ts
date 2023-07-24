@@ -3,7 +3,7 @@ import config from "../config";
 import { EventType } from "../constants/event-type.constant";
 import { DomainProvider } from "../constants/domain-provider.constant";
 import { createLogger } from "./create-logger";
-import { buffer } from "stream/consumers";
+import { randomUUID } from "crypto";
 
 const logger = createLogger({ service: "put_sqs_event" });
 
@@ -16,12 +16,11 @@ export const putEvent = async (
 ) => {
   const sqs = new SQS({ region: process.env.AWS_REGION });
   logger.debug(`Putting event to SQS: ${fqdn}`);
+  logger.debug(`MessageDeduplication: ${`${provider}:${fqdn}:${type}`}`);
   try {
     await sqs.sendMessage({
       QueueUrl: config.sqs.handler.url,
-      MessageDeduplicationId: Buffer.from(
-        `${provider}:${fqdn}:${type}`
-      ).toString("hex"),
+      //   MessageGroupId: randomUUID(),
       MessageBody: JSON.stringify({
         type,
         data,
