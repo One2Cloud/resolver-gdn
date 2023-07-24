@@ -67,6 +67,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -85,6 +86,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -103,6 +105,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -121,6 +124,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -139,6 +143,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -157,6 +162,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
+        empty: !output
       };
       res.status(response.status).json(response);
     } catch (error) {

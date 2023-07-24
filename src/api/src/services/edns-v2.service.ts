@@ -240,16 +240,24 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
+
+    let result = undefined;
     if (host && name && tld) {
-      return {
-        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
-      };
+        result = {
+          address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld))
+        }
     } else if (name && tld) {
-      return {
-        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
-      };
+        result = {
+          address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld))
+        }
     }
-    return undefined;
+    // console.log(`LOG: address = ${address}`)
+    // console.log(`LOG: isAddress = ${ethers.utils.isAddress(address!)}`)
+    if (!result || result.address === "0x0000000000000000000000000000000000000000") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
@@ -261,8 +269,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
+    let result = undefined;
     if (host && name && tld) {
-      return {
+      result = {
         coin: input.coin,
         address: await contracts.Resolver.getMultiCoinAddress(
           ethers.utils.toUtf8Bytes(host),
@@ -272,7 +281,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         ),
       };
     } else if (name && tld) {
-      return {
+      result = {
         coin: input.coin,
         address: await contracts.Resolver.getMultiCoinAddress(
           ethers.utils.toUtf8Bytes("@"),
@@ -282,7 +291,11 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         ),
       };
     }
-    return undefined;
+    if (!result || result.address === "0x") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
@@ -293,17 +306,22 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const contracts = getContracts(_chainId);
 
+    let result;
     const { host, name, tld } = extractFqdn(input.fqdn);
     if (host && name && tld) {
-      return {
+      result = {
         text: await contracts.Resolver.getText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
       };
     } else if (name && tld) {
-      return {
+      result = {
         text: await contracts.Resolver.getText(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
       };
     }
-    return undefined;
+    if (!result || result.text === "") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
@@ -316,18 +334,23 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const _typed = ethers.utils.toUtf8Bytes(input.typed);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
+    let result;
     if (host && name && tld) {
-      return {
+      result = {
         typed: input.typed,
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     } else if (name && tld) {
-      return {
+      result = {
         typed: input.typed,
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     }
-    return undefined;
+    if (!result || result.text === "") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
@@ -339,6 +362,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
+    let result;
     if (host && name && tld) {
       const [contractAddress, tokenId] = await contracts.Resolver.getNFT(
         ethers.utils.toUtf8Bytes(host),
@@ -346,7 +370,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         ethers.utils.toUtf8Bytes(tld),
         input.chainId,
       );
-      return {
+      result = {
         chainId: input.chainId,
         contractAddress,
         tokenId: `${tokenId.toNumber()}`,
@@ -358,13 +382,17 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         ethers.utils.toUtf8Bytes(tld),
         input.chainId,
       );
-      return {
+      result = {
         chainId: input.chainId,
         contractAddress,
         tokenId: `${tokenId.toNumber()}`,
       };
     }
-    return undefined;
+    if (!result || result.contractAddress === "0x0000000000000000000000000000000000000000") {
+      return undefined;
+    } else {
+      return result;
+    }
   }
 
   public async isExists(fqdn: string, options?: IOptions, _chainId?: number): Promise<boolean> {
