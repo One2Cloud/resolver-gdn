@@ -30,6 +30,7 @@ export class EDNS extends Construct {
 
     const queue = new sqs.Queue(this, "Queue", {
       visibilityTimeout: cdk.Duration.minutes(3),
+      deduplicationScope: sqs.DeduplicationScope.QUEUE,
     });
 
     const handler = new lambda.Function(this, "Handler", {
