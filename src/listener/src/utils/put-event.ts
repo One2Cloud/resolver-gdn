@@ -16,13 +16,11 @@ export const putEvent = async (
 ) => {
   const sqs = new SQS({ region: process.env.AWS_REGION });
   logger.debug(`Putting event to SQS: ${fqdn}`);
-  logger.debug(
-    `MessageDeduplicationId Length: ${`${provider}:${fqdn}:${type}`}`
-  );
+  logger.debug(`MessageDeduplication: ${`${provider}:${fqdn}:${type}`}`);
   try {
     await sqs.sendMessage({
       QueueUrl: config.sqs.handler.url,
-      MessageDeduplicationId: randomUUID.toString(),
+      MessageDeduplicationId: randomUUID().toString(),
       MessageBody: JSON.stringify({
         type,
         data,
