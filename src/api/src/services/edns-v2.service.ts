@@ -27,6 +27,10 @@ import {
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../typechain/edns-v2/typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
 import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
+import { CantConnectContractError } from "../errors/cant-connect-contract.error";
+import { CantGetDomainNameError } from "../errors/cant-get-domain-name.error";
+import { CantGetChainIdError } from "../errors/cant-get-chain-id.error";
+import { MissingChainIdError } from "../errors/missing-chain-id.error";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const network = NetworkConfig[chainId];
@@ -51,7 +55,7 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
       Resolver: ResolverContract,
     };
   } else {
-    throw new Error("Unable to connect contract"); // TODO:
+    throw new CantConnectContractError(chainId); // REVIEW
   }
 };
 
@@ -143,7 +147,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
 
     const { name, tld } = extractFqdn(fqdn);
-    if (!name) throw new Error(""); //TODO:
+    if (!name) throw new CantGetDomainNameError(fqdn); // REVIEW
     const _domain = `${name}.${tld}`;
 
     const results = await redis
@@ -213,12 +217,12 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const redis = createRedisClient();
     const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`, "chain");
     // console.log(`await redis.hget(edns:${options?.net || Net.MAINNET}:domain:${domain}:info, "chain");`)
-    if (!result) throw new Error("Unable to get Chain ID"); //TODO:
+    if (!result) throw new CantGetChainIdError(domain); // REVIEW
     return parseInt(result);
   }
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
-    if (!options?.chainId) throw new Error(""); //TODO:
+    if (!options?.chainId) throw new MissingChainIdError; // REVIEW
     const contracts = getContracts(options.chainId);
 
     const fqdn = await contracts.Resolver.getReverseAddress(input.address);
@@ -228,8 +232,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    // console.log('Entered: onchain getaddressrecord v2')
 
-    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options)); // REVIEW
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
     
     const contracts = getContracts(_chainId);
