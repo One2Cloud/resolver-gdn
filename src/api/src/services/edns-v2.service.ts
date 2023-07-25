@@ -268,6 +268,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
     
     const contracts = getContracts(_chainId);
 
@@ -306,6 +307,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
 
     const contracts = getContracts(_chainId);
 
@@ -332,6 +334,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
 
     const contracts = getContracts(_chainId);
     const _typed = ethers.utils.toUtf8Bytes(input.typed);
@@ -361,6 +364,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
     
     const contracts = getContracts(_chainId);
 
