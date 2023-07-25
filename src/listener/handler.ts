@@ -533,21 +533,25 @@ export const index: SQSHandler = async (event, context) => {
         case EventType.SET_TYPED_TEXT_RECORD: {
           const data: ISetTypedTextRecordData = body.data;
           const fqdn = `${data.host}.${data.name}.${data.tld}`;
+          try {
+            await client
+              .pipeline()
+              .hset(
+                `edns:${net}:host:${fqdn}:records`,
+                `typed_text:${data.type}`,
+                data.text
+              )
+              .sadd(
+                `edns:${net}:host:${fqdn}:records:list`,
+                `typed_text:${data.type}`
+              )
+              .exec();
 
-          await client
-            .pipeline()
-            .hset(
-              `edns:${net}:host:${fqdn}:records`,
-              `typed_text:${data.type}`,
-              data.text
-            )
-            .sadd(
-              `edns:${net}:host:${fqdn}:records:list`,
-              `typed_text:${data.type}`
-            )
-            .exec();
-
-          break;
+            break;
+          } catch (error) {
+            console.log(error);
+            break;
+          }
         }
         case EventType.BRIDGE_REQUESTED: {
           const data: IBridgeRequestedData = body.data;
