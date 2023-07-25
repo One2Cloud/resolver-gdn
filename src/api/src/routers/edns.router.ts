@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import * as express from "express";
 import EdnsController from "../controllers/edns.controller";
 import { errorHandler } from "../middleware/returnHandler";
+import { UnknownOperationError } from "../errors/operation-not-found.error";
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.get("/record/:fqdn/text", EdnsController.getTextRecord, errorHandler);
 router.get(
   "/*",
   (req: Request, res: Response, next: NextFunction) => {
-    next(new Error("UNKNOWN_ROUTE"));
+    next(new UnknownOperationError);
   },
   errorHandler,
 );
