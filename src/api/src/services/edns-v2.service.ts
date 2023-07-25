@@ -31,6 +31,8 @@ import { CantConnectContractError } from "../errors/cant-connect-contract.error"
 import { CantGetDomainNameError } from "../errors/cant-get-domain-name.error";
 import { CantGetChainIdError } from "../errors/cant-get-chain-id.error";
 import { MissingChainIdError } from "../errors/missing-chain-id.error";
+import { timeIsPassed } from "../utils/time-is-passed";
+import { DomainExpiredError } from "../errors/domain-expired.error";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const network = NetworkConfig[chainId];
@@ -236,6 +238,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options)); // REVIEW
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
+    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
     
     const contracts = getContracts(_chainId);
 
@@ -413,6 +416,23 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     } else {
       return await contracts.Registry["isExists(bytes32)"](ethers.utils.keccak256(tld));
     }
+  }
+
+  public async isExpired(fqdn: string, options?: IOptions, _chainId?: number): Promise<boolean> {
+    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+
+    const contracts = getContracts(_chainId!)
+
+    let time;
+    const { host, name, tld } = extractFqdn(fqdn);
+    if (name && tld) {
+      time = await contracts.Registry["getExpiry(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
+    } else {
+      time = await contracts.Registry["getExpiry(bytes32)"](ethers.utils.keccak256(tld));
+    }
+    // console.log("time: ", time.toNumber());
+    // console.log("timeIsPassed: ", timeIsPassed(time.toNumber()));
+    return timeIsPassed(time.toNumber())
   }
 
   public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
