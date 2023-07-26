@@ -74,11 +74,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     const redis = createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
-<<<<<<< HEAD
-=======
-    if ((await this.isExpired(input.fqdn, options))) throw new DomainExpiredError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
 
->>>>>>> 7ca3a98c0f9b17d0dfcff99e3ba28f02a5a71413
     const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, "address");
     if (!address) return undefined;
     return { address };
@@ -88,11 +85,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     const redis = createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
-<<<<<<< HEAD
-=======
-    if ((await this.isExpired(input.fqdn, options))) throw new DomainExpiredError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
 
->>>>>>> 7ca3a98c0f9b17d0dfcff99e3ba28f02a5a71413
     const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `multi_coin_address:${input.coin}`);
     if (!address) return undefined;
     return { coin: input.coin, address };
@@ -104,11 +98,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     const res = await this.isExists(input.fqdn, options);
     if (!res) throw new DomainNotFoundError(input.fqdn);
-<<<<<<< HEAD
-=======
-    if ((await this.isExpired(input.fqdn, options))) throw new DomainExpiredError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
 
->>>>>>> 7ca3a98c0f9b17d0dfcff99e3ba28f02a5a71413
     const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `text`);
 
     if (!text) return undefined;
@@ -120,7 +111,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
-    if ((await this.isExpired(input.fqdn, options))) throw new DomainExpiredError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
 
     const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `typed_text:${input.typed}`);
     if (!text) return undefined;
@@ -131,7 +122,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     const redis = createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
-    if ((await this.isExpired(input.fqdn, options))) throw new DomainExpiredError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
 
     const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `text`);
     if (!result) return undefined;
@@ -169,7 +160,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
       time = 0; // TODO:
     }
 
-    return timeIsPassed(time)
+    return timeIsPassed(time);
   }
 
   public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
@@ -254,11 +245,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   }
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
-<<<<<<< HEAD
-    if (!options?.chainId) throw new MissingChainIdError(); // REVIEW
-=======
-    if (!options?.chainId) throw new MissingChainIdError;
->>>>>>> 7ca3a98c0f9b17d0dfcff99e3ba28f02a5a71413
+    if (!options?.chainId) throw new MissingChainIdError();
     const contracts = getContracts(options.chainId);
 
     const fqdn = await contracts.Resolver.getReverseAddress(input.address);
@@ -272,12 +259,8 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
-<<<<<<< HEAD
+    if (await this.isExpired(input.fqdn, options, _chainId)) throw new DomainExpiredError(input.fqdn);
 
-=======
-    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
-    
->>>>>>> 7ca3a98c0f9b17d0dfcff99e3ba28f02a5a71413
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -306,12 +289,8 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
-<<<<<<< HEAD
+    if (await this.isExpired(input.fqdn, options, _chainId)) throw new DomainExpiredError(input.fqdn);
 
-=======
-    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
-    
->>>>>>> 7ca3a98c0f9b17d0dfcff99e3ba28f02a5a71413
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -349,7 +328,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
-    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options, _chainId)) throw new DomainExpiredError(input.fqdn);
 
     const contracts = getContracts(_chainId);
 
@@ -376,7 +355,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
-    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options, _chainId)) throw new DomainExpiredError(input.fqdn);
 
     const contracts = getContracts(_chainId);
     const _typed = ethers.utils.toUtf8Bytes(input.typed);
@@ -406,12 +385,8 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
-<<<<<<< HEAD
+    if (await this.isExpired(input.fqdn, options, _chainId)) throw new DomainExpiredError(input.fqdn);
 
-=======
-    if ((await this.isExpired(input.fqdn, options, _chainId))) throw new DomainExpiredError(input.fqdn);
-    
->>>>>>> 7ca3a98c0f9b17d0dfcff99e3ba28f02a5a71413
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -471,7 +446,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   public async isExpired(fqdn: string, options?: IOptions, _chainId?: number): Promise<boolean> {
     // if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
 
-    const contracts = getContracts(_chainId!)
+    const contracts = getContracts(_chainId!);
 
     let time;
     const { host, name, tld } = extractFqdn(fqdn);
@@ -482,7 +457,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     }
     // console.log("time: ", time.toNumber());
     // console.log("timeIsPassed: ", timeIsPassed(time.toNumber()));
-    return timeIsPassed(time.toNumber())
+    return timeIsPassed(time.toNumber());
   }
 
   public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
