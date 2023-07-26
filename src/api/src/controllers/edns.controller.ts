@@ -67,7 +67,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
-        empty: !output
+        empty: !output,
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -77,7 +77,10 @@ export default class EdnsController {
 
   public static async getAddressRecord(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { fqdn } = req.params;
+      let { fqdn } = req.params;
+      const regex = /\.$/;
+      const match = fqdn.match(regex);
+      match ? (fqdn = fqdn.slice(0, fqdn.length - 1)) : fqdn;
       const options = extract(req);
       const service = new EdnsService();
       const output = await service.getAddressRecord({ fqdn }, options);
@@ -86,7 +89,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
-        empty: !output
+        empty: !output,
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -96,7 +99,10 @@ export default class EdnsController {
 
   public static async getMultiCoinAddressRecord(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { fqdn, coin } = req.params;
+      let { fqdn, coin } = req.params;
+      const regex = /\.$/;
+      const match = fqdn.match(regex);
+      match ? (fqdn = fqdn.slice(0, fqdn.length - 1)) : fqdn;
       const options = extract(req);
       const service = new EdnsService();
       const output = await service.getMultiCoinAddressRecord({ fqdn, coin }, options);
@@ -105,7 +111,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
-        empty: !output
+        empty: !output,
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -115,7 +121,10 @@ export default class EdnsController {
 
   public static async getTextRecord(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { fqdn } = req.params;
+      let { fqdn } = req.params;
+      const regex = /\.$/;
+      const match = fqdn.match(regex);
+      match ? (fqdn = fqdn.slice(0, fqdn.length - 1)) : fqdn;
       const options = extract(req);
       const service = new EdnsService();
       const output = await service.getTextRecord({ fqdn }, options);
@@ -124,7 +133,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
-        empty: !output
+        empty: !output,
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -134,7 +143,10 @@ export default class EdnsController {
 
   public static async getTypedTextRecord(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { fqdn, typed } = req.params;
+      let { fqdn, typed } = req.params;
+      const regex = /\.$/;
+      const match = fqdn.match(regex);
+      match ? (fqdn = fqdn.slice(0, fqdn.length - 1)) : fqdn;
       const options = extract(req);
       const service = new EdnsService();
       const output = await service.getTypedTextRecord({ fqdn, typed }, options);
@@ -143,7 +155,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
-        empty: !output
+        empty: !output,
       };
       res.status(response.status).json(response);
     } catch (error) {
@@ -153,7 +165,10 @@ export default class EdnsController {
 
   public static async getNftRecord(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { fqdn, chainId } = req.params;
+      let { fqdn, chainId } = req.params;
+      const regex = /\.$/;
+      const match = fqdn.match(regex);
+      match ? (fqdn = fqdn.slice(0, fqdn.length - 1)) : fqdn;
       const options = extract(req);
       const service = new EdnsService();
       const output = await service.getNftRecord({ fqdn, chainId }, options);
@@ -162,7 +177,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
-        empty: !output
+        empty: !output,
       };
       res.status(response.status).json(response);
     } catch (error) {

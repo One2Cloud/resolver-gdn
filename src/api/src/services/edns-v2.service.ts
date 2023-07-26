@@ -70,10 +70,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     const redis = createRedisClient();
-
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
-
     const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, "address");
     if (!address) return undefined;
     return { address };
@@ -81,10 +79,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
     const redis = createRedisClient();
-
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
-
     const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `multi_coin_address:${input.coin}`);
     if (!address) return undefined;
     return { coin: input.coin, address };
@@ -95,9 +91,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     const res = await this.isExists(input.fqdn, options);
-
     if (!res) throw new DomainNotFoundError(input.fqdn);
-
     const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `text`);
 
     if (!text) return undefined;
@@ -222,7 +216,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   }
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
-    if (!options?.chainId) throw new MissingChainIdError; // REVIEW
+    if (!options?.chainId) throw new MissingChainIdError(); // REVIEW
     const contracts = getContracts(options.chainId);
 
     const fqdn = await contracts.Resolver.getReverseAddress(input.address);
@@ -236,20 +230,20 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options)); // REVIEW
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
-    
+
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
 
     let result = undefined;
     if (host && name && tld) {
-        result = {
-          address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld))
-        }
+      result = {
+        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
+      };
     } else if (name && tld) {
-        result = {
-          address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld))
-        }
+      result = {
+        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
+      };
     }
     // console.log(`LOG: address = ${address}`)
     // console.log(`LOG: isAddress = ${ethers.utils.isAddress(address!)}`)
@@ -265,7 +259,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
-    
+
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -358,7 +352,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
-    
+
     const contracts = getContracts(_chainId);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -399,7 +393,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
 
     // const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
-    const contracts = getContracts(_chainId!)
+    const contracts = getContracts(_chainId!);
 
     const { host, name, tld } = extractFqdn(fqdn);
     if (host && name && tld) {
