@@ -25,6 +25,7 @@ import { PublicResolver } from "../typechain/edns-v1/typechain/PublicResolver";
 import { EDNSRegistry } from "../typechain/edns-v1/typechain/EDNSRegistry";
 import { ReverseRegistrar__factory } from "../typechain/edns-v1/typechain/factories/ReverseRegistrar__factory";
 import { ReverseRegistrar } from "../typechain/edns-v1/typechain/ReverseRegistrar";
+import { MissingChainIdError } from "../errors/missing-chain-id.error";
 
 export class EdnsV1FromContractService implements IEdnsResolverService {
   private _getProvider(fqdn: string, net: Net): ethers.providers.JsonRpcProvider {
@@ -74,7 +75,7 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
   }
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
-    if (!options?.chainId) throw new Error(""); //TODO:
+    if (!options?.chainId) throw new MissingChainIdError();
     const provider = getProvider(options.chainId);
     const { reverse_registrar, resolver } = this._getContract(provider);
     const node = await reverse_registrar.node(input.address);

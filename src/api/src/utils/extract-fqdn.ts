@@ -1,7 +1,9 @@
+import { CantExtractTldError } from "../errors/cant-extract-tld.error";
+
 export const extractFqdn = (fqdn: string): { tld: string; name?: string; host?: string } => {
   const parts = fqdn.split(".");
   const tld = parts.pop();
-  if (!tld) throw new Error("Could not extract TLD from FQDN"); // TODO:
+  if (!tld) throw new CantExtractTldError(fqdn);
   if (parts.length) {
     const name = parts.pop();
     if (!name) return { tld };
