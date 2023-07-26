@@ -24,6 +24,7 @@ interface ITldRecordFacetInterface extends ethers.utils.Interface {
     "getChains(bytes32)": FunctionFragment;
     "getClass(bytes32)": FunctionFragment;
     "getExpiry(bytes32)": FunctionFragment;
+    "getName(bytes32)": FunctionFragment;
     "getOwner(bytes32)": FunctionFragment;
     "getResolver(bytes32)": FunctionFragment;
     "getTokenId(bytes)": FunctionFragment;
@@ -47,6 +48,7 @@ interface ITldRecordFacetInterface extends ethers.utils.Interface {
     functionFragment: "getExpiry",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "getName", values: [BytesLike]): string;
   encodeFunctionData(functionFragment: "getOwner", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "getResolver",
@@ -98,6 +100,7 @@ interface ITldRecordFacetInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "getChains", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getClass", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getExpiry", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getName", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getResolver",
@@ -212,6 +215,8 @@ export class ITldRecordFacet extends BaseContract {
 
     getExpiry(tld: BytesLike, overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    getName(tld: BytesLike, overrides?: CallOverrides): Promise<[string]>;
+
     getOwner(tld: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     getResolver(tld: BytesLike, overrides?: CallOverrides): Promise<[string]>;
@@ -279,6 +284,8 @@ export class ITldRecordFacet extends BaseContract {
 
   getExpiry(tld: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
+  getName(tld: BytesLike, overrides?: CallOverrides): Promise<string>;
+
   getOwner(tld: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   getResolver(tld: BytesLike, overrides?: CallOverrides): Promise<string>;
@@ -345,6 +352,8 @@ export class ITldRecordFacet extends BaseContract {
     getClass(tld: BytesLike, overrides?: CallOverrides): Promise<number>;
 
     getExpiry(tld: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getName(tld: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     getOwner(tld: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -501,6 +510,8 @@ export class ITldRecordFacet extends BaseContract {
 
     getExpiry(tld: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
+    getName(tld: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
     getOwner(tld: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     getResolver(tld: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
@@ -571,6 +582,11 @@ export class ITldRecordFacet extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getExpiry(
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getName(
       tld: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

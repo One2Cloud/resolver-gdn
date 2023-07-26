@@ -112,7 +112,6 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
     if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
-
     const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `typed_text:${input.typed}`);
     if (!text) return undefined;
     return { text, typed: input.typed };
@@ -354,6 +353,8 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
 
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    console.log(await this.isExists(input.fqdn, options, _chainId));
+
     if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
     if (await this.isExpired(input.fqdn, options, _chainId)) throw new DomainExpiredError(input.fqdn);
 
@@ -368,6 +369,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     } else if (name && tld) {
+      console.log(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed);
       result = {
         typed: input.typed,
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),

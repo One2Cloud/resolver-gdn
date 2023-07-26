@@ -28,6 +28,7 @@ interface HostRecordFacetInterface extends ethers.utils.Interface {
     "REGISTRAR_ROLE()": FunctionFragment;
     "ROOT_ROLE()": FunctionFragment;
     "WRAPPER_ROLE()": FunctionFragment;
+    "getName(bytes32,bytes32,bytes32)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getTokenId(bytes,bytes,bytes)": FunctionFragment;
     "getTtl(bytes32,bytes32,bytes32)": FunctionFragment;
@@ -70,6 +71,10 @@ interface HostRecordFacetInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "WRAPPER_ROLE",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getName",
+    values: [BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -158,6 +163,7 @@ interface HostRecordFacetInterface extends ethers.utils.Interface {
     functionFragment: "WRAPPER_ROLE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getName", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -319,6 +325,13 @@ export class HostRecordFacet extends BaseContract {
 
     WRAPPER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
+    getName(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     getTokenId(
@@ -441,6 +454,13 @@ export class HostRecordFacet extends BaseContract {
 
   WRAPPER_ROLE(overrides?: CallOverrides): Promise<string>;
 
+  getName(
+    host: BytesLike,
+    name: BytesLike,
+    tld: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   getTokenId(
@@ -562,6 +582,13 @@ export class HostRecordFacet extends BaseContract {
     ROOT_ROLE(overrides?: CallOverrides): Promise<string>;
 
     WRAPPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    getName(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -848,6 +875,13 @@ export class HostRecordFacet extends BaseContract {
 
     WRAPPER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getName(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -975,6 +1009,13 @@ export class HostRecordFacet extends BaseContract {
     ROOT_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     WRAPPER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getName(
+      host: BytesLike,
+      name: BytesLike,
+      tld: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
