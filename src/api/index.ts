@@ -7,4 +7,5 @@ console.log("path: ", path.join(__dirname, ".env.runtime"));
 console.log("process_cwd: ", process.cwd());
 
 dotenv.config({ path: path.join(__dirname, ".env.runtime") });
+dotenv.config({ path: path.join(process.cwd(), ".env.runtime") });
 export const handler = serverless({ app });

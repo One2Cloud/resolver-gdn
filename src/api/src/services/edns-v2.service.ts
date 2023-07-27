@@ -49,8 +49,6 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
       //   Resolver: PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider),
       // };
       // console.log(ResolverContract);
-      console.log("contracts: ", RegistrarContract, ResolverContract, RegistryContract);
-
       return {
         Registrar: RegistrarContract,
         Registry: RegistryContract,
@@ -363,6 +361,8 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     if (await this.isExpired(input.fqdn, options, _chainId)) throw new DomainExpiredError(input.fqdn);
 
     const contracts = getContracts(_chainId);
+    console.log(JSON.stringify(contracts.Resolver));
+
     const _typed = ethers.utils.toUtf8Bytes(input.typed);
 
     const { host, name, tld } = extractFqdn(input.fqdn);
@@ -373,7 +373,6 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     } else if (name && tld) {
-      console.log(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed);
       result = {
         typed: input.typed,
         text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
