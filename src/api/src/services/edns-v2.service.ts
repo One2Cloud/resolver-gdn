@@ -36,10 +36,7 @@ import { DomainExpiredError } from "../errors/domain-expired.error";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const network = NetworkConfig[chainId];
-  console.log(network);
   const contracts = ContractAddress.find((contract) => contract.chainId === network.chainId);
-  console.log(contracts);
-
   if (contracts?.addresses["Registrar"] && contracts?.addresses["Registry.Diamond"] && contracts?.addresses["PublicResolver"]) {
     try {
       const provider = getProvider(network.chainId);
@@ -52,6 +49,7 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
       //   Resolver: PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider),
       // };
       // console.log(ResolverContract);
+      console.log("contracts: ", RegistrarContract, ResolverContract, RegistryContract);
 
       return {
         Registrar: RegistrarContract,
