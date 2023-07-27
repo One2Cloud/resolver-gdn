@@ -38,25 +38,29 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
   const network = NetworkConfig[chainId];
   console.log(network);
   const contracts = ContractAddress.find((contract) => contract.chainId === network.chainId);
+  try {
+    if (contracts?.addresses["Registrar"] && contracts?.addresses["Registry.Diamond"] && contracts?.addresses["PublicResolver"]) {
+      const provider = getProvider(network.chainId);
+      const RegistrarContract = Registrar__factory.connect(contracts.addresses["Registrar"], provider);
+      const ResolverContract = PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider);
+      const RegistryContract = IRegistry__factory.connect(contracts.addresses["Registry.Diamond"], provider);
+      // return {
+      //   Registrar: Registrar__factory.connect(contracts.addresses["Registrar"], provider),
+      //   Registry: IRegistry__factory.connect(contracts.addresses["Registry.Diamond"], provider),
+      //   Resolver: PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider),
+      // };
+      // console.log(ResolverContract);
 
-  if (contracts?.addresses["Registrar"] && contracts?.addresses["Registry.Diamond"] && contracts?.addresses["PublicResolver"]) {
-    const provider = getProvider(network.chainId);
-    const RegistrarContract = Registrar__factory.connect(contracts.addresses["Registrar"], provider);
-    const ResolverContract = PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider);
-    const RegistryContract = IRegistry__factory.connect(contracts.addresses["Registry.Diamond"], provider);
-    // return {
-    //   Registrar: Registrar__factory.connect(contracts.addresses["Registrar"], provider),
-    //   Registry: IRegistry__factory.connect(contracts.addresses["Registry.Diamond"], provider),
-    //   Resolver: PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider),
-    // };
-    // console.log(ResolverContract);
-
-    return {
-      Registrar: RegistrarContract,
-      Registry: RegistryContract,
-      Resolver: ResolverContract,
-    };
-  } else {
+      return {
+        Registrar: RegistrarContract,
+        Registry: RegistryContract,
+        Resolver: ResolverContract,
+      };
+    } else {
+      throw new CantConnectContractError(chainId);
+    }
+  } catch (error) {
+    console.error({ error });
     throw new CantConnectContractError(chainId);
   }
 };
