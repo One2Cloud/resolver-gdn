@@ -38,8 +38,10 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
   const network = NetworkConfig[chainId];
   console.log(network);
   const contracts = ContractAddress.find((contract) => contract.chainId === network.chainId);
-  try {
-    if (contracts?.addresses["Registrar"] && contracts?.addresses["Registry.Diamond"] && contracts?.addresses["PublicResolver"]) {
+  console.log(contracts);
+
+  if (contracts?.addresses["Registrar"] && contracts?.addresses["Registry.Diamond"] && contracts?.addresses["PublicResolver"]) {
+    try {
       const provider = getProvider(network.chainId);
       const RegistrarContract = Registrar__factory.connect(contracts.addresses["Registrar"], provider);
       const ResolverContract = PublicResolver__factory.connect(contracts.addresses["PublicResolver"], provider);
@@ -56,11 +58,11 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
         Registry: RegistryContract,
         Resolver: ResolverContract,
       };
-    } else {
+    } catch (error) {
+      console.error({ error });
       throw new CantConnectContractError(chainId);
     }
-  } catch (error) {
-    console.error({ error });
+  } else {
     throw new CantConnectContractError(chainId);
   }
 };
