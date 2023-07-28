@@ -7,7 +7,7 @@ import fs from "fs";
 
 const envirament = fs.readFile(path.join(__dirname, ".env.runtime"), (err, data) => {
   if (err) throw err;
-  console.log(data);
+  console.log(data.toString());
 });
 console.log(envirament);
 
