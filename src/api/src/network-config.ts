@@ -158,7 +158,7 @@ export interface IConfig {
   network: INetworkConfig;
 }
 
-const config: INetworkConfig = {
+export const getNetworkConfig = (): INetworkConfig => ({
   [Network.ETHEREUM]: {
     chainId: Network.ETHEREUM,
     name: "Ethereum",
@@ -860,6 +860,8 @@ const config: INetworkConfig = {
       },
     },
   },
-};
+});
+
+const config: INetworkConfig = getNetworkConfig();
 
 export default config;
