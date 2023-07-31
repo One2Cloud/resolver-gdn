@@ -409,8 +409,11 @@ export const index: SQSHandler = async (event, context) => {
               user,
               expiry,
             })
-            .exec();
-
+            .exec()
+            .catch((error) => {
+              console.log(error);
+            });
+          logger.info("Exec NEW_HOST");
           break;
         }
         case EventType.SET_HOST_OPERATOR: {
@@ -449,10 +452,15 @@ export const index: SQSHandler = async (event, context) => {
           const data: ISetHostUserData = body.data;
           const domain = `${data.name}.${data.tld}`;
 
-          await client.hmset(`edns:${net}:host:${data.host}.${domain}:user`, {
-            user: data.newUser,
-            expiry: data.expiry,
-          });
+          await client
+            .hmset(`edns:${net}:host:${data.host}.${domain}:user`, {
+              user: data.newUser,
+              expiry: data.expiry,
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+          logger.info("Exec SET_HOST_USER");
 
           break;
         }
@@ -464,7 +472,11 @@ export const index: SQSHandler = async (event, context) => {
             .pipeline()
             .set(`edns:${net}:account:${data.address}:reverse_domain`, fqdn)
             .sadd(`edns:${net}:host:${fqdn}:records:list`, "reverse_address")
-            .exec();
+            .exec()
+            .catch((error) => {
+              console.log(error);
+            });
+          logger.info("Exec SET_REVERSE_ADDRESS_RECORD");
 
           break;
         }
@@ -545,8 +557,11 @@ export const index: SQSHandler = async (event, context) => {
                 `edns:${net}:host:${fqdn}:records:list`,
                 `typed_text:${data.type}`
               )
-              .exec();
-
+              .exec()
+              .catch((error) => {
+                console.log(error);
+              });
+            logger.info("Exec SET_TYPED_TEXT_RECORD");
             break;
           } catch (error) {
             console.log(error);
