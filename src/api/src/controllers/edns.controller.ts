@@ -143,8 +143,6 @@ export default class EdnsController {
 
   public static async getTypedTextRecord(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      console.log(req);
-
       let { fqdn, typed } = req.params;
       const regex = /\.$/;
       const match = fqdn.match(regex);

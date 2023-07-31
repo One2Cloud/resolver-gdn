@@ -255,8 +255,11 @@ export const index: SQSHandler = async (event, context) => {
             })
             .expireat(`edns:${net}:domain:${domain}:info`, data.expiry)
             .expireat(`edns:${net}:domain:${domain}:user`, data.expiry)
-            .exec();
-
+            .exec()
+            .catch((error) => {
+              logger.error(error);
+            });
+          logger.info("Exec DOMAIN_REGISTERED");
           break;
         }
         case EventType.DOMAIN_RENEWED: {

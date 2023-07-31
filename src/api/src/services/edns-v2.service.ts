@@ -141,7 +141,10 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     if (host && name && tld) {
       return !!(await redis.exists(`edns:${options?.net || Net.MAINNET}:domain:${fqdn}:info`));
     } else if (name && tld) {
-      return !!(await redis.exists(`edns:${options?.net || Net.MAINNET}:domain:${name}.${tld}:info`));
+      console.log(`edns:${options?.net || Net.MAINNET}:domain:${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name))}.${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(tld))}:info`);
+      return !!(await redis.exists(
+        `edns:${options?.net || Net.MAINNET}:domain:${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name))}.${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(tld))}:info`,
+      ));
     } else {
       return true; // TODO:
     }
