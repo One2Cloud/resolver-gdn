@@ -271,4 +271,26 @@ export default class EdnsController {
   //     next(error);
   //   }
   // }
+
+  public static async get(req: Request, res: Response, next: NextFunction) {
+    try {
+      let { fqdn, chainId } = req.params;
+      const options = extract(req);
+      const regex = /\.$/;
+      const match = fqdn.match(regex);
+      match ? (fqdn = fqdn.slice(0, fqdn.length - 1)) : fqdn;
+      const ednsService = new EdnsService();
+      const output = await ednsService.getBridgeEvents({ fqdn, chainId }, options);
+      const response: IGeneralResponse<typeof output> = {
+        status: 200,
+        success: true,
+        data: output,
+        onchain: !!options.onchain,
+        empty: !output,
+      };
+      res.status(response.status).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

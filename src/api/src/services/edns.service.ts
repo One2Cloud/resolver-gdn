@@ -5,6 +5,7 @@ import {
   IEdnsResolverService,
   IGetAddressRecordInput,
   IGetAddressRecordOutput,
+  IGetBridgedEventInput,
   IGetMultiCoinAddressRecordInput,
   IGetMultiCoinAddressRecordOutput,
   IGetNftRecordInput,
@@ -80,6 +81,10 @@ export class EdnsService implements IEdnsResolverService {
     if (!output && options?.onchain) output = await this._v2ContractService.getNftRecord(input, options);
     if (!output && !options?.onchain) output = await this._v2RedisService.getNftRecord(input, options);
     if (!output) output = await this._v2ContractService.getNftRecord(input, options);
+    return output;
+  }
+  public async getBridgeEvents(input: IGetBridgedEventInput, options?: IOptions): Promise<string | undefined> {
+    const output = await this._v2RedisService.getBridgedEvent(input, options);
     return output;
   }
 }

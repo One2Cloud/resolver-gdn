@@ -12,11 +12,12 @@ router.get("/record/:fqdn/address", EdnsController.getAddressRecord, errorHandle
 router.get("/record/:fqdn/nft/:chainId", EdnsController.getNftRecord, errorHandler);
 router.get("/record/:fqdn/text/:typed", EdnsController.getTypedTextRecord, errorHandler);
 router.get("/record/:fqdn/text", EdnsController.getTextRecord, errorHandler);
+router.get("/:chainId/:fqdn", EdnsController.getTextRecord, errorHandler);
 
 router.get(
   "/*",
   (req: Request, res: Response, next: NextFunction) => {
-    next(new UnknownOperationError);
+    next(new UnknownOperationError());
   },
   errorHandler,
 );

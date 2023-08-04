@@ -23,6 +23,7 @@ import {
   IGetTextRecordInput,
   IGetReverseAddressRecordInput,
   IGetReverseAddressRecordOutput,
+  IGetBridgedEventInput,
 } from "../interfaces/IEdnsResolverService.interface";
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../typechain/edns-v2/typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
@@ -65,6 +66,33 @@ const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegis
 };
 
 export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegistryService {
+  public async getBridgedEvent(input: IGetBridgedEventInput, options?: IOptions): Promise<string | undefined> {
+    const redis = createRedisClient();
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) throw new DomainNotFoundError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
+    let owner: string | null;
+    let content;
+    const { host, name, tld } = extractFqdn(input.fqdn);
+    if (host && name && tld) {
+      owner = await redis.hget(
+        `edns:${options?.net || Net.MAINNET}:domain:${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(host))}.${ethers.utils.hexlify(
+          ethers.utils.toUtf8Bytes(name),
+        )}.${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(tld))}:info`,
+        "owner",
+      );
+      content = await redis.get(`edns:${options?.net || Net.MAINNET}:account:${owner}:bridge:requested`);
+    } else if (name && tld) {
+      owner = await redis.hget(
+        `edns:${options?.net || Net.MAINNET}:domain:${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name))}.${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(tld))}:info`,
+        "owner",
+      );
+      content = await redis.get(`edns:${options?.net || Net.MAINNET}:account:${owner}:bridge:requested`);
+    }
+    if (!content) return undefined;
+    return content;
+  }
+
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
     const redis = createRedisClient();
 
@@ -139,9 +167,14 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
     const { host, name, tld } = extractFqdn(fqdn);
     if (host && name && tld) {
-      return !!(await redis.exists(`edns:${options?.net || Net.MAINNET}:domain:${fqdn}:info`));
+      return !!(await redis.exists(
+        `edns:${options?.net || Net.MAINNET}:domain:${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(host))}.${ethers.utils.hexlify(
+          ethers.utils.toUtf8Bytes(name),
+        )}.${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(tld))}:info`,
+      ));
     } else if (name && tld) {
       console.log(`edns:${options?.net || Net.MAINNET}:domain:${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name))}.${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(tld))}:info`);
+
       return !!(await redis.exists(
         `edns:${options?.net || Net.MAINNET}:domain:${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name))}.${ethers.utils.hexlify(ethers.utils.toUtf8Bytes(tld))}:info`,
       ));

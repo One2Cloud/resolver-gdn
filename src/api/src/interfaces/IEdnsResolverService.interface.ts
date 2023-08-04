@@ -8,6 +8,11 @@ export interface IGetReverseAddressRecordInput {
   address: string;
 }
 
+export interface IGetBridgedEventInput extends IGenericInput {
+  fqdn: string;
+  chainId: string;
+}
+
 export interface IGetReverseAddressRecordOutput {
   fqdn: string;
 }
