@@ -1,5 +1,5 @@
 import { putEvent } from "../utils/put-event";
-import { EventType } from "../constants/event-type.constant";
+import { EdnsEventType } from "../constants/event-type.constant";
 import { DomainProvider } from "../constants/domain-provider.constant";
 import { PublicResolver, Registrar, IRegistry, PublicResolver__factory, Registrar__factory, IRegistry__factory, Bridge, Bridge__factory } from "../contracts/ethereum/edns-v2";
 import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers";
@@ -57,7 +57,7 @@ export default class EdnsEthereumListener {
 				const data = await this.contracts.bridge!.getBridgedRequest(ref);
 				if (data) {
 					const fqdn = `${data.name}.${data.tld}`;
-					await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.BRIDGE_REQUESTED, {
+					await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.BRIDGE_REQUESTED, {
 						chainId: this.id,
 						ref,
 					});
@@ -73,7 +73,7 @@ export default class EdnsEthereumListener {
 				const data = await this.contracts.bridge!.getAcceptedRequest(ref);
 				if (data) {
 					const fqdn = `${data.name}.${data.tld}`;
-					await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.BRIDGE_ACCEPTED, {
+					await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.BRIDGE_ACCEPTED, {
 						chainId: this.id,
 						ref,
 					});
@@ -88,7 +88,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_REGISTERED, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.DOMAIN_REGISTERED, {
 				name,
 				tld,
 				owner,
@@ -104,7 +104,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_RENEWED, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.DOMAIN_RENEWED, {
 				name: _name,
 				tld: _tld,
 				expiry: expiry.toString(),
@@ -116,7 +116,7 @@ export default class EdnsEthereumListener {
 	// 	const filter = this.contracts.registry.filters["DomainBridged"]();
 	// 	this.contracts.registry.on(filter, async (name, tld, dstChain, event) => {
 	// 		const fqdn = `${name}.${tld}`;
-	// 		await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_BRIDGED, {
+	// 		await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.DOMAIN_BRIDGED, {
 	// 			name,
 	// 			tld,
 	// 			dstChain,
@@ -131,7 +131,7 @@ export default class EdnsEthereumListener {
 			const __name = ethers.utils.toUtf8String(name);
 			const __tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `$${__name}.${__tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_OWNER, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_DOMAIN_OWNER, {
 				name: __name,
 				tld: __tld,
 				newOwner,
@@ -146,7 +146,7 @@ export default class EdnsEthereumListener {
 			const __name = ethers.utils.toUtf8String(name);
 			const __tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `$${__name}.${__tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.DOMAIN_RENEWED, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.DOMAIN_RENEWED, {
 				name: __name,
 				tld: __tld,
 				newResolver,
@@ -161,7 +161,7 @@ export default class EdnsEthereumListener {
 			const __name = ethers.utils.toUtf8String(name);
 			const __tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `$${__name}.${__tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_OPERATOR, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_DOMAIN_OPERATOR, {
 				name: __name,
 				tld: __tld,
 				operator,
@@ -177,7 +177,7 @@ export default class EdnsEthereumListener {
 			const __name = ethers.utils.toUtf8String(name);
 			const __tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `$${__name}.${__tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_DOMAIN_USER, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_DOMAIN_USER, {
 				name: __name,
 				tld: __tld,
 				newUser,
@@ -193,7 +193,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.NEW_HOST, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.NEW_HOST, {
 				host: _host,
 				name: _name,
 				tld: _tld,
@@ -214,7 +214,7 @@ export default class EdnsEthereumListener {
 			const __name = ethers.utils.toUtf8String(name);
 			const __tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${__host}.${__name}.${__tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.REMOVE_HOST, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.REMOVE_HOST, {
 				host: __host,
 				name: __name,
 				tld: __tld,
@@ -234,7 +234,7 @@ export default class EdnsEthereumListener {
 			const __name = ethers.utils.toUtf8String(name);
 			const __tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${__host}.${__name}.${__tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_HOST_OPERATOR, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_HOST_OPERATOR, {
 				host: __host,
 				name: __name,
 				tld: __tld,
@@ -256,7 +256,7 @@ export default class EdnsEthereumListener {
 			const __name = ethers.utils.toUtf8String(name);
 			const __tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${__host}.${__name}.${__tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_HOST_USER, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_HOST_USER, {
 				host: __host,
 				name: __name,
 				tld: __tld,
@@ -273,7 +273,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_REVERSE_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_REVERSE_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -289,7 +289,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_REVERSE_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.UNSET_REVERSE_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -305,7 +305,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -321,7 +321,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.UNSET_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -336,7 +336,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_MULTI_COIN_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_MULTI_COIN_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -353,7 +353,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_MULTI_COIN_ADDRESS_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.UNSET_MULTI_COIN_ADDRESS_RECORD, {
 				host,
 				name,
 				tld,
@@ -369,7 +369,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_TEXT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_TEXT_RECORD, {
 				host,
 				name,
 				tld,
@@ -385,7 +385,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_TEXT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.UNSET_TEXT_RECORD, {
 				host,
 				name,
 				tld,
@@ -400,7 +400,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_TYPED_TEXT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_TYPED_TEXT_RECORD, {
 				host,
 				name,
 				tld,
@@ -417,7 +417,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.UNSET_TYPED_TEXT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.UNSET_TYPED_TEXT_RECORD, {
 				host,
 				name,
 				tld,
@@ -433,7 +433,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_NFT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_NFT_RECORD, {
 				host,
 				name,
 				tld,
@@ -451,7 +451,7 @@ export default class EdnsEthereumListener {
 			const _name = ethers.utils.toUtf8String(name);
 			const _tld = ethers.utils.toUtf8String(tld);
 			const fqdn = `${_host}.${_name}.${_tld}`;
-			await putEvent(this.id, DomainProvider.EDNS, fqdn, EventType.SET_NFT_RECORD, {
+			await putEvent(this.id, DomainProvider.EDNS, fqdn, EdnsEventType.SET_NFT_RECORD, {
 				host,
 				name,
 				tld,

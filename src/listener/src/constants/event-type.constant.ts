@@ -1,4 +1,4 @@
-export enum EventType {
+export enum EdnsEventType {
 	DOMAIN_REGISTERED = "domain-registered",
 	DOMAIN_RENEWED = "domain-renewed",
 	// DOMAIN_BRIDGED = "domain-bridged",
