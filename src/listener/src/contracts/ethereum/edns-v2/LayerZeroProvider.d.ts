@@ -26,7 +26,9 @@ interface LayerZeroProviderInterface extends ethers.utils.Interface {
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "OPERATOR_ROLE()": FunctionFragment;
     "estimateFee(uint8,bytes)": FunctionFragment;
+    "forceResume(uint16,bytes)": FunctionFragment;
     "getChainId(uint8)": FunctionFragment;
+    "getEndpoint()": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
@@ -39,6 +41,7 @@ interface LayerZeroProviderInterface extends ethers.utils.Interface {
     "revokeRole(bytes32,address)": FunctionFragment;
     "send_(address,uint8,bytes)": FunctionFragment;
     "setChainId(uint8,uint16)": FunctionFragment;
+    "setEndpoint(address)": FunctionFragment;
     "setTrustedRemote(uint16,bytes)": FunctionFragment;
     "setV1AdaptorParameters(uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
@@ -65,8 +68,16 @@ interface LayerZeroProviderInterface extends ethers.utils.Interface {
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "forceResume",
+    values: [BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getChainId",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getEndpoint",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -113,6 +124,7 @@ interface LayerZeroProviderInterface extends ethers.utils.Interface {
     functionFragment: "setChainId",
     values: [BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "setEndpoint", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setTrustedRemote",
     values: [BigNumberish, BytesLike]
@@ -152,7 +164,15 @@ interface LayerZeroProviderInterface extends ethers.utils.Interface {
     functionFragment: "estimateFee",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "forceResume",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getEndpoint",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -177,6 +197,10 @@ interface LayerZeroProviderInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "send_", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setEndpoint",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "setTrustedRemote",
     data: BytesLike
@@ -343,10 +367,18 @@ export class LayerZeroProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    forceResume(
+      _srcChainId: BigNumberish,
+      _srcAddress: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getChainId(
       chain: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number]>;
+
+    getEndpoint(overrides?: CallOverrides): Promise<[string]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
@@ -414,6 +446,11 @@ export class LayerZeroProvider extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setEndpoint(
+      lzEndpoint_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setTrustedRemote(
       _srcChainId: BigNumberish,
       _srcAddress: BytesLike,
@@ -461,7 +498,15 @@ export class LayerZeroProvider extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  forceResume(
+    _srcChainId: BigNumberish,
+    _srcAddress: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getChainId(chain: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
+  getEndpoint(overrides?: CallOverrides): Promise<string>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -529,6 +574,11 @@ export class LayerZeroProvider extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setEndpoint(
+    lzEndpoint_: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setTrustedRemote(
     _srcChainId: BigNumberish,
     _srcAddress: BytesLike,
@@ -576,7 +626,15 @@ export class LayerZeroProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    forceResume(
+      _srcChainId: BigNumberish,
+      _srcAddress: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     getChainId(chain: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
+    getEndpoint(overrides?: CallOverrides): Promise<string>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -640,6 +698,8 @@ export class LayerZeroProvider extends BaseContract {
       chainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setEndpoint(lzEndpoint_: string, overrides?: CallOverrides): Promise<void>;
 
     setTrustedRemote(
       _srcChainId: BigNumberish,
@@ -871,10 +931,18 @@ export class LayerZeroProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    forceResume(
+      _srcChainId: BigNumberish,
+      _srcAddress: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getChainId(
       chain: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getEndpoint(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRoleAdmin(
       role: BytesLike,
@@ -945,6 +1013,11 @@ export class LayerZeroProvider extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setEndpoint(
+      lzEndpoint_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setTrustedRemote(
       _srcChainId: BigNumberish,
       _srcAddress: BytesLike,
@@ -995,10 +1068,18 @@ export class LayerZeroProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    forceResume(
+      _srcChainId: BigNumberish,
+      _srcAddress: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getChainId(
       chain: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getEndpoint(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
@@ -1066,6 +1147,11 @@ export class LayerZeroProvider extends BaseContract {
     setChainId(
       chain: BigNumberish,
       chainId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setEndpoint(
+      lzEndpoint_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

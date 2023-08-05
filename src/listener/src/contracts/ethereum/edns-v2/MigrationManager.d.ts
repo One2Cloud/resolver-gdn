@@ -29,7 +29,7 @@ interface MigrationManagerInterface extends ethers.utils.Interface {
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
     "initialize(address)": FunctionFragment;
-    "managed_migrate(address,uint256,string,string)": FunctionFragment;
+    "managed_migrate(address,uint256,string,string,uint64)": FunctionFragment;
     "migrate(address,uint256,string,string)": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
@@ -66,7 +66,7 @@ interface MigrationManagerInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(
     functionFragment: "managed_migrate",
-    values: [string, BigNumberish, string, string]
+    values: [string, BigNumberish, string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "migrate",
@@ -264,6 +264,7 @@ export class MigrationManager extends BaseContract {
       genesisTokenId: BigNumberish,
       name: string,
       tld: string,
+      expiry: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -336,6 +337,7 @@ export class MigrationManager extends BaseContract {
     genesisTokenId: BigNumberish,
     name: string,
     tld: string,
+    expiry: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -405,6 +407,7 @@ export class MigrationManager extends BaseContract {
       genesisTokenId: BigNumberish,
       name: string,
       tld: string,
+      expiry: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -597,6 +600,7 @@ export class MigrationManager extends BaseContract {
       genesisTokenId: BigNumberish,
       name: string,
       tld: string,
+      expiry: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -675,6 +679,7 @@ export class MigrationManager extends BaseContract {
       genesisTokenId: BigNumberish,
       name: string,
       tld: string,
+      expiry: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

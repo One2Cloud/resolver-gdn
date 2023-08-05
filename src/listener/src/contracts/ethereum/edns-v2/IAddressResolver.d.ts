@@ -78,7 +78,7 @@ interface IAddressResolverInterface extends ethers.utils.Interface {
     "SetAddress(bytes,bytes,bytes,address)": EventFragment;
     "SetReverseAddress(bytes,bytes,bytes,address)": EventFragment;
     "UnsetAddress(bytes,bytes,bytes)": EventFragment;
-    "UnsetReverseAddress(address)": EventFragment;
+    "UnsetReverseAddress(bytes,bytes,bytes,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "SetAddress"): EventFragment;
@@ -110,7 +110,12 @@ export type UnsetAddressEvent = TypedEvent<
 >;
 
 export type UnsetReverseAddressEvent = TypedEvent<
-  [string] & { address_: string }
+  [string, string, string, string] & {
+    host: string;
+    name: string;
+    tld: string;
+    address_: string;
+  }
 >;
 
 export class IAddressResolver extends BaseContract {
@@ -348,13 +353,25 @@ export class IAddressResolver extends BaseContract {
       { host: string; name: string; tld: string }
     >;
 
-    "UnsetReverseAddress(address)"(
+    "UnsetReverseAddress(bytes,bytes,bytes,address)"(
+      host?: null,
+      name?: null,
+      tld?: null,
       address_?: null
-    ): TypedEventFilter<[string], { address_: string }>;
+    ): TypedEventFilter<
+      [string, string, string, string],
+      { host: string; name: string; tld: string; address_: string }
+    >;
 
     UnsetReverseAddress(
+      host?: null,
+      name?: null,
+      tld?: null,
       address_?: null
-    ): TypedEventFilter<[string], { address_: string }>;
+    ): TypedEventFilter<
+      [string, string, string, string],
+      { host: string; name: string; tld: string; address_: string }
+    >;
   };
 
   estimateGas: {

@@ -322,7 +322,7 @@ interface PublicResolverInterface extends ethers.utils.Interface {
     "UnsetAddress(bytes,bytes,bytes)": EventFragment;
     "UnsetMultiCoinAddress(bytes,bytes,bytes,uint256)": EventFragment;
     "UnsetNFT(bytes,bytes,bytes,uint256)": EventFragment;
-    "UnsetReverseAddress(address)": EventFragment;
+    "UnsetReverseAddress(bytes,bytes,bytes,address)": EventFragment;
     "UnsetText(bytes,bytes,bytes)": EventFragment;
     "UnsetTypedText(bytes,bytes,bytes,bytes)": EventFragment;
     "Upgraded(address)": EventFragment;
@@ -467,7 +467,12 @@ export type UnsetNFTEvent = TypedEvent<
 >;
 
 export type UnsetReverseAddressEvent = TypedEvent<
-  [string] & { address_: string }
+  [string, string, string, string] & {
+    host: string;
+    name: string;
+    tld: string;
+    address_: string;
+  }
 >;
 
 export type UnsetTextEvent = TypedEvent<
@@ -1489,13 +1494,25 @@ export class PublicResolver extends BaseContract {
       { host: string; name: string; tld: string; chainId: BigNumber }
     >;
 
-    "UnsetReverseAddress(address)"(
+    "UnsetReverseAddress(bytes,bytes,bytes,address)"(
+      host?: null,
+      name?: null,
+      tld?: null,
       address_?: null
-    ): TypedEventFilter<[string], { address_: string }>;
+    ): TypedEventFilter<
+      [string, string, string, string],
+      { host: string; name: string; tld: string; address_: string }
+    >;
 
     UnsetReverseAddress(
+      host?: null,
+      name?: null,
+      tld?: null,
       address_?: null
-    ): TypedEventFilter<[string], { address_: string }>;
+    ): TypedEventFilter<
+      [string, string, string, string],
+      { host: string; name: string; tld: string; address_: string }
+    >;
 
     "UnsetText(bytes,bytes,bytes)"(
       host?: null,

@@ -10,12 +10,12 @@ ENV AWS_REGION=${AWS_REGION}
 RUN apk add aws-cli curl unzip --no-cache
 RUN mkdir -p /opt
 # https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html#ps-integration-lambda-extensions-add === Parameter Store
-RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn:aws:lambda:ap-southeast-1:114300393969:layer:lumigo-extension:3 --query 'Content.Location' --output text) --output lumigo_layer.zip &&\
-    unzip -o lumigo_layer.zip -d /opt && \
-    rm lumigo_layer.zip
-RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn:aws:lambda:ap-southeast-1:044395824272:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4 --query 'Content.Location' --output text) --output aws_parameters_and_secerts_layer.zip &&\
-    unzip -o aws_parameters_and_secerts_layer.zip -d /opt && \
-    rm aws_parameters_and_secerts_layer.zip
+# RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn:aws:lambda:ap-southeast-1:114300393969:layer:lumigo-extension:3 --query 'Content.Location' --output text) --output lumigo_layer.zip &&\
+#     unzip -o lumigo_layer.zip -d /opt && \
+#     rm lumigo_layer.zip
+# RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn:aws:lambda:ap-southeast-1:044395824272:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4 --query 'Content.Location' --output text) --output aws_parameters_and_secerts_layer.zip &&\
+#     unzip -o aws_parameters_and_secerts_layer.zip -d /opt && \
+#     rm aws_parameters_and_secerts_layer.zip
 RUN curl $(aws lambda get-layer-version-by-arn --region ap-southeast-1 --arn arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension:33 --query 'Content.Location' --output text) --output aws_cloudwatch_layer.zip &&\
     unzip -o aws_cloudwatch_layer.zip -d /opt && \
     rm aws_cloudwatch_layer.zip

@@ -1,5 +1,5 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
-import { Net, getNetworkConfig } from "../network-config";
+import {  getNetworkConfig } from "../network-config";
 
 export const getProvider = (chainId: number) => {
   const NetworkConfig = getNetworkConfig();

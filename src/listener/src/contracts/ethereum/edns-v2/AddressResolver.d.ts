@@ -216,7 +216,7 @@ interface AddressResolverInterface extends ethers.utils.Interface {
     "SetReverseAddress(bytes,bytes,bytes,address)": EventFragment;
     "SyncError(bytes,bytes)": EventFragment;
     "UnsetAddress(bytes,bytes,bytes)": EventFragment;
-    "UnsetReverseAddress(address)": EventFragment;
+    "UnsetReverseAddress(bytes,bytes,bytes,address)": EventFragment;
     "Upgraded(address)": EventFragment;
   };
 
@@ -293,7 +293,12 @@ export type UnsetAddressEvent = TypedEvent<
 >;
 
 export type UnsetReverseAddressEvent = TypedEvent<
-  [string] & { address_: string }
+  [string, string, string, string] & {
+    host: string;
+    name: string;
+    tld: string;
+    address_: string;
+  }
 >;
 
 export type UpgradedEvent = TypedEvent<[string] & { implementation: string }>;
@@ -840,13 +845,25 @@ export class AddressResolver extends BaseContract {
       { host: string; name: string; tld: string }
     >;
 
-    "UnsetReverseAddress(address)"(
+    "UnsetReverseAddress(bytes,bytes,bytes,address)"(
+      host?: null,
+      name?: null,
+      tld?: null,
       address_?: null
-    ): TypedEventFilter<[string], { address_: string }>;
+    ): TypedEventFilter<
+      [string, string, string, string],
+      { host: string; name: string; tld: string; address_: string }
+    >;
 
     UnsetReverseAddress(
+      host?: null,
+      name?: null,
+      tld?: null,
       address_?: null
-    ): TypedEventFilter<[string], { address_: string }>;
+    ): TypedEventFilter<
+      [string, string, string, string],
+      { host: string; name: string; tld: string; address_: string }
+    >;
 
     "Upgraded(address)"(
       implementation?: string | null

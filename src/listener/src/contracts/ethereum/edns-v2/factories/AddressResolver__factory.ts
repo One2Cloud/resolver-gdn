@@ -273,6 +273,24 @@ const _abi = [
     inputs: [
       {
         indexed: false,
+        internalType: "bytes",
+        name: "host",
+        type: "bytes",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "name",
+        type: "bytes",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "tld",
+        type: "bytes",
+      },
+      {
+        indexed: false,
         internalType: "address",
         name: "address_",
         type: "address",

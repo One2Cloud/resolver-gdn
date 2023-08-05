@@ -156,6 +156,24 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "uint16",
+        name: "_srcChainId",
+        type: "uint16",
+      },
+      {
+        internalType: "bytes",
+        name: "_srcAddress",
+        type: "bytes",
+      },
+    ],
+    name: "forceResume",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "enum Chain",
         name: "chain",
         type: "uint8",
@@ -170,6 +188,19 @@ const _abi = [
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getEndpoint",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -274,6 +305,19 @@ const _abi = [
       },
     ],
     name: "setChainId",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "lzEndpoint_",
+        type: "address",
+      },
+    ],
+    name: "setEndpoint",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

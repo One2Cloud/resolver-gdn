@@ -23,12 +23,15 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface ILayerZeroProviderInterface extends ethers.utils.Interface {
   functions: {
     "estimateFee(uint8,bytes)": FunctionFragment;
+    "forceResume(uint16,bytes)": FunctionFragment;
     "getChainId(uint8)": FunctionFragment;
+    "getEndpoint()": FunctionFragment;
     "isTrustedRemote(uint16,bytes)": FunctionFragment;
     "lzReceive(uint16,bytes,uint64,bytes)": FunctionFragment;
     "receive_(bytes)": FunctionFragment;
     "send_(address,uint8,bytes)": FunctionFragment;
     "setChainId(uint8,uint16)": FunctionFragment;
+    "setEndpoint(address)": FunctionFragment;
     "setTrustedRemote(uint16,bytes)": FunctionFragment;
     "setV1AdaptorParameters(uint256)": FunctionFragment;
   };
@@ -38,8 +41,16 @@ interface ILayerZeroProviderInterface extends ethers.utils.Interface {
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "forceResume",
+    values: [BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getChainId",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getEndpoint",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "isTrustedRemote",
@@ -58,6 +69,7 @@ interface ILayerZeroProviderInterface extends ethers.utils.Interface {
     functionFragment: "setChainId",
     values: [BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "setEndpoint", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setTrustedRemote",
     values: [BigNumberish, BytesLike]
@@ -71,7 +83,15 @@ interface ILayerZeroProviderInterface extends ethers.utils.Interface {
     functionFragment: "estimateFee",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "forceResume",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getEndpoint",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "isTrustedRemote",
     data: BytesLike
@@ -80,6 +100,10 @@ interface ILayerZeroProviderInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "receive_", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "send_", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setEndpoint",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "setTrustedRemote",
     data: BytesLike
@@ -183,10 +207,18 @@ export class ILayerZeroProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    forceResume(
+      _srcChainId: BigNumberish,
+      _srcAddress: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getChainId(
       chain: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getEndpoint(overrides?: CallOverrides): Promise<[string]>;
 
     isTrustedRemote(
       _srcChainId: BigNumberish,
@@ -220,6 +252,11 @@ export class ILayerZeroProvider extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setEndpoint(
+      lzEndpoint_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setTrustedRemote(
       _srcChainId: BigNumberish,
       _srcAddress: BytesLike,
@@ -238,10 +275,18 @@ export class ILayerZeroProvider extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  forceResume(
+    _srcChainId: BigNumberish,
+    _srcAddress: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getChainId(
     chain: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  getEndpoint(overrides?: CallOverrides): Promise<string>;
 
   isTrustedRemote(
     _srcChainId: BigNumberish,
@@ -275,6 +320,11 @@ export class ILayerZeroProvider extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setEndpoint(
+    lzEndpoint_: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setTrustedRemote(
     _srcChainId: BigNumberish,
     _srcAddress: BytesLike,
@@ -293,7 +343,15 @@ export class ILayerZeroProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    forceResume(
+      _srcChainId: BigNumberish,
+      _srcAddress: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     getChainId(chain: BigNumberish, overrides?: CallOverrides): Promise<number>;
+
+    getEndpoint(overrides?: CallOverrides): Promise<string>;
 
     isTrustedRemote(
       _srcChainId: BigNumberish,
@@ -323,6 +381,8 @@ export class ILayerZeroProvider extends BaseContract {
       chainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setEndpoint(lzEndpoint_: string, overrides?: CallOverrides): Promise<void>;
 
     setTrustedRemote(
       _srcChainId: BigNumberish,
@@ -431,10 +491,18 @@ export class ILayerZeroProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    forceResume(
+      _srcChainId: BigNumberish,
+      _srcAddress: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getChainId(
       chain: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    getEndpoint(overrides?: CallOverrides): Promise<BigNumber>;
 
     isTrustedRemote(
       _srcChainId: BigNumberish,
@@ -465,6 +533,11 @@ export class ILayerZeroProvider extends BaseContract {
     setChainId(
       chain: BigNumberish,
       chainId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setEndpoint(
+      lzEndpoint_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -487,10 +560,18 @@ export class ILayerZeroProvider extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    forceResume(
+      _srcChainId: BigNumberish,
+      _srcAddress: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getChainId(
       chain: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    getEndpoint(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isTrustedRemote(
       _srcChainId: BigNumberish,
@@ -521,6 +602,11 @@ export class ILayerZeroProvider extends BaseContract {
     setChainId(
       chain: BigNumberish,
       chainId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setEndpoint(
+      lzEndpoint_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

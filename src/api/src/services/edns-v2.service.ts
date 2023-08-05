@@ -1,5 +1,5 @@
 import ContractAddress from "../../static/edns/contracts.json";
-import NetworkConfig, { Net } from "../network-config";
+import { getNetworkConfig, Net } from "../network-config";
 import * as luxon from "luxon";
 import { getProvider } from "../utils/get-provider";
 import { createRedisClient } from "../utils/create-redis-client";
@@ -36,6 +36,7 @@ import { timeIsPassed } from "../utils/time-is-passed";
 import { DomainExpiredError } from "../errors/domain-expired.error";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
+  const NetworkConfig = getNetworkConfig();
   const network = NetworkConfig[chainId];
   console.log(network);
   const contracts = ContractAddress.find((contract) => contract.chainId === network.chainId);

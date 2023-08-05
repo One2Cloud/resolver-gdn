@@ -1,9 +1,10 @@
-import Ethereumnetwork, { Mainnets as EthereumMainnets, Testnets as EthereumTestnets } from "../ethereum-network-config";
+import { getNetworkConfig, Mainnets as EthereumMainnets, Testnets as EthereumTestnets } from "../ethereum-network-config";
 
 import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers";
 export const createProvider = (chainId: number): JsonRpcProvider | WebSocketProvider => {
+	const NetworkConfig = getNetworkConfig();
 	let provider: JsonRpcProvider | WebSocketProvider | undefined = undefined;
-	const network = Ethereumnetwork[chainId];
+	const network = NetworkConfig[chainId];
 	if (network.url.startsWith("http")) {
 		provider = new JsonRpcProvider(network.url, { name: network.name, chainId });
 	} else if (network.url.startsWith("ws")) {

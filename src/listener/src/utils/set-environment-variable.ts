@@ -1,4 +1,4 @@
-import { getSecret, getSecretInLambda } from './get-secret';
+import { getSecret } from './get-secret';
 
 export const setEnvironmentVariable = async () => {
   if (!process.env.GLOBAL_SECRET_ARN) throw new Error('GLOBAL_SECRET_ARN is not set');
