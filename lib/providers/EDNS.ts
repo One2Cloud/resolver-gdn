@@ -166,16 +166,19 @@ export class EDNS extends Construct {
 		});
 
 		const chains_map = new sfn.Map(this, "Map - Chains", {
+			maxConcurrency: 3,
 			itemsPath: sfn.JsonPath.stringAt("$.chains"),
 			parameters: {
 				chain: sfn.JsonPath.stringAt("$$.Map.Item.Value"),
 			},
+			resultPath: sfn.JsonPath.DISCARD,
 		});
 		chains_map.iterator(task_02);
 
 		task_02.next(task_03);
 
 		const events_map = new sfn.Map(this, "Map - Events", {
+			maxConcurrency: 3,
 			itemsPath: sfn.JsonPath.stringAt("$.events"),
 			parameters: {
 				chain: sfn.JsonPath.stringAt("$.chain"),
@@ -183,6 +186,7 @@ export class EDNS extends Construct {
 				to: sfn.JsonPath.numberAt(`$.range.to`),
 				event: sfn.JsonPath.stringAt("$$.Map.Item.Value"),
 			},
+			resultPath: sfn.JsonPath.DISCARD,
 		});
 		events_map.iterator(task_04);
 		task_03.next(events_map);
