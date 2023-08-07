@@ -159,8 +159,8 @@ export class EDNS extends Construct {
 			table: blockRangeRecordTable,
 			item: {
 				chain_id: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.chain`)),
-				from: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.from`)),
-				to: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.to`)),
+				from: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.range.from`)),
+				to: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.range.to`)),
 			},
 			resultPath: sfn.JsonPath.DISCARD,
 		});
