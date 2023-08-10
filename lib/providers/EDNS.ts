@@ -155,12 +155,23 @@ export class EDNS extends Construct {
 			resultPath: "$.synced",
 		});
 
+		const convertNumbersToStrings = new sfn.Pass(this, 'Convert Numbers to Strings', {
+			inputPath: '$',
+			parameters: {
+				'chain': sfn.JsonPath.stringAt('$.chain'),
+				'range.from': sfn.JsonPath.stringAt('$.range.from'),
+				'range.to': sfn.JsonPath.stringAt('$.range.to')
+			},
+			outputPath: '$',
+			resultPath: '$'
+		});
+
 		const task_05 = new sfn_tasks.DynamoPutItem(this, "05 - Update Block Range", {
 			table: blockRangeRecordTable,
 			item: {
-				chain_id: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.chain`)),
-				from: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.range.from`)),
-				to: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.range.to`)),
+				chain_id: sfn_tasks.DynamoAttributeValue.fromString(sfn.JsonPath.stringAt(`$.chain`)),
+				from: sfn_tasks.DynamoAttributeValue.fromString(sfn.JsonPath.stringAt(`$.range.from`)),
+				to: sfn_tasks.DynamoAttributeValue.fromString(sfn.JsonPath.stringAt(`$.range.to`)),
 			},
 			resultPath: sfn.JsonPath.DISCARD,
 		});
@@ -190,7 +201,8 @@ export class EDNS extends Construct {
 		});
 		events_map.iterator(task_04);
 		task_03.next(events_map);
-		events_map.next(task_05);
+		events_map.next(convertNumbersToStrings);
+		convertNumbersToStrings.next(task_05);
 
 		const definition = task_01.next(chains_map);
 
