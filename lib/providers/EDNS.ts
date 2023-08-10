@@ -58,7 +58,7 @@ export class EDNS extends Construct {
 		const blockRangeRecordTable = new dynamodb.Table(this, "BlockRangeRecord", {
 			partitionKey: {
 				name: "chain_id",
-				type: dynamodb.AttributeType.STRING,
+				type: dynamodb.AttributeType.NUMBER,
 			},
 			billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -158,7 +158,7 @@ export class EDNS extends Construct {
 		const task_05 = new sfn_tasks.DynamoPutItem(this, "05 - Update Block Range", {
 			table: blockRangeRecordTable,
 			item: {
-				chain_id: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.chain`)),
+				chain_id: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt("$.chain")),
 				from: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.range.from`)),
 				to: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.range.to`)),
 			},
