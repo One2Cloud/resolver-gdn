@@ -58,7 +58,7 @@ export class EDNS extends Construct {
 		const blockRangeRecordTable = new dynamodb.Table(this, "BlockRangeRecord", {
 			partitionKey: {
 				name: "chain_id",
-				type: dynamodb.AttributeType.NUMBER,
+				type: dynamodb.AttributeType.STRING,
 			},
 			billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
