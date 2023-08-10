@@ -158,7 +158,7 @@ export class EDNS extends Construct {
 		const task_05 = new sfn_tasks.DynamoPutItem(this, "05 - Update Block Range", {
 			table: blockRangeRecordTable,
 			item: {
-				chain_id: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt("$.chain")),
+				chain_id: sfn_tasks.DynamoAttributeValue.fromString(sfn.JsonPath.stringAt("$.chain")),
 				from: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.range.from`)),
 				to: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.range.to`)),
 			},
