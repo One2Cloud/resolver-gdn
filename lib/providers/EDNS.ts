@@ -148,8 +148,8 @@ export class EDNS extends Construct {
 			payloadResponseOnly: true,
 			payload: sfn.TaskInput.fromObject({
 				chainId: sfn.JsonPath.numberAt(`$.chain`),
-				from: sfn.JsonPath.numberAt(`$.range.from`),
-				to: sfn.JsonPath.numberAt(`$.range.to`),
+				from: sfn.JsonPath.numberAt(`$.from`),
+				to: sfn.JsonPath.numberAt(`$.to`),
 				eventType: sfn.JsonPath.numberAt(`$.event`),
 			}),
 			resultPath: "$.synced",
@@ -158,9 +158,9 @@ export class EDNS extends Construct {
 		const task_05 = new sfn_tasks.DynamoPutItem(this, "05 - Update Block Range", {
 			table: blockRangeRecordTable,
 			item: {
-				chain_id: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.chain`)),
-				from: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.range.from`)),
-				to: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.range.to`)),
+				chain_id: sfn_tasks.DynamoAttributeValue.fromString(sfn.JsonPath.stringAt(`$.chain`)),
+				from: sfn_tasks.DynamoAttributeValue.fromString(sfn.JsonPath.stringAt(`$.range.from`)),
+				to: sfn_tasks.DynamoAttributeValue.fromString(sfn.JsonPath.stringAt(`$.range.to`)),
 			},
 			resultPath: sfn.JsonPath.DISCARD,
 		});
