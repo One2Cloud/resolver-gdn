@@ -158,7 +158,7 @@ export class EDNS extends Construct {
 		const task_05 = new sfn_tasks.DynamoPutItem(this, "05 - Update Block Range", {
 			table: blockRangeRecordTable,
 			item: {
-				chain_id: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`$.chain`)),
+				chain_id: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.chain`)),
 				from: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.range.from`)),
 				to: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.range.to`)),
 			},
@@ -181,7 +181,7 @@ export class EDNS extends Construct {
 			maxConcurrency: 3,
 			itemsPath: sfn.JsonPath.stringAt("$.events"),
 			parameters: {
-				chain: sfn.JsonPath.stringAt("$.chain"),
+				chain: sfn.JsonPath.numberAt("$.chain"),
 				from: sfn.JsonPath.numberAt(`$.range.from`),
 				to: sfn.JsonPath.numberAt(`$.range.to`),
 				event: sfn.JsonPath.stringAt("$$.Map.Item.Value"),
