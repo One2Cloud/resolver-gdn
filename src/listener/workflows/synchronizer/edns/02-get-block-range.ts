@@ -32,5 +32,5 @@ export const index: Handler<Input, Output> = async (event) => {
 		return { from, to };
 	}
 	const to = await provider.getBlockNumber();
-	return { from: to - 2000, to };
+	return { from: to - 300, to };
 };
