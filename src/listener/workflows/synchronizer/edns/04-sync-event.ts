@@ -12,7 +12,9 @@ import { DomainProvider } from "../../../src/constants/domain-provider.constant"
 import { ethers } from "ethers";
 import { putSqsMessage } from "../../../src/utils/put-sqs-message";
 import { setEnvironmentVariable } from "../../../src/utils/set-environment-variable";
-import { getNetworkConfig } from "../../../src/ethereum-network-config";
+import { Network, getNetworkConfig } from "../../../src/ethereum-network-config";
+import { getInContractChain } from "../../../src/utils/get-in-contract-chain";
+// import { InContractChain } from "../../../src/constants/in-contract-chain.constant";
 
 const logger = createLogger({ service: "workflow/edns/03-sync-event" });
 
@@ -68,8 +70,16 @@ export const index: Handler<Input> = async (input) => {
 						tld: _tld,
 						owner,
 						expiry: expiry.toString(),
-						chain: getInContractChain(input.chainId)
+						chain: await getInContractChain(input.chainId),
+						// debug: {
+						// 	chainIdEqualsToNetworkGOERI: input.chainId === Network.GOERLI,
+						// 	InContractChainETHEREUM: InContractChain.ETHEREUM
+						// }
 					});
+					// console.log(getInContractChain(input.chainId), {
+					// 	chainIdEqualsToNetworkGOERI: input.chainId === Network.GOERLI,
+					// 	InContractChainETHEREUM: InContractChain.ETHEREUM
+					// })
 				}
 				break;
 			}
@@ -414,8 +424,8 @@ export const index: Handler<Input> = async (input) => {
 };
 
 // index({
-// 		"chainId": 43113,
-// 		"from": 24921130,
-// 		"to": 24924404,
-// 		"eventType": "set-domain-owner"
+//   "chainId": 97,
+//   "from": 32434253,
+//   "to": 32434553,
+//   "eventType": "domain-registered"
 // })
