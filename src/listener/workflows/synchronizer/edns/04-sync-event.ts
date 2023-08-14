@@ -1,4 +1,6 @@
 import "source-map-support/register";
+// import * as dotenv from "dotenv"
+// dotenv.config()
 import { Handler } from "aws-lambda";
 import { EdnsEventType } from "../../../src/constants/event-type.constant";
 import { createLogger } from "../../../src/utils/create-logger";
@@ -22,6 +24,7 @@ interface Input {
 }
 
 export const index: Handler<Input> = async (input) => {
+// export const index = async (input: Input) => {
 	await setEnvironmentVariable();
 	const NetworkConfig = getNetworkConfig();
 	const networkConfig = NetworkConfig[input.chainId];
@@ -93,8 +96,8 @@ export const index: Handler<Input> = async (input) => {
 				for (const event of events) {
 					const { name, tld, owner: newOwner } = event.args;
 					const [_name, _tld] = await Promise.all([contracts.registry["getName(bytes32,bytes32)"](name, tld), contracts.registry["getName(bytes32)"](tld)]);
-					const __name = ethers.utils.toUtf8String(name);
-					const __tld = ethers.utils.toUtf8String(tld);
+					const __name = ethers.utils.toUtf8String(_name);
+					const __tld = ethers.utils.toUtf8String(_tld);
 					const fqdn = `${_name}.${_tld}`;
 					await putEvent(input.chainId, DomainProvider.EDNS, fqdn, eventType, {
 						name: __name,
@@ -111,8 +114,8 @@ export const index: Handler<Input> = async (input) => {
 				for (const event of events) {
 					const { name, tld, newResolver } = event.args;
 					const [_name, _tld] = await Promise.all([contracts.registry["getName(bytes32,bytes32)"](name, tld), contracts.registry["getName(bytes32)"](tld)]);
-					const __name = ethers.utils.toUtf8String(name);
-					const __tld = ethers.utils.toUtf8String(tld);
+					const __name = ethers.utils.toUtf8String(_name);
+					const __tld = ethers.utils.toUtf8String(_tld);
 					const fqdn = `${_name}.${_tld}`;
 					await putEvent(input.chainId, DomainProvider.EDNS, fqdn, eventType, {
 						name: __name,
@@ -129,8 +132,8 @@ export const index: Handler<Input> = async (input) => {
 				for (const event of events) {
 					const { name, tld, operator, approved } = event.args;
 					const [_name, _tld] = await Promise.all([contracts.registry["getName(bytes32,bytes32)"](name, tld), contracts.registry["getName(bytes32)"](tld)]);
-					const __name = ethers.utils.toUtf8String(name);
-					const __tld = ethers.utils.toUtf8String(tld);
+					const __name = ethers.utils.toUtf8String(_name);
+					const __tld = ethers.utils.toUtf8String(_tld);
 					const fqdn = `${_name}.${_tld}`;
 					await putEvent(input.chainId, DomainProvider.EDNS, fqdn, eventType, {
 						name: __name,
@@ -148,8 +151,8 @@ export const index: Handler<Input> = async (input) => {
 				for (const event of events) {
 					const { name, tld, newUser, expiry } = event.args;
 					const [_name, _tld] = await Promise.all([contracts.registry["getName(bytes32,bytes32)"](name, tld), contracts.registry["getName(bytes32)"](tld)]);
-					const __name = ethers.utils.toUtf8String(name);
-					const __tld = ethers.utils.toUtf8String(tld);
+					const __name = ethers.utils.toUtf8String(_name);
+					const __tld = ethers.utils.toUtf8String(_tld);
 					const fqdn = `${_name}.${_tld}`;
 					await putEvent(input.chainId, DomainProvider.EDNS, fqdn, eventType, {
 						name: __name,
@@ -208,9 +211,9 @@ export const index: Handler<Input> = async (input) => {
 						contracts.registry["getName(bytes32,bytes32)"](name, tld),
 						contracts.registry["getName(bytes32)"](tld),
 					]);
-					const __host = ethers.utils.toUtf8String(host);
-					const __name = ethers.utils.toUtf8String(name);
-					const __tld = ethers.utils.toUtf8String(tld);
+					const __host = ethers.utils.toUtf8String(_host);
+					const __name = ethers.utils.toUtf8String(_name);
+					const __tld = ethers.utils.toUtf8String(_tld);
 					const fqdn = `${__host}.${__name}.${__tld}`;
 					await putEvent(input.chainId, DomainProvider.EDNS, fqdn, eventType, {
 						host: __host,
@@ -408,3 +411,10 @@ export const index: Handler<Input> = async (input) => {
 	}
 	return synced;
 };
+
+// index({
+// 		"chainId": 43113,
+// 		"from": 24921130,
+// 		"to": 24924404,
+// 		"eventType": "set-domain-owner"
+// })

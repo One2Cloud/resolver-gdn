@@ -699,7 +699,7 @@ export const getNetworkConfig = (): INetworkConfig => {
 			chainId: Network.MOONBASE_ALPHA,
 			name: "Moonbase Alphanet",
 			symbol: "DEV",
-			url: `https://moonbase-alpha.public.blastapi.io`,
+			url: `https://rpc.api.moonbase.moonbeam.network`,
 			layerzero: {
 				chainId: 10126,
 				endpoint: {
