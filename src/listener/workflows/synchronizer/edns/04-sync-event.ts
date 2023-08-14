@@ -64,10 +64,11 @@ export const index: Handler<Input> = async (input) => {
 					const _tld = ethers.utils.toUtf8String(tld);
 					const fqdn = `${_name}.${_tld}`;
 					await putEvent(input.chainId, DomainProvider.EDNS, fqdn, eventType, {
-						name,
-						tld,
+						name: _name,
+						tld: _tld,
 						owner,
 						expiry: expiry.toString(),
+						chain: getInContractChain(input.chainId)
 					});
 				}
 				break;
@@ -82,8 +83,8 @@ export const index: Handler<Input> = async (input) => {
 					const _tld = ethers.utils.toUtf8String(tld);
 					const fqdn = `${_name}.${_tld}`;
 					await putEvent(input.chainId, DomainProvider.EDNS, fqdn, eventType, {
-						name,
-						tld,
+						name: _name,
+						tld: _tld,
 						expiry: expiry.toString(),
 					});
 				}

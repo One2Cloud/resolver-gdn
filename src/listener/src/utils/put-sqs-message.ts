@@ -16,7 +16,7 @@ export interface IPutSqsMessageInput {
 }
 
 export const putSqsMessage = async (input: IPutSqsMessageInput) => {
-	const sqs = new SQS({ region: process.env.AWS_REGION });
+	const sqs = new SQS({ region: process.env.AWS_REGION || "us-east-1" });
 	logger.debug(`Putting event to SQS: ${input.fqdn}`);
 	logger.debug(`MessageDeduplication: ${`${input.provider}:${input.fqdn}:${input.eventType}`}`);
 	try {

@@ -124,9 +124,11 @@ export class EDNS extends Construct {
 			memorySize: 256,
 			environment: {
 				GLOBAL_SECRET_ARN: props.secret.secretArn,
+				SQS_HANDLER_URL: queue.queueUrl
 			},
 		});
 		props.secret.grantRead(syncEventLambdaFunction);
+		queue.grantSendMessages(syncEventLambdaFunction);
 
 		const task_01 = new sfn_tasks.LambdaInvoke(this, "01 - List Chains", {
 			lambdaFunction: listChainsLambdaFunction,
