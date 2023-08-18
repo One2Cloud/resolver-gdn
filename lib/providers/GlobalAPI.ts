@@ -48,6 +48,16 @@ export class GlobalApi extends Construct {
 			}),
 		});
 
+		const ednsMainnetMetadataBucket = s3.Bucket.fromBucketAttributes(this, 'ImportedEdnsMainnetMetadataBucket', {
+			bucketName: 'edns-omni-file-folder',
+			bucketRegionalDomainName: 'edns-omni-file-folder.s3.ap-southeast-1.amazonaws.com'
+		})
+
+		const ednsTestnetMetadataBucket = s3.Bucket.fromBucketAttributes(this, 'ImportedEdnsTestnetMetadataBucket', {
+			bucketName: 'edns-omni-dev-test',
+			bucketRegionalDomainName: 'edns-omni-dev-test.s3.ap-southeast-1.amazonaws.com'
+		})
+
 		const distribution = new cloudfront.Distribution(this, "Distribution", {
 			certificate,
 			domainNames: ["api.resolver.gdn"],
@@ -62,6 +72,18 @@ export class GlobalApi extends Construct {
 					},
 				],
 			},
+			additionalBehaviors: {
+				'/metadata/*': {
+					origin: new origins.S3Origin(ednsMainnetMetadataBucket),
+					originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
+					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED
+				},
+				'/testnet/metadata/*': {
+					origin: new origins.S3Origin(ednsTestnetMetadataBucket),
+					originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
+					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED
+				}
+			}
 		});
 
 		new route53.ARecord(this, "ApiDnsRecord", {
