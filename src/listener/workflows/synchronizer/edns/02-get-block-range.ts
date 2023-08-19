@@ -30,7 +30,7 @@ export const index: Handler<Input, Output> = async (event) => {
 		const from = parseInt(response.Item.to.N);
 		const to = await provider.getBlockNumber();
 		if (to - from > 300) {
-			return { to: from + 300, from}
+			return { from: to - 300, to}
 		} else {
 			return { from, to };
 		}
