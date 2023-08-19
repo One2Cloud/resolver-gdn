@@ -65,6 +65,7 @@ export class GlobalApi extends Construct {
 				origin: new origins.S3Origin(bucket),
 				originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_AND_CLOUDFRONT_2022,
 				cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
 				edgeLambdas: [
 					{
 						functionVersion: func.currentVersion,
@@ -76,15 +77,34 @@ export class GlobalApi extends Construct {
 				'/metadata/*': {
 					origin: new origins.S3Origin(ednsMainnetMetadataBucket),
 					originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
-					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED
+					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
 				},
 				'/testnet/metadata/*': {
 					origin: new origins.S3Origin(ednsTestnetMetadataBucket),
 					originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
-					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED
+					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
 				}
 			}
 		});
+
+		// Add origin access control with workaround at https://github.com/aws/aws-cdk/issues/21771
+		const cfCfnDist = distribution.node.defaultChild as cloudfront.CfnDistribution;
+		const distribution_oac = new cloudfront.CfnOriginAccessControl(this, 'DistributionOriginAccessControl', {
+			originAccessControlConfig: {
+				name: 'DistributionOriginAccessControl',
+				originAccessControlOriginType: 's3',
+				signingBehavior: 'always',
+				signingProtocol: 'sigv4',
+			}
+		});
+		cfCfnDist.addOverride('Properties.DistributionConfig.Origins.0.S3OriginConfig.OriginAccessIdentity', ""); // Remove OAI
+		cfCfnDist.addPropertyOverride('DistributionConfig.Origins.0.OriginAccessControlId', distribution_oac.getAtt('Id'));
+		cfCfnDist.addOverride('Properties.DistributionConfig.Origins.1.S3OriginConfig.OriginAccessIdentity', ""); // Remove OAI
+		cfCfnDist.addPropertyOverride('DistributionConfig.Origins.1.OriginAccessControlId', distribution_oac.getAtt('Id'));
+		cfCfnDist.addOverride('Properties.DistributionConfig.Origins.2.S3OriginConfig.OriginAccessIdentity', ""); // Remove OAI
+		cfCfnDist.addPropertyOverride('DistributionConfig.Origins.2.OriginAccessControlId', distribution_oac.getAtt('Id'));
 
 		new route53.ARecord(this, "ApiDnsRecord", {
 			zone: props.hostedzone,
