@@ -26,7 +26,7 @@ interface Input {
 }
 
 export const index: Handler<Input> = async (input) => {
-// export const index = async (input: Input) => {
+	// export const index = async (input: Input) => {
 	await setEnvironmentVariable();
 	const NetworkConfig = getNetworkConfig();
 	const networkConfig = NetworkConfig[input.chainId];
