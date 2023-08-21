@@ -362,10 +362,10 @@ export const getNetworkConfig = (): INetworkConfig => ({
   },
   [Network.POLYGON]: {
     chainId: Network.POLYGON,
-
     name: "Polygon",
     symbol: "MATIC",
-    url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    // url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    url: `https://matic.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
     slip44: {
       coinId: 966,
     },
@@ -394,10 +394,10 @@ export const getNetworkConfig = (): INetworkConfig => ({
   },
   [Network.POLYGON_MUMBAI]: {
     chainId: Network.POLYGON_MUMBAI,
-
     name: "Polygon Mumbai",
     symbol: "MATIC",
-    url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    // url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    url: `https://matic.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/`,
     slip44: {
       coinId: 966,
     },

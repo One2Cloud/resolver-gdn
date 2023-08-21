@@ -14,9 +14,7 @@ import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as lambda_event_sources from "aws-cdk-lib/aws-lambda-event-sources";
 
 function dynamoNumberFromJson(jsonPath: string) {
-  return sfn_tasks.DynamoAttributeValue.numberFromString(
-    sfn.JsonPath.stringAt(`States.Format('{}', ${jsonPath})`)
-  );
+	return sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`States.Format('{}', ${jsonPath})`));
 }
 
 export interface ConstructProps {
@@ -124,7 +122,7 @@ export class EDNS extends Construct {
 			memorySize: 256,
 			environment: {
 				GLOBAL_SECRET_ARN: props.secret.secretArn,
-				SQS_HANDLER_URL: queue.queueUrl
+				SQS_HANDLER_URL: queue.queueUrl,
 			},
 		});
 		props.secret.grantRead(syncEventLambdaFunction);
@@ -162,16 +160,14 @@ export class EDNS extends Construct {
 			}),
 			resultPath: "$.synced",
 		});
+		task_04.addRetry({ maxAttempts: 3 });
 
 		const task_05 = new sfn_tasks.DynamoPutItem(this, "05 - Update Block Range", {
 			table: blockRangeRecordTable,
 			item: {
-				// chain_id: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.chain`)),
-				// from: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.range.from`)),
-				// to: sfn_tasks.DynamoAttributeValue.fromNumber(sfn.JsonPath.numberAt(`$.range.to`)),
 				chain_id: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`States.Format('{}', $.chain)`)),
 				from: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`States.Format('{}', $.range.from)`)),
-				to: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`States.Format('{}', $.range.to)`))
+				to: sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`States.Format('{}', $.range.to)`)),
 			},
 			resultPath: sfn.JsonPath.DISCARD,
 		});
@@ -189,7 +185,6 @@ export class EDNS extends Construct {
 		task_02.next(task_03);
 
 		const events_map = new sfn.Map(this, "Map - Events", {
-			maxConcurrency: 3,
 			itemsPath: sfn.JsonPath.stringAt("$.events"),
 			parameters: {
 				chain: sfn.JsonPath.stringAt("$.chain"),
