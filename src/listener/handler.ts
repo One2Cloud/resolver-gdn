@@ -50,6 +50,12 @@ interface IDomainRenewedData {
 // 	dstChain: Chain;
 // }
 
+interface ISetDomainOwner {
+	name: string;
+	tld: string;
+	newOwner: string;
+}
+
 interface IBridgeRequestedData {
 	chainId: number;
 	ref: string;
@@ -259,6 +265,7 @@ export const index: SQSHandler = async (event, context) => {
 					// Update all the `EXPIRE` of the domain relative data
 					batch = batch
 						.hset(`edns:${net}:domain:${domain}:info`, "expiry", data.expiry)
+						.hset(`edns:${net}:domain:${domain}:user`, "expiry", data.expiry)
 						.expireat(`edns:${net}:domain:${domain}:info`, data.expiry)
 						.expireat(`edns:${net}:domain:${domain}:user`, data.expiry);
 
@@ -311,6 +318,14 @@ export const index: SQSHandler = async (event, context) => {
 
 				// 	break;
 				// }
+				case EdnsEventType.SET_DOMAIN_OWNER: {
+					const data: ISetDomainOwner = body.data;
+					const domain = `${data.name}.${data.tld}`;
+
+					await client.hset(`edns:${net}:domain:${domain}:info`, "owner", data.newOwner)
+
+					break;
+				}
 				case EdnsEventType.SET_DOMAIN_OPERATOR: {
 					const data: ISetDomainOperatorData = body.data;
 					const domain = `${data.name}.${data.tld}`;

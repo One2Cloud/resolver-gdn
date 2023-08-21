@@ -109,7 +109,7 @@ export const index: Handler<Input> = async (input) => {
 					const [_name, _tld] = await Promise.all([contracts.registry["getName(bytes32,bytes32)"](name, tld), contracts.registry["getName(bytes32)"](tld)]);
 					const __name = ethers.utils.toUtf8String(_name);
 					const __tld = ethers.utils.toUtf8String(_tld);
-					const fqdn = `${_name}.${_tld}`;
+					const fqdn = `${__name}.${__tld}`;
 					await putEvent(input.chainId, DomainProvider.EDNS, fqdn, eventType, {
 						name: __name,
 						tld: __tld,
