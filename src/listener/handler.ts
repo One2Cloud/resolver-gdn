@@ -352,10 +352,13 @@ export const index: SQSHandler = async (event, context) => {
 					const data: ISetDomainUserData = body.data;
 					const domain = `${data.name}.${data.tld}`;
 
-					await client.hmset(`edns:${net}:domain:${domain}:user`, {
+					await client.pipeline()
+					.hmset(`edns:${net}:domain:${domain}:user`, {
 						user: data.newUser,
 						expiry: data.expiry,
-					});
+					})
+					.expireat(`edns:${net}:domain:${domain}:user`, data.expiry)
+					.exec();
 
 					break;
 				}
