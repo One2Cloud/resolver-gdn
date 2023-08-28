@@ -393,13 +393,13 @@ export const index: SQSHandler = async (event, context) => {
 						await client
 							.pipeline()
 							.sadd(`edns:${net}:host:${data.host}.${domain}:operators`, data.operator)
-							.sadd(`edns:${net}:account:${data.operator}:domain:operators`, domain)
+							.sadd(`edns:${net}:account:${data.operator}:domain:operators`, `${data.host}.${domain}`)
 							.exec();
 					} else {
 						await client
 							.pipeline()
 							.srem(`edns:${net}:domain:${data.host}.${domain}:operators`, data.operator)
-							.srem(`edns:${net}:account:${data.operator}:host:operators`, domain)
+							.srem(`edns:${net}:account:${data.operator}:host:operators`, `${data.host}.${domain}`)
 							.exec();
 					}
 
