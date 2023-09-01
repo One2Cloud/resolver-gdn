@@ -371,6 +371,9 @@ export const index: SQSHandler = async (event, context) => {
 					let batch = client.pipeline();
 
 					const [user, expiry] = await client.hmget(`edns:${net}:domain:${domain}:user`, "user", "expiry");
+					if (!user) {
+						// TODO
+					}
 
 					await batch
 						.sadd(`edns:${net}:domain:${domain}:host`, data.host)
