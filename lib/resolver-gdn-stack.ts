@@ -52,7 +52,7 @@ export class ResolverGdnStack extends cdk.Stack {
 			},
 		});
 
-		new EDNS(this, "EDNS", {
+		const edns = new EDNS(this, "EDNS", {
 			images: {
 				lambda: lambdaImage,
 				ecs: ecsImages,
@@ -61,6 +61,7 @@ export class ResolverGdnStack extends cdk.Stack {
 			cluster,
 		});
 
-		new GlobalApi(this, "GlobalApi", { hostedzone });
+		const api = new GlobalApi(this, "GlobalApi", { hostedzone });
+		edns.queue.grantSendMessages(api.func);
 	}
 }

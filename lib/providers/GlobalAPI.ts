@@ -18,6 +18,7 @@ export interface ConstructProps {
 
 export class GlobalApi extends Construct {
 	public readonly workflow: sfn.StateMachine;
+	public readonly func: lambda.Function;
 
 	constructor(scope: Construct, id: string, props: ConstructProps) {
 		super(scope, id);
@@ -50,6 +51,7 @@ export class GlobalApi extends Construct {
 				},
 			}),
 		});
+		this.func = func;
 
 		const ednsMainnetMetadataBucket = s3.Bucket.fromBucketAttributes(this, "ImportedEdnsMainnetMetadataBucket", {
 			bucketName: "edns-omni-file-folder",
