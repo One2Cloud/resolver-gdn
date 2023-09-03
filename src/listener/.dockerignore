@@ -1,9 +1,0 @@
-dist/
-build/
-node_modules/
-*.env
-.env
-*.log
-docs/
-.github/
-test/

@@ -28,6 +28,7 @@ export interface ConstructProps {
 
 export class EDNS extends Construct {
 	public readonly workflow: sfn.StateMachine;
+	public readonly queue: sqs.Queue;
 
 	constructor(scope: Construct, id: string, props: ConstructProps) {
 		super(scope, id);
@@ -35,6 +36,7 @@ export class EDNS extends Construct {
 		const queue = new sqs.Queue(this, "Queue", {
 			visibilityTimeout: cdk.Duration.minutes(3),
 		});
+		this.queue = queue;
 
 		const handler = new lambda.Function(this, "Handler", {
 			functionName: "EDNS-Event-Handler",
@@ -48,7 +50,7 @@ export class EDNS extends Construct {
 			memorySize: 512,
 			environment: {
 				GLOBAL_SECRET_ARN: props.secret.secretArn,
-				SQS_HANDLER_URL: queue.queueUrl,
+				EDNS_EVENT_HANDLER_SQS_QUEUE_URL: queue.queueUrl,
 			},
 		});
 		props.secret.grantRead(handler);

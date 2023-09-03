@@ -8,6 +8,7 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53_targets from "aws-cdk-lib/aws-route53-targets";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import * as sqs from "aws-cdk-lib/aws-sqs";
 
 import path = require("path");
 
@@ -34,29 +35,31 @@ export class GlobalApi extends Construct {
 		const func = new lambda.Function(this, "EdgeFunction", {
 			functionName: "Resolver-GDN-Global-API",
 			runtime: lambda.Runtime.NODEJS_18_X,
-			memorySize: 256,
+			memorySize: 128,
 			timeout: cdk.Duration.seconds(30),
 			handler: "index.handler",
-			code: lambda.Code.fromDockerBuild(path.join(process.cwd(), "src/api"), {
+			code: lambda.Code.fromDockerBuild(path.join(process.cwd(), "src"), {
+				file: "docker/buildtime/Dockerfile",
 				platform: "linux/amd64",
 				buildArgs: {
 					REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
 					INFURA_API_KEY: process.env.INFURA_API_KEY || "",
 					GETBLOCK_API_KEY: process.env.GETBLOCK_API_KEY || "",
 					POKT_PORTAL_ID: process.env.POKT_PORTAL_ID || "",
+					EDNS_HANDLER_SQS_QUEUE_URL: process.env.EDNS_EVENT_HANDLER_SQS_QUEUE_URL || "",
 				},
 			}),
 		});
 
-		const ednsMainnetMetadataBucket = s3.Bucket.fromBucketAttributes(this, 'ImportedEdnsMainnetMetadataBucket', {
-			bucketName: 'edns-omni-file-folder',
-			bucketRegionalDomainName: 'edns-omni-file-folder.s3.ap-southeast-1.amazonaws.com'
-		})
+		const ednsMainnetMetadataBucket = s3.Bucket.fromBucketAttributes(this, "ImportedEdnsMainnetMetadataBucket", {
+			bucketName: "edns-omni-file-folder",
+			bucketRegionalDomainName: "edns-omni-file-folder.s3.ap-southeast-1.amazonaws.com",
+		});
 
-		const ednsTestnetMetadataBucket = s3.Bucket.fromBucketAttributes(this, 'ImportedEdnsTestnetMetadataBucket', {
-			bucketName: 'edns-omni-dev-test',
-			bucketRegionalDomainName: 'edns-omni-dev-test.s3.ap-southeast-1.amazonaws.com'
-		})
+		const ednsTestnetMetadataBucket = s3.Bucket.fromBucketAttributes(this, "ImportedEdnsTestnetMetadataBucket", {
+			bucketName: "edns-omni-dev-test",
+			bucketRegionalDomainName: "edns-omni-dev-test.s3.ap-southeast-1.amazonaws.com",
+		});
 
 		const distribution = new cloudfront.Distribution(this, "Distribution", {
 			certificate,
@@ -74,37 +77,37 @@ export class GlobalApi extends Construct {
 				],
 			},
 			additionalBehaviors: {
-				'/metadata/*': {
+				"/metadata/*": {
 					origin: new origins.S3Origin(ednsMainnetMetadataBucket),
 					originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
 					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
 				},
-				'/testnet/metadata/*': {
+				"/testnet/metadata/*": {
 					origin: new origins.S3Origin(ednsTestnetMetadataBucket),
 					originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
 					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
-				}
-			}
+					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+				},
+			},
 		});
 
 		// Add origin access control with workaround at https://github.com/aws/aws-cdk/issues/21771
 		const cfCfnDist = distribution.node.defaultChild as cloudfront.CfnDistribution;
-		const distribution_oac = new cloudfront.CfnOriginAccessControl(this, 'DistributionOriginAccessControl', {
+		const distribution_oac = new cloudfront.CfnOriginAccessControl(this, "DistributionOriginAccessControl", {
 			originAccessControlConfig: {
-				name: 'DistributionOriginAccessControl',
-				originAccessControlOriginType: 's3',
-				signingBehavior: 'always',
-				signingProtocol: 'sigv4',
-			}
+				name: "DistributionOriginAccessControl",
+				originAccessControlOriginType: "s3",
+				signingBehavior: "always",
+				signingProtocol: "sigv4",
+			},
 		});
-		cfCfnDist.addOverride('Properties.DistributionConfig.Origins.0.S3OriginConfig.OriginAccessIdentity', ""); // Remove OAI
-		cfCfnDist.addPropertyOverride('DistributionConfig.Origins.0.OriginAccessControlId', distribution_oac.getAtt('Id'));
-		cfCfnDist.addOverride('Properties.DistributionConfig.Origins.1.S3OriginConfig.OriginAccessIdentity', ""); // Remove OAI
-		cfCfnDist.addPropertyOverride('DistributionConfig.Origins.1.OriginAccessControlId', distribution_oac.getAtt('Id'));
-		cfCfnDist.addOverride('Properties.DistributionConfig.Origins.2.S3OriginConfig.OriginAccessIdentity', ""); // Remove OAI
-		cfCfnDist.addPropertyOverride('DistributionConfig.Origins.2.OriginAccessControlId', distribution_oac.getAtt('Id'));
+		cfCfnDist.addOverride("Properties.DistributionConfig.Origins.0.S3OriginConfig.OriginAccessIdentity", ""); // Remove OAI
+		cfCfnDist.addPropertyOverride("DistributionConfig.Origins.0.OriginAccessControlId", distribution_oac.getAtt("Id"));
+		cfCfnDist.addOverride("Properties.DistributionConfig.Origins.1.S3OriginConfig.OriginAccessIdentity", ""); // Remove OAI
+		cfCfnDist.addPropertyOverride("DistributionConfig.Origins.1.OriginAccessControlId", distribution_oac.getAtt("Id"));
+		cfCfnDist.addOverride("Properties.DistributionConfig.Origins.2.S3OriginConfig.OriginAccessIdentity", ""); // Remove OAI
+		cfCfnDist.addPropertyOverride("DistributionConfig.Origins.2.OriginAccessControlId", distribution_oac.getAtt("Id"));
 
 		new route53.ARecord(this, "ApiDnsRecord", {
 			zone: props.hostedzone,
