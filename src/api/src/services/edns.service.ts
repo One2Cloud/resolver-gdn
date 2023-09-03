@@ -17,6 +17,10 @@ import {
   IGetTypedTextRecordInput,
   IGetTypedTextRecordOutput,
 } from "../interfaces/IEdnsResolverService.interface";
+import { putSqsMessage } from "../utils/put-sqs-message";
+import { DomainProvider } from "../constants/domain-provider.constant";
+import { EdnsEventType } from "../constants/event-type.constant";
+import { extractFqdn } from "../utils/extract-fqdn";
 
 export class EdnsService implements IEdnsResolverService {
   private readonly _v2RedisService: EdnsV2FromRedisService;
@@ -31,60 +35,197 @@ export class EdnsService implements IEdnsResolverService {
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
     let output: IGetReverseAddressRecordOutput | undefined;
-    // console.log({ chainid: options?.chainId });
-    if (options?.version === "v1") return this._v1ContractService.getReverseAddressRecord(input, options);
-    if (!output && options?.onchain) output = await this._v2ContractService.getReverseAddressRecord(input, options);
-    if (!output && !options?.onchain) output = await this._v2RedisService.getReverseAddressRecord(input, options);
-    if (!output) output = await this._v2ContractService.getReverseAddressRecord(input, options);
+    let cache: "miss" | "hit" = "miss";
+    if (options?.version === "v1") {
+      // Return the reverse address from V1 contract if the incoming request specify to V1
+      return this._v1ContractService.getReverseAddressRecord(input, options);
+    }
+    if (!output && options?.onchain) {
+      // Return the reverse address from V2 contract if the incoming request specify to V2 and require on chain data
+      return this._v2ContractService.getReverseAddressRecord(input, options);
+    }
+    if (!output && !options?.onchain) {
+      // Get the reverse address from Redis by default
+      output = await this._v2RedisService.getReverseAddressRecord(input, options);
+    }
+    if (!output) {
+      // Get the reverse address from V2 contract if cache from Redis is missing
+      output = await this._v2ContractService.getReverseAddressRecord(input, options);
+      cache = "miss";
+    } else {
+      cache = "hit";
+    }
+    if (output && cache === "miss") {
+      // Put a SQS message in the queue to update the reverse address in Redis
+      const { host, name, tld } = extractFqdn(output.fqdn);
+      await putSqsMessage({
+        eventType: EdnsEventType.SET_REVERSE_ADDRESS_RECORD,
+        provider: DomainProvider.EDNS,
+        fqdn: output.fqdn,
+        hash: "FROM_EDGE_API",
+        data: { host, name, tld, address: input.address },
+      });
+    }
     return output;
   }
 
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     let output: IGetAddressRecordOutput | undefined;
-    if (options?.version === "v1") return this._v1ContractService.getAddressRecord(input, options);
-    if (!output && options?.onchain) output = await this._v2ContractService.getAddressRecord(input, options);
-    if (!output && !options?.onchain) output = await this._v2RedisService.getAddressRecord(input, options);
-    if (!output) output = await this._v2ContractService.getAddressRecord(input, options);
+    let cache: "miss" | "hit" = "miss";
+    if (options?.version === "v1") {
+      return this._v1ContractService.getAddressRecord(input, options);
+    }
+    if (!output && options?.onchain) {
+      return this._v2ContractService.getAddressRecord(input, options);
+    }
+    if (!output && !options?.onchain) {
+      output = await this._v2RedisService.getAddressRecord(input, options);
+    }
+    if (!output) {
+      output = await this._v2ContractService.getAddressRecord(input, options);
+      cache = "miss";
+    } else {
+      cache = "hit";
+    }
+    if (output && cache === "miss") {
+      const { host, name, tld } = extractFqdn(input.fqdn);
+      await putSqsMessage({
+        eventType: EdnsEventType.SET_ADDRESS_RECORD,
+        provider: DomainProvider.EDNS,
+        fqdn: input.fqdn,
+        hash: "FROM_EDGE_API",
+        data: { host, name, tld, address: output.address },
+      });
+    }
     return output;
   }
 
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
     let output: IGetMultiCoinAddressRecordOutput | undefined;
-    if (options?.version === "v1") return this._v1ContractService.getMultiCoinAddressRecord(input, options);
-    if (!output && options?.onchain) output = await this._v2ContractService.getMultiCoinAddressRecord(input, options);
-    if (!output && !options?.onchain) output = await this._v2RedisService.getMultiCoinAddressRecord(input, options);
-    if (!output) output = await this._v2ContractService.getMultiCoinAddressRecord(input, options);
+    let cache: "miss" | "hit" = "miss";
+    if (options?.version === "v1") {
+      return this._v1ContractService.getMultiCoinAddressRecord(input, options);
+    }
+    if (!output && options?.onchain) {
+      return this._v2ContractService.getMultiCoinAddressRecord(input, options);
+    }
+    if (!output && !options?.onchain) {
+      output = await this._v2RedisService.getMultiCoinAddressRecord(input, options);
+    }
+    if (!output) {
+      output = await this._v2ContractService.getMultiCoinAddressRecord(input, options);
+      cache = "miss";
+    } else {
+      cache = "hit";
+    }
+    if (output && cache === "miss") {
+      const { host, name, tld } = extractFqdn(input.fqdn);
+      await putSqsMessage({
+        eventType: EdnsEventType.SET_MULTI_COIN_ADDRESS_RECORD,
+        provider: DomainProvider.EDNS,
+        fqdn: input.fqdn,
+        hash: "FROM_EDGE_API",
+        data: { host, name, tld, address: output.address, coin: output.coin },
+      });
+    }
     return output;
   }
 
   public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
     let output: IGetTextRecordOutput | undefined;
-    if (options?.version === "v1") return this._v1ContractService.getTextRecord(input, options);
-    if (!output && options?.onchain) output = await this._v2ContractService.getTextRecord(input, options);
-    if (!output && !options?.onchain) output = await this._v2RedisService.getTextRecord(input, options);
-    if (!output) output = await this._v2ContractService.getTextRecord(input, options);
+    let cache: "miss" | "hit" = "miss";
+    if (options?.version === "v1") {
+      return this._v1ContractService.getTextRecord(input, options);
+    }
+    if (!output && options?.onchain) {
+      return this._v2ContractService.getTextRecord(input, options);
+    }
+    if (!output && !options?.onchain) {
+      output = await this._v2RedisService.getTextRecord(input, options);
+    }
+    if (!output) {
+      output = await this._v2ContractService.getTextRecord(input, options);
+      cache = "miss";
+    } else {
+      cache = "hit";
+    }
+    if (output && cache === "miss") {
+      const { host, name, tld } = extractFqdn(input.fqdn);
+      await putSqsMessage({
+        eventType: EdnsEventType.SET_TEXT_RECORD,
+        provider: DomainProvider.EDNS,
+        fqdn: input.fqdn,
+        hash: "FROM_EDGE_API",
+        data: { host, name, tld, text: output.text },
+      });
+    }
     return output;
   }
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
     let output: IGetTypedTextRecordOutput | undefined;
-    if (options?.version === "v1") return this._v1ContractService.getTypedTextRecord(input, options);
-    if (!output && options?.onchain) output = await this._v2ContractService.getTypedTextRecord(input, options);
-    if (!output && !options?.onchain) output = await this._v2RedisService.getTypedTextRecord(input, options);
-    if (!output) output = await this._v2ContractService.getTypedTextRecord(input, options);
+    let cache: "miss" | "hit" = "miss";
+    if (options?.version === "v1") {
+      return this._v1ContractService.getTypedTextRecord(input, options);
+    }
+    if (!output && options?.onchain) {
+      return this._v2ContractService.getTypedTextRecord(input, options);
+    }
+    if (!output && !options?.onchain) {
+      output = await this._v2RedisService.getTypedTextRecord(input, options);
+    }
+    if (!output) {
+      output = await this._v2ContractService.getTypedTextRecord(input, options);
+      cache = "miss";
+    } else {
+      cache = "hit";
+    }
+    if (output && cache === "miss") {
+      const { host, name, tld } = extractFqdn(input.fqdn);
+      await putSqsMessage({
+        eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
+        provider: DomainProvider.EDNS,
+        fqdn: input.fqdn,
+        hash: "FROM_EDGE_API",
+        data: { host, name, tld, text: output.text, typed: output.typed },
+      });
+    }
     return output;
   }
 
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
     let output: IGetNftRecordOutput | undefined;
-    if (options?.version === "v1") return this._v1ContractService.getNftRecord(input, options);
-    if (!output && options?.onchain) output = await this._v2ContractService.getNftRecord(input, options);
-    if (!output && !options?.onchain) output = await this._v2RedisService.getNftRecord(input, options);
-    if (!output) output = await this._v2ContractService.getNftRecord(input, options);
+    let cache: "miss" | "hit" = "miss";
+    if (options?.version === "v1") {
+      return this._v1ContractService.getNftRecord(input, options);
+    }
+    if (!output && options?.onchain) {
+      return this._v2ContractService.getNftRecord(input, options);
+    }
+    if (!output && !options?.onchain) {
+      output = await this._v2RedisService.getNftRecord(input, options);
+    }
+    if (!output) {
+      output = await this._v2ContractService.getNftRecord(input, options);
+      cache = "miss";
+    } else {
+      cache = "hit";
+    }
+    if (output && cache === "miss") {
+      const { host, name, tld } = extractFqdn(input.fqdn);
+      await putSqsMessage({
+        eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
+        provider: DomainProvider.EDNS,
+        fqdn: input.fqdn,
+        hash: "FROM_EDGE_API",
+        data: { host, name, tld, chainId: output.chainId, contractAddress: output.contractAddress, tokenId: output.tokenId },
+      });
+    }
     return output;
   }
-  public async getBridgeEvents(input: IGetBridgedEventInput, options?: IOptions): Promise<string | undefined> {
-    const output = await this._v2RedisService.getBridgedEvent(input, options);
-    return output;
-  }
+
+  // public async getBridgeEvents(input: IGetBridgedEventInput, options?: IOptions): Promise<string | undefined> {
+  //   const output = await this._v2RedisService.getBridgedEvent(input, options);
+  //   return output;
+  // }
 }
