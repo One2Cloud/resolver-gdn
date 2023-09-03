@@ -187,8 +187,6 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 	public async isExpired(fqdn: string, options?: IOptions): Promise<boolean> {
 		const redis = createRedisClient();
 
-		// if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-
 		let time;
 		const { host, name, tld } = extractFqdn(fqdn);
 		if (host && name && tld) {
@@ -272,13 +270,20 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 			records: results[3][1] as string[],
 		};
 	}
+
+	public async getTtl(fqdn: string, options?: IOptions): Promise<number | undefined> {
+		const redis = createRedisClient();
+		if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+		if (!(await this.isExists(fqdn, options))) throw new DomainNotFoundError(fqdn);
+		const ttl = await redis.get(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:ttl`);
+		return ttl ? parseInt(ttl) : undefined;
+	}
 }
 
 export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsRegistryService {
 	private async _getDomainChainId(domain: string, options?: IOptions): Promise<number> {
 		const redis = createRedisClient();
 		const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`, "chain");
-		// console.log(`await redis.hget(edns:${options?.net || Net.MAINNET}:domain:${domain}:info, "chain");`)
 		if (!result) throw new CantGetChainIdError(domain);
 		return parseInt(result);
 	}
@@ -422,7 +427,6 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
 	public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
 		if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
-
 		const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
 		if (!(await this.isExists(input.fqdn, options, _chainId))) throw new DomainNotFoundError(input.fqdn);
 		if (await this.isExpired(input.fqdn, options, _chainId)) throw new DomainExpiredError(input.fqdn);
@@ -510,5 +514,23 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
 	public async getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined> {
 		return new EdnsV2FromRedisService().getHost(fqdn, options);
+	}
+
+	public async getTtl(fqdn: string, options?: IOptions): Promise<number | undefined> {
+		if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+		const _chainId = options?.chainId || (await this._getDomainChainId(fqdn, options));
+		if (!(await this.isExists(fqdn, options, _chainId))) throw new DomainNotFoundError(fqdn);
+		if (await this.isExpired(fqdn, options, _chainId)) throw new DomainExpiredError(fqdn);
+		const contracts = getContracts(_chainId);
+		const { host, name, tld } = extractFqdn(fqdn);
+		if (host && name && tld) {
+			const ttl = await contracts.Registry.getTtl(
+				ethers.utils.solidityKeccak256(["string"], [host]),
+				ethers.utils.solidityKeccak256(["string"], [name]),
+				ethers.utils.solidityKeccak256(["string"], [tld])
+			);
+			return ttl;
+		}
+		return undefined;
 	}
 }

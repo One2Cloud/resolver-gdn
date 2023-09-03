@@ -339,17 +339,14 @@ export const index: SQSHandler = async (event, context) => {
 				case EdnsEventType.SET_DOMAIN_RESOLVER: {
 					const data: ISetDomainResolverData = body.data;
 					const domain = `${data.name}.${data.tld}`;
-
 					await client.hmset(`edns:${net}:domain:${domain}:info`, {
 						resolver: data.newResolver,
 					});
-
 					break;
 				}
 				case EdnsEventType.SET_DOMAIN_USER: {
 					const data: ISetDomainUserData = body.data;
 					const domain = `${data.name}.${data.tld}`;
-
 					await client
 						.pipeline()
 						.hmset(`edns:${net}:domain:${domain}:user`, {
@@ -358,33 +355,20 @@ export const index: SQSHandler = async (event, context) => {
 						})
 						.expireat(`edns:${net}:domain:${domain}:user`, data.expiry)
 						.exec();
-
 					break;
 				}
 				case EdnsEventType.NEW_HOST: {
 					const data: INewHostData = body.data;
-					console.log("data: ", data);
-
 					const domain = `${data.name}.${data.tld}`;
-
 					let batch = client.pipeline();
-
 					const [user, expiry] = await client.hmget(`edns:${net}:domain:${domain}:user`, "user", "expiry");
-					if (!user) {
-						// TODO
-					}
-
-					await batch
-						.sadd(`edns:${net}:domain:${domain}:host`, data.host)
-						.hmset(`edns:${net}:host:${data.host}.${domain}:user`, {
+					if (user && expiry) {
+						batch = batch.hmset(`edns:${net}:host:${data.host}.${domain}:user`, {
 							user,
 							expiry,
-						})
-						.exec()
-						.catch((error) => {
-							console.log(error);
 						});
-					logger.info("Exec NEW_HOST");
+					}
+					await batch.sadd(`edns:${net}:domain:${domain}:host`, data.host).set(`edns:${net}:host:${data.host}.${domain}:ttl`, data.ttl).exec();
 					break;
 				}
 				case EdnsEventType.SET_HOST_OPERATOR: {

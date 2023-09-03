@@ -1,21 +1,15 @@
-import express, { Application, Request, Response } from "express";
-import routers from "../../routers";
-import compression from "compression";
-import cors from 'cors';
-import morgan from "morgan";
+require("source-map-support/register");
+import path from "path";
+import serverless from "@vendia/serverless-express";
+import app from "./app";
+import fs from "fs";
 
-const app: Application = express();
+const environment = fs.readFileSync(path.join(__dirname, ".env.runtime"), "utf8");
 
-app.use(cors());
-app.use(express.json());
-app.use(morgan("combined"));
-app.use(express.urlencoded({ extended: true }));
-app.use(compression());
-
-app.get("/healthcheck", (req: Request, res: Response): Response => {
-  return res.status(200).send();
+const lines = environment.split("\n").map((l) => l.split("="));
+lines.forEach((line) => {
+	const [key, value] = line;
+	process.env[key] = value;
 });
 
-app.use(routers);
-
-export default app;
+export const handler = serverless({ app });

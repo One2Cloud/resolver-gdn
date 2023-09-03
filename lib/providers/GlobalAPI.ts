@@ -39,7 +39,7 @@ export class GlobalApi extends Construct {
 			timeout: cdk.Duration.seconds(30),
 			handler: "index.handler",
 			code: lambda.Code.fromDockerBuild(path.join(process.cwd(), "src"), {
-				file: "docker/buildtime/Dockerfile",
+				file: "docker/buildtime/Dockerfile.build",
 				platform: "linux/amd64",
 				buildArgs: {
 					REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
@@ -67,7 +67,7 @@ export class GlobalApi extends Construct {
 			defaultBehavior: {
 				origin: new origins.S3Origin(bucket),
 				originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_AND_CLOUDFRONT_2022,
-				cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
 				edgeLambdas: [
 					{
