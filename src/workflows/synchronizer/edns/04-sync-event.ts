@@ -11,6 +11,8 @@ import { EdnsEventType } from "../../../constants/event-type.constant";
 import { getInContractChain } from "../../../utils/get-in-contract-chain";
 import { DomainProvider } from "../../../constants/domain-provider.constant";
 import { putSqsMessage } from "../../../utils/put-sqs-message";
+import { Net } from "../../../network-config";
+
 
 const logger = createLogger({ service: "workflow/edns/03-sync-event" });
 
@@ -19,6 +21,7 @@ interface Input {
 	eventType: string;
 	from: number;
 	to: number;
+	net: Net;
 }
 
 export const index: Handler<Input> = async (input) => {
@@ -65,6 +68,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							name: _name,
 							tld: _tld,
@@ -90,6 +94,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							name: _name,
 							tld: _tld,
@@ -114,6 +119,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							name: __name,
 							tld: __tld,
@@ -138,6 +144,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							name: __name,
 							tld: __tld,
@@ -162,6 +169,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							name: __name,
 							tld: __tld,
@@ -187,6 +195,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							name: __name,
 							tld: __tld,
@@ -212,6 +221,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							host: _host,
 							name: _name,
@@ -237,6 +247,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							host: _host,
 							name: _name,
@@ -266,6 +277,7 @@ export const index: Handler<Input> = async (input) => {
 						provider: DomainProvider.EDNS,
 						eventType,
 						fqdn,
+						net: input.net,
 						data: {
 							host: __host,
 							name: __name,
@@ -288,7 +300,7 @@ export const index: Handler<Input> = async (input) => {
 						try {
 							const data = await contracts.bridge.getBridgedRequest(ref);
 							const fqdn = `${data.name}.${data.tld}`;
-							await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { ref, nonce, sender } });
+							await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { ref, nonce, sender } });
 						} catch {
 							//
 						}
@@ -307,7 +319,7 @@ export const index: Handler<Input> = async (input) => {
 						try {
 							const data = await contracts.bridge.getAcceptedRequest(ref);
 							const fqdn = `${data.name}.${data.tld}`;
-							await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { ref, nonce, sender } });
+							await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { ref, nonce, sender } });
 						} catch {
 							//
 						}
@@ -323,7 +335,7 @@ export const index: Handler<Input> = async (input) => {
 					const { host, name, tld, address_ } = event.args;
 					const hash = event.transactionHash;
 					const fqdn = `${ethers.utils.toUtf8String(host)}.${ethers.utils.toUtf8String(name)}.${ethers.utils.toUtf8String(tld)}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host, name, tld, address: address_ } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host, name, tld, address: address_ } });
 				}
 				break;
 			}
@@ -335,7 +347,7 @@ export const index: Handler<Input> = async (input) => {
 					const { host, name, tld } = event.args;
 					const hash = event.transactionHash;
 					const fqdn = `${ethers.utils.toUtf8String(host)}.${ethers.utils.toUtf8String(name)}.${ethers.utils.toUtf8String(tld)}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host, name, tld } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host, name, tld } });
 				}
 				break;
 			}
@@ -347,7 +359,7 @@ export const index: Handler<Input> = async (input) => {
 					const { host, name, tld, coin, address_ } = event.args;
 					const hash = event.transactionHash;
 					const fqdn = `${ethers.utils.toUtf8String(host)}.${ethers.utils.toUtf8String(name)}.${ethers.utils.toUtf8String(tld)}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host, name, tld, coin, address: address_ } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host, name, tld, coin, address: address_ } });
 				}
 				break;
 			}
@@ -359,7 +371,7 @@ export const index: Handler<Input> = async (input) => {
 					const { host, name, tld, coin } = event.args;
 					const hash = event.transactionHash;
 					const fqdn = `${ethers.utils.toUtf8String(host)}.${ethers.utils.toUtf8String(name)}.${ethers.utils.toUtf8String(tld)}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host, name, tld, coin } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host, name, tld, coin } });
 				}
 				break;
 			}
@@ -374,7 +386,7 @@ export const index: Handler<Input> = async (input) => {
 					const _tld = ethers.utils.toUtf8String(tld);
 					const hash = event.transactionHash;
 					const fqdn = `${_host}.${_name}.${_tld}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host: _host, name: _name, tld: _tld, text } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host: _host, name: _name, tld: _tld, text } });
 				}
 				break;
 			}
@@ -389,7 +401,7 @@ export const index: Handler<Input> = async (input) => {
 					const _tld = ethers.utils.toUtf8String(tld);
 					const hash = event.transactionHash;
 					const fqdn = `${_host}.${_name}.${_tld}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host: _host, name: _name, tld: _tld } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host: _host, name: _name, tld: _tld } });
 				}
 				break;
 			}
@@ -405,7 +417,7 @@ export const index: Handler<Input> = async (input) => {
 					const _type_ = ethers.utils.toUtf8String(type_);
 					const hash = event.transactionHash;
 					const fqdn = `${_host}.${_name}.${_tld}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host: _host, name: _name, tld: _tld, type: _type_, text } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host: _host, name: _name, tld: _tld, type: _type_, text } });
 				}
 				break;
 			}
@@ -421,7 +433,7 @@ export const index: Handler<Input> = async (input) => {
 					const _type_ = ethers.utils.toUtf8String(type_);
 					const hash = event.transactionHash;
 					const fqdn = `${_host}.${_name}.${_tld}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host: _host, name: _name, tld: _tld, type: _type_ } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host: _host, name: _name, tld: _tld, type: _type_ } });
 				}
 				break;
 			}
@@ -433,7 +445,7 @@ export const index: Handler<Input> = async (input) => {
 					const { host, name, tld, chainId, contractAddress, tokenId } = event.args;
 					const hash = event.transactionHash;
 					const fqdn = `${ethers.utils.toUtf8String(host)}.${ethers.utils.toUtf8String(name)}.${ethers.utils.toUtf8String(tld)}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host, name, tld, chainId, contractAddress, tokenId } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host, name, tld, chainId, contractAddress, tokenId } });
 				}
 				break;
 			}
@@ -445,7 +457,7 @@ export const index: Handler<Input> = async (input) => {
 					const { host, name, tld, chainId } = event.args;
 					const hash = event.transactionHash;
 					const fqdn = `${ethers.utils.toUtf8String(host)}.${ethers.utils.toUtf8String(name)}.${ethers.utils.toUtf8String(tld)}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host, name, tld, chainId } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host, name, tld, chainId } });
 				}
 				break;
 			}
@@ -457,7 +469,7 @@ export const index: Handler<Input> = async (input) => {
 					const { host, name, tld, address_ } = event.args;
 					const hash = event.transactionHash;
 					const fqdn = `${ethers.utils.toUtf8String(host)}.${ethers.utils.toUtf8String(name)}.${ethers.utils.toUtf8String(tld)}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host, name, tld, address: address_ } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host, name, tld, address: address_ } });
 				}
 				break;
 			}
@@ -469,7 +481,7 @@ export const index: Handler<Input> = async (input) => {
 					const { host, name, tld, address_ } = event.args;
 					const hash = event.transactionHash;
 					const fqdn = `${ethers.utils.toUtf8String(host)}.${ethers.utils.toUtf8String(name)}.${ethers.utils.toUtf8String(tld)}`;
-					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, data: { host, name, tld, address: address_ } });
+					await putSqsMessage({ chainId: input.chainId, provider: DomainProvider.EDNS, eventType, fqdn, hash, net: input.net, data: { host, name, tld, address: address_ } });
 				}
 				break;
 			}
@@ -479,8 +491,9 @@ export const index: Handler<Input> = async (input) => {
 };
 
 // index({
-//   "chainId": 97,
-//   "from": 32434253,
-//   "to": 32434553,
-//   "eventType": "domain-registered"
-// })
+// 	"chainId": 5,
+// 	"from": 9634426,
+// 	"to": 9634427,
+// 	"eventType": "domain-registered",
+// 	"net": "testnet"
+//   })

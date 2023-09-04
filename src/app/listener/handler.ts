@@ -16,7 +16,7 @@ let client: Redis | undefined;
 
 export interface IBody {
 	provider: DomainProvider;
-	type: EdnsEventType;
+	eventType: EdnsEventType;
 	chainId: number;
 	mainnet: boolean;
 	data: any;
@@ -164,7 +164,7 @@ export const index: SQSHandler = async (event, context) => {
 			logger.debug(body);
 			//   switch (body.provider) {
 			// case DomainProvider.EDNS: {
-			switch (body.type) {
+			switch (body.eventType) {
 				case EdnsEventType.DOMAIN_REGISTERED: {
 					const data: IDomainRegisteredData = body.data;
 					const domain = `${data.name}.${data.tld}`;

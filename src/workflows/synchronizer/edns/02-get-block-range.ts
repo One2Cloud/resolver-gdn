@@ -3,9 +3,11 @@ import { Handler } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { setEnvironmentVariable } from "../../../utils/set-environment-variable";
 import { createProvider } from "../../../utils/create-provider";
+import { Net } from "../../../network-config";
 
 interface Input {
 	chainId: number;
+	net: Net;
 }
 
 interface Output {

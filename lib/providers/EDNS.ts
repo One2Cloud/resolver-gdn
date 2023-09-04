@@ -42,7 +42,7 @@ export class EDNS extends Construct {
 			functionName: "EDNS-Event-Handler",
 			code: lambda.Code.fromEcrImage(props.images.lambda.repository, {
 				tagOrDigest: props.images.lambda.imageTag,
-				cmd: ["handler.index"],
+				cmd: ["app/listener/handler.index"],
 			}),
 			handler: lambda.Handler.FROM_IMAGE,
 			runtime: lambda.Runtime.FROM_IMAGE,
@@ -124,7 +124,7 @@ export class EDNS extends Construct {
 			memorySize: 256,
 			environment: {
 				GLOBAL_SECRET_ARN: props.secret.secretArn,
-				SQS_HANDLER_URL: queue.queueUrl,
+				EDNS_EVENT_HANDLER_SQS_QUEUE_URL: queue.queueUrl,
 			},
 		});
 		props.secret.grantRead(syncEventLambdaFunction);
@@ -141,6 +141,7 @@ export class EDNS extends Construct {
 			payloadResponseOnly: true,
 			payload: sfn.TaskInput.fromObject({
 				chainId: sfn.JsonPath.numberAt(`$.chain`),
+				net: sfn.JsonPath.stringAt(`$.net`),
 			}),
 			resultPath: "$.range",
 		});
@@ -159,6 +160,7 @@ export class EDNS extends Construct {
 				from: sfn.JsonPath.numberAt(`$.from`),
 				to: sfn.JsonPath.numberAt(`$.to`),
 				eventType: sfn.JsonPath.numberAt(`$.event`),
+				net: sfn.JsonPath.stringAt(`$.net`),
 			}),
 			resultPath: "$.synced",
 		});
@@ -179,6 +181,7 @@ export class EDNS extends Construct {
 			itemsPath: sfn.JsonPath.stringAt("$.chains"),
 			parameters: {
 				chain: sfn.JsonPath.stringAt("$$.Map.Item.Value"),
+				net: sfn.JsonPath.stringAt("$.net"),
 			},
 			resultPath: sfn.JsonPath.DISCARD,
 		});
@@ -193,6 +196,7 @@ export class EDNS extends Construct {
 				from: sfn.JsonPath.numberAt(`$.range.from`),
 				to: sfn.JsonPath.numberAt(`$.range.to`),
 				event: sfn.JsonPath.stringAt("$$.Map.Item.Value"),
+				net: sfn.JsonPath.stringAt("$.net"),
 			},
 			resultPath: sfn.JsonPath.DISCARD,
 		});
