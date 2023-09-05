@@ -26,4 +26,6 @@ export enum EdnsEventType {
 	// Bridge
 	BRIDGE_REQUESTED = "bridge-requested",
 	BRIDGE_ACCEPTED = "bridge-accepted",
+	// Custom
+	REVALIDATE = "revalidate",
 }

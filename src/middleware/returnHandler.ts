@@ -29,7 +29,7 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
 		};
 		console.log(err);
 	}
-	const ttl = 3600;
-	res.setHeader("Cache-Control", `max-age=${ttl}`);
+	// const ttl = 3600;
+	// res.setHeader("Cache-Control", `max-age=${ttl}`);
 	return res.status(response.status).json(response);
 }

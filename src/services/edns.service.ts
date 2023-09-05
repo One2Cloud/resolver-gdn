@@ -259,4 +259,8 @@ export class EdnsService implements IEdnsResolverService {
 	//   const output = await this._v2RedisService.getBridgedEvent(input, options);
 	//   return output;
 	// }
+
+	public async revalidate(fqdn: string): Promise<void>{
+		const { host, name, tld } = extractFqdn(fqdn);
+	}
 }

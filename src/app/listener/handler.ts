@@ -135,6 +135,13 @@ interface ISetHostUserData {
 	expiry: number;
 }
 
+interface IRevalidateData {
+	host: string;
+	name: string;
+	tld: string;
+	chainId: number;
+}
+
 /**
  * edns:domain:DOMAIN:info => Hash - The info of the domain
  * edns:domain:DOMAIN:user => Hash - The user info of the domain
@@ -551,6 +558,13 @@ export const index: SQSHandler = async (event, context) => {
 							await batch.exec();
 						}
 					}
+					break;
+				}
+				case EdnsEventType.REVALIDATE: {
+					const data: IRevalidateData = body.data;
+					const provider = createProvider(data.chainId);
+					const contracts = EdnsContractsAddress.find((contract) => contract.chainId === data.chainId);
+					
 					break;
 				}
 			}
