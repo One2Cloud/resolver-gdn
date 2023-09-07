@@ -43,6 +43,6 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 COPY --from=layer /opt /opt
 COPY --from=builder /app/dist ${LAMBDA_TASK_ROOT}
 COPY --from=packager /app/node_modules ${LAMBDA_TASK_ROOT}/node_modules
-COPY ./static /app/static
+COPY ./static ${LAMBDA_TASK_ROOT}/static
 
 CMD ["app/listener/handler.index"]

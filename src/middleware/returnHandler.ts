@@ -4,7 +4,7 @@ import { BaseError } from "../interfaces/BaseError.interface";
 
 export function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
 	let response: IGeneralResponse<undefined>;
-
+	let ttl = 60;
 	if (err instanceof BaseError) {
 		response = {
 			status: err.status,
@@ -28,8 +28,8 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
 			empty: true,
 		};
 		console.log(err);
+		ttl = 1;
 	}
-	// const ttl = 3600;
-	// res.setHeader("Cache-Control", `max-age=${ttl}`);
+	res.setHeader("Cache-Control", `max-age=${ttl}`);
 	return res.status(response.status).json(response);
 }

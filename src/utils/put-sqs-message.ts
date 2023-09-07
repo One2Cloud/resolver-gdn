@@ -19,7 +19,7 @@ export const putSqsMessage = async (input: IPutSqsMessageInput) => {
 		input.net = Net.MAINNET;
 	}
 	const config = getConfig();
-	const sqs = new SQS({ region: process.env.AWS_REGION || "us-east-1" });
+	const sqs = new SQS({ region: "us-east-1" });
 	console.debug(`Putting event to SQS: ${input.fqdn}`);
 	console.debug(`MessageDeduplication: ${`${input.provider}:${input.fqdn}:${input.eventType}`}`);
 	let queueUrl: string | undefined = undefined;

@@ -36,7 +36,7 @@ export class GlobalApi extends Construct {
 		const func = new lambda.Function(this, "EdgeFunction", {
 			functionName: "Resolver-GDN-Global-API",
 			runtime: lambda.Runtime.NODEJS_18_X,
-			memorySize: 128,
+			memorySize: 256,
 			timeout: cdk.Duration.seconds(30),
 			handler: "index.handler",
 			code: lambda.Code.fromDockerBuild(path.join(process.cwd(), "src"), {
@@ -47,7 +47,7 @@ export class GlobalApi extends Construct {
 					INFURA_API_KEY: process.env.INFURA_API_KEY || "",
 					GETBLOCK_API_KEY: process.env.GETBLOCK_API_KEY || "",
 					POKT_PORTAL_ID: process.env.POKT_PORTAL_ID || "",
-					EDNS_HANDLER_SQS_QUEUE_URL: process.env.EDNS_EVENT_HANDLER_SQS_QUEUE_URL || "",
+					EDNS_EVENT_HANDLER_SQS_QUEUE_URL: process.env.EDNS_EVENT_HANDLER_SQS_QUEUE_URL || "",
 				},
 			}),
 		});

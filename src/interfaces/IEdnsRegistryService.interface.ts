@@ -30,6 +30,8 @@ export interface IEdnsRegistryService {
 	getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[] | undefined>;
 	getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined>;
 	getTtl(fqdn: string, options?: IOptions): Promise<number | undefined>;
+	getOwner(fqdn: string, options?: IOptions): Promise<string | undefined>;
+	getExpiry(fqdn: string, options?: IOptions): Promise<number | undefined>;
 	// getHostsByDomain(fqdn: string, options?: IOptions): Promise<IGetHostOutput[] | undefined>;
 	// getRecordsByHost(fqdn: string, options?: IOptions): Promise<string[] | undefined>;
 }

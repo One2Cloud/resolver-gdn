@@ -18,7 +18,6 @@ export const getInContractChain = async (chainId: number): Promise<InContractCha
   if (chainId === Network.MOONBEAM || chainId === Network.MOONBASE_ALPHA) return InContractChain.MOONBEAM;
   if (chainId === Network.MOONRIVER) return InContractChain.MOONRIVER;
   if (chainId === Network.ZKSYNC_ERA || chainId === Network.ZKSYNC_ERA_TESTNET) return InContractChain.ZKSYNC;
-  if (chainId === Network.MOONBEAM || chainId === Network.MOONBASE_ALPHA) return InContractChain.MOONBEAM;
 
   throw new Error(`Unsupported chain: ${chainId}`);
 };

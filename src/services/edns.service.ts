@@ -21,6 +21,7 @@ import { putSqsMessage } from "../utils/put-sqs-message";
 import { DomainProvider } from "../constants/domain-provider.constant";
 import { EdnsEventType } from "../constants/event-type.constant";
 import { extractFqdn } from "../utils/extract-fqdn";
+import { EdnsMainnets, Net } from "../network-config";
 
 export class EdnsService implements IEdnsResolverService {
 	private readonly _v2RedisService: EdnsV2FromRedisService;
@@ -63,7 +64,7 @@ export class EdnsService implements IEdnsResolverService {
 				provider: DomainProvider.EDNS,
 				fqdn: output.fqdn,
 				hash: "FROM_EDGE_API",
-				data: { host, name, tld, address: input.address },
+				data: { host: host || "@", name, tld, address: input.address },
 			});
 		}
 		return output;
@@ -89,12 +90,24 @@ export class EdnsService implements IEdnsResolverService {
 		}
 		if (output && cache === "miss") {
 			const { host, name, tld } = extractFqdn(input.fqdn);
+			if (options?.chainId) {
+				const isExists = await this._v2ContractService.isExists(input.fqdn, options);
+				if (isExists) {
+					await putSqsMessage({
+						eventType: EdnsEventType.REVALIDATE,
+						provider: DomainProvider.EDNS,
+						fqdn: input.fqdn,
+						data: { host: host || "@", name, tld, chainId: options.chainId },
+						net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+					});
+				}
+			}
 			await putSqsMessage({
 				eventType: EdnsEventType.SET_ADDRESS_RECORD,
 				provider: DomainProvider.EDNS,
 				fqdn: input.fqdn,
-				hash: "FROM_EDGE_API",
-				data: { host, name, tld, address: output.address },
+				data: { host: host || "@", name, tld, address: output.address },
+				net: options?.net,
 			});
 		}
 		return output;
@@ -120,12 +133,25 @@ export class EdnsService implements IEdnsResolverService {
 		}
 		if (output && cache === "miss") {
 			const { host, name, tld } = extractFqdn(input.fqdn);
+			if (options?.chainId) {
+				const isExists = await this._v2ContractService.isExists(input.fqdn, options);
+				if (isExists) {
+					await putSqsMessage({
+						eventType: EdnsEventType.REVALIDATE,
+						provider: DomainProvider.EDNS,
+						fqdn: input.fqdn,
+						data: { host: host || "@", name, tld, chainId: options.chainId },
+						net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+					});
+				}
+			}
 			await putSqsMessage({
 				eventType: EdnsEventType.SET_MULTI_COIN_ADDRESS_RECORD,
 				provider: DomainProvider.EDNS,
 				fqdn: input.fqdn,
 				hash: "FROM_EDGE_API",
-				data: { host, name, tld, address: output.address, coin: output.coin },
+				data: { host: host || "@", name, tld, address: output.address, coin: output.coin },
+				net: options?.net,
 			});
 		}
 		return output;
@@ -151,12 +177,25 @@ export class EdnsService implements IEdnsResolverService {
 		}
 		if (output && cache === "miss") {
 			const { host, name, tld } = extractFqdn(input.fqdn);
+			if (options?.chainId) {
+				const isExists = await this._v2ContractService.isExists(input.fqdn, options);
+				if (isExists) {
+					await putSqsMessage({
+						eventType: EdnsEventType.REVALIDATE,
+						provider: DomainProvider.EDNS,
+						fqdn: input.fqdn,
+						data: { host: host || "@", name, tld, chainId: options.chainId },
+						net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+					});
+				}
+			}
 			await putSqsMessage({
 				eventType: EdnsEventType.SET_TEXT_RECORD,
 				provider: DomainProvider.EDNS,
 				fqdn: input.fqdn,
 				hash: "FROM_EDGE_API",
-				data: { host, name, tld, text: output.text },
+				data: { host: host || "@", name, tld, text: output.text },
+				net: options?.net,
 			});
 		}
 		return output;
@@ -182,12 +221,25 @@ export class EdnsService implements IEdnsResolverService {
 		}
 		if (output && cache === "miss") {
 			const { host, name, tld } = extractFqdn(input.fqdn);
+			if (options?.chainId) {
+				const isExists = await this._v2ContractService.isExists(input.fqdn, options);
+				if (isExists) {
+					await putSqsMessage({
+						eventType: EdnsEventType.REVALIDATE,
+						provider: DomainProvider.EDNS,
+						fqdn: input.fqdn,
+						data: { host: host || "@", name, tld, chainId: options.chainId },
+						net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+					});
+				}
+			}
 			await putSqsMessage({
 				eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
 				provider: DomainProvider.EDNS,
 				fqdn: input.fqdn,
 				hash: "FROM_EDGE_API",
-				data: { host, name, tld, text: output.text, typed: output.typed },
+				data: { host: host || "@", name, tld, text: output.text, typed: output.typed },
+				net: options?.net,
 			});
 		}
 		return output;
@@ -213,12 +265,25 @@ export class EdnsService implements IEdnsResolverService {
 		}
 		if (output && cache === "miss") {
 			const { host, name, tld } = extractFqdn(input.fqdn);
+			if (options?.chainId) {
+				const isExists = await this._v2ContractService.isExists(input.fqdn, options);
+				if (isExists) {
+					await putSqsMessage({
+						eventType: EdnsEventType.REVALIDATE,
+						provider: DomainProvider.EDNS,
+						fqdn: input.fqdn,
+						data: { host: host || "@", name, tld, chainId: options.chainId },
+						net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+					});
+				}
+			}
 			await putSqsMessage({
 				eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
 				provider: DomainProvider.EDNS,
 				fqdn: input.fqdn,
 				hash: "FROM_EDGE_API",
-				data: { host, name, tld, chainId: output.chainId, contractAddress: output.contractAddress, tokenId: output.tokenId },
+				data: { host: host || "@", name, tld, chainId: output.chainId, contractAddress: output.contractAddress, tokenId: output.tokenId },
+				net: options?.net,
 			});
 		}
 		return output;
@@ -260,7 +325,7 @@ export class EdnsService implements IEdnsResolverService {
 	//   return output;
 	// }
 
-	public async revalidate(fqdn: string): Promise<void>{
+	public async revalidate(fqdn: string): Promise<void> {
 		const { host, name, tld } = extractFqdn(fqdn);
 	}
 }
