@@ -123,6 +123,12 @@ interface INewHostData {
 	ttl: number;
 }
 
+interface IRemoveHostData {
+	host: string;
+	name: string;
+	tld: string;
+}
+
 interface ISetHostOperatorData {
 	host: string;
 	name: string;
@@ -371,6 +377,17 @@ const main = async (body: IBody): Promise<void> => {
 			await batch.sadd(`edns:${net}:domain:${domain}:host`, data.host).set(`edns:${net}:host:${data.host}.${domain}:ttl`, data.ttl).exec();
 			break;
 		}
+		case EdnsEventType.REMOVE_HOST: {
+			const data: IRemoveHostData = body.data;
+			const domain = `${data.name}.${data.tld}`;
+			await client
+				.pipeline()
+				.del(`edns:${net}:host:${data.host}.${domain}:user`)
+				.srem(`edns:${net}:domain:${domain}:host`, data.host)
+				.del(`edns:${net}:host:${data.host}.${domain}:ttl`)
+				.exec();
+			break;
+		}
 		case EdnsEventType.SET_HOST_OPERATOR: {
 			const data: ISetHostOperatorData = body.data;
 			const domain = `${data.name}.${data.tld}`;
@@ -379,12 +396,12 @@ const main = async (body: IBody): Promise<void> => {
 				await client
 					.pipeline()
 					.sadd(`edns:${net}:host:${data.host}.${domain}:operators`, data.operator)
-					.sadd(`edns:${net}:account:${data.operator}:domain:operators`, `${data.host}.${domain}`)
+					.sadd(`edns:${net}:account:${data.operator}:host:operators`, `${data.host}.${domain}`)
 					.exec();
 			} else {
 				await client
 					.pipeline()
-					.srem(`edns:${net}:domain:${data.host}.${domain}:operators`, data.operator)
+					.srem(`edns:${net}:host:${data.host}.${domain}:operators`, data.operator)
 					.srem(`edns:${net}:account:${data.operator}:host:operators`, `${data.host}.${domain}`)
 					.exec();
 			}
