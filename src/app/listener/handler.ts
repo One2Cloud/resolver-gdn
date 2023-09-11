@@ -72,8 +72,15 @@ interface ISetReverseAddressRecordData extends IBaseSetRecordData {
 	address: string;
 }
 
+interface IUnsetReverseAddressRecordData extends IBaseSetRecordData {
+	address: string;
+}
+
 interface ISetAddressRecordData extends IBaseSetRecordData {
 	address: string;
+}
+
+interface IUnsetAddressRecordData extends IBaseSetRecordData {
 }
 
 interface ISetMultiCoinAddressRecordData extends IBaseSetRecordData {
@@ -81,7 +88,15 @@ interface ISetMultiCoinAddressRecordData extends IBaseSetRecordData {
 	address: string;
 }
 
+interface IUnsetMultiCoinAddressRecordData extends IBaseSetRecordData {
+	coin: number;
+}
+
 interface ISetTextRecordData extends IBaseSetRecordData {
+	text: string;
+}
+
+interface IUnsetTextRecordData extends IBaseSetRecordData {
 	text: string;
 }
 
@@ -90,10 +105,18 @@ interface ISetTypedTextRecordData extends IBaseSetRecordData {
 	text: string;
 }
 
+interface IUnsetTypedTextRecordData extends IBaseSetRecordData {
+	type: string;
+}
+
 interface ISetNftRecordData extends IBaseSetRecordData {
 	chainId: string;
 	contractAddress: string;
 	tokenId: string;
+}
+
+interface IUnsetNftRecordData extends IBaseSetRecordData {
+	chainId: string;
 }
 
 interface ISetDomainResolverData {
@@ -440,14 +463,46 @@ const main = async (body: IBody): Promise<void> => {
 
 			break;
 		}
+		case EdnsEventType.UNSET_REVERSE_ADDRESS_RECORD: {
+			const data: IUnsetReverseAddressRecordData = body.data;
+			const fqdn = `${data.host}.${data.name}.${data.tld}`;
+
+			await client
+				.pipeline()
+				.del(`edns:${net}:account:${data.address}:reverse_domain`)
+				.srem(`edns:${net}:host:${fqdn}:records:list`, "reverse_address")
+				.exec()
+				.catch((error) => {
+					console.log(error);
+				});
+			logger.info("Exec UNSET_REVERSE_ADDRESS_RECORD");
+
+			break;
+		}
 		case EdnsEventType.SET_ADDRESS_RECORD: {
 			const data: ISetAddressRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-			await client.pipeline().hset(`edns:${net}:host:${fqdn}:records`, "address", data.address).sadd(`edns:${net}:host:${fqdn}:records:list`, "address").exec();
+			await client
+				.pipeline()
+				.hset(`edns:${net}:host:${fqdn}:records`, "address", data.address)
+				.sadd(`edns:${net}:host:${fqdn}:records:list`, "address")
+				.exec();
 
 			break;
 		}
+		case EdnsEventType.UNSET_ADDRESS_RECORD: {
+			const data: IUnsetAddressRecordData = body.data;
+			const fqdn = `${data.host}.${data.name}.${data.tld}`;
+
+			await client
+				.pipeline()
+				.hdel(`edns:${net}:host:${fqdn}:records`, "address")
+				.srem(`edns:${net}:host:${fqdn}:records:list`, "address")
+				.exec();
+
+			break;
+		}		
 		case EdnsEventType.SET_MULTI_COIN_ADDRESS_RECORD: {
 			const data: ISetMultiCoinAddressRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
@@ -456,6 +511,18 @@ const main = async (body: IBody): Promise<void> => {
 				.pipeline()
 				.hset(`edns:${net}:host:${fqdn}:records`, `multi_coin_address:${data.coin}`, data.address)
 				.sadd(`edns:${net}:host:${fqdn}:records:list`, `multi_coin_address:${data.coin}`)
+				.exec();
+
+			break;
+		}
+		case EdnsEventType.UNSET_MULTI_COIN_ADDRESS_RECORD: {
+			const data: IUnsetMultiCoinAddressRecordData = body.data;
+			const fqdn = `${data.host}.${data.name}.${data.tld}`;
+
+			await client
+				.pipeline()
+				.hdel(`edns:${net}:host:${fqdn}:records`, `multi_coin_address:${data.coin}`)
+				.srem(`edns:${net}:host:${fqdn}:records:list`, `multi_coin_address:${data.coin}`)
 				.exec();
 
 			break;
@@ -472,11 +539,39 @@ const main = async (body: IBody): Promise<void> => {
 
 			break;
 		}
+		case EdnsEventType.UNSET_NFT_RECORD: {
+			const data: IUnsetNftRecordData = body.data;
+			const fqdn = `${data.host}.${data.name}.${data.tld}`;
+
+			await client
+				.pipeline()
+				.hdel(`edns:${net}:host:${fqdn}:records`, `nft:${data.chainId}`)
+				.srem(`edns:${net}:host:${fqdn}:records:list`, `nft:${data.chainId}`)
+				.exec();
+
+			break;
+		}
 		case EdnsEventType.SET_TEXT_RECORD: {
 			const data: ISetTextRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-			await client.pipeline().hset(`edns:${net}:host:${fqdn}:records`, `text`, data.text).sadd(`edns:${net}:host:${fqdn}:records:list`, `text`).exec();
+			await client
+				.pipeline()
+				.hset(`edns:${net}:host:${fqdn}:records`, `text`, data.text)
+				.sadd(`edns:${net}:host:${fqdn}:records:list`, `text`)
+				.exec();
+
+			break;
+		}
+		case EdnsEventType.UNSET_TEXT_RECORD: {
+			const data: IUnsetTextRecordData = body.data;
+			const fqdn = `${data.host}.${data.name}.${data.tld}`;
+
+			await client
+				.pipeline()
+				.hdel(`edns:${net}:host:${fqdn}:records`, `text`)
+				.srem(`edns:${net}:host:${fqdn}:records:list`, `text`)
+				.exec();
 
 			break;
 		}
@@ -493,6 +588,25 @@ const main = async (body: IBody): Promise<void> => {
 						console.log(error);
 					});
 				logger.info("Exec SET_TYPED_TEXT_RECORD");
+				break;
+			} catch (error) {
+				console.log(error);
+				break;
+			}
+		}
+		case EdnsEventType.UNSET_TYPED_TEXT_RECORD: {
+			const data: IUnsetTypedTextRecordData = body.data;
+			const fqdn = `${data.host}.${data.name}.${data.tld}`;
+			try {
+				await client
+					.pipeline()
+					.hdel(`edns:${net}:host:${fqdn}:records`, `typed_text:${data.type}`)
+					.srem(`edns:${net}:host:${fqdn}:records:list`, `typed_text:${data.type}`)
+					.exec()
+					.catch((error) => {
+						console.log(error);
+					});
+				logger.info("Exec UNSET_TYPED_TEXT_RECORD");
 				break;
 			} catch (error) {
 				console.log(error);
