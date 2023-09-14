@@ -21,7 +21,7 @@ let client: Redis | undefined;
 export interface IBody {
 	provider: DomainProvider;
 	eventType: EdnsEventType;
-	chainId: number;
+	// chainId: number;
 	mainnet: boolean;
 	data: any;
 }
@@ -80,8 +80,7 @@ interface ISetAddressRecordData extends IBaseSetRecordData {
 	address: string;
 }
 
-interface IUnsetAddressRecordData extends IBaseSetRecordData {
-}
+interface IUnsetAddressRecordData extends IBaseSetRecordData {}
 
 interface ISetMultiCoinAddressRecordData extends IBaseSetRecordData {
 	coin: number;
@@ -483,11 +482,7 @@ const main = async (body: IBody): Promise<void> => {
 			const data: ISetAddressRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-			await client
-				.pipeline()
-				.hset(`edns:${net}:host:${fqdn}:records`, "address", data.address)
-				.sadd(`edns:${net}:host:${fqdn}:records:list`, "address")
-				.exec();
+			await client.pipeline().hset(`edns:${net}:host:${fqdn}:records`, "address", data.address).sadd(`edns:${net}:host:${fqdn}:records:list`, "address").exec();
 
 			break;
 		}
@@ -495,14 +490,10 @@ const main = async (body: IBody): Promise<void> => {
 			const data: IUnsetAddressRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-			await client
-				.pipeline()
-				.hdel(`edns:${net}:host:${fqdn}:records`, "address")
-				.srem(`edns:${net}:host:${fqdn}:records:list`, "address")
-				.exec();
+			await client.pipeline().hdel(`edns:${net}:host:${fqdn}:records`, "address").srem(`edns:${net}:host:${fqdn}:records:list`, "address").exec();
 
 			break;
-		}		
+		}
 		case EdnsEventType.SET_MULTI_COIN_ADDRESS_RECORD: {
 			const data: ISetMultiCoinAddressRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
@@ -543,11 +534,7 @@ const main = async (body: IBody): Promise<void> => {
 			const data: IUnsetNftRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-			await client
-				.pipeline()
-				.hdel(`edns:${net}:host:${fqdn}:records`, `nft:${data.chainId}`)
-				.srem(`edns:${net}:host:${fqdn}:records:list`, `nft:${data.chainId}`)
-				.exec();
+			await client.pipeline().hdel(`edns:${net}:host:${fqdn}:records`, `nft:${data.chainId}`).srem(`edns:${net}:host:${fqdn}:records:list`, `nft:${data.chainId}`).exec();
 
 			break;
 		}
@@ -555,11 +542,7 @@ const main = async (body: IBody): Promise<void> => {
 			const data: ISetTextRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-			await client
-				.pipeline()
-				.hset(`edns:${net}:host:${fqdn}:records`, `text`, data.text)
-				.sadd(`edns:${net}:host:${fqdn}:records:list`, `text`)
-				.exec();
+			await client.pipeline().hset(`edns:${net}:host:${fqdn}:records`, `text`, data.text).sadd(`edns:${net}:host:${fqdn}:records:list`, `text`).exec();
 
 			break;
 		}
@@ -567,11 +550,7 @@ const main = async (body: IBody): Promise<void> => {
 			const data: IUnsetTextRecordData = body.data;
 			const fqdn = `${data.host}.${data.name}.${data.tld}`;
 
-			await client
-				.pipeline()
-				.hdel(`edns:${net}:host:${fqdn}:records`, `text`)
-				.srem(`edns:${net}:host:${fqdn}:records:list`, `text`)
-				.exec();
+			await client.pipeline().hdel(`edns:${net}:host:${fqdn}:records`, `text`).srem(`edns:${net}:host:${fqdn}:records:list`, `text`).exec();
 
 			break;
 		}
@@ -688,17 +667,31 @@ const main = async (body: IBody): Promise<void> => {
 			const currentOwner = await client.hget(`edns:${net}:domain:${domain}:info`, "owner");
 			if (!currentOwner) {
 				const service = new EdnsV2FromContractService();
-				const [owner, expiry] = await Promise.all([service.getOwner(domain, { chainId: data.chainId }), service.getExpiry(domain, { chainId: data.chainId })]);
+				const [owner, expiry, ttl] = await Promise.all([
+					service.getOwner(domain, { chainId: data.chainId }),
+					service.getExpiry(domain, { chainId: data.chainId }),
+					service.getTtl(domain, { chainId: data.chainId }),
+				]);
 				if (owner && expiry) {
 					await main({
 						...body,
 						eventType: EdnsEventType.DOMAIN_REGISTERED,
 						data: {
-							chain: await getInContractChain(body.chainId),
+							chain: await getInContractChain(data.chainId),
 							name: data.name,
 							tld: data.tld,
 							owner,
 							expiry,
+						},
+					});
+					await main({
+						...body,
+						eventType: EdnsEventType.NEW_HOST,
+						data: {
+							host: data.host || "@",
+							name: data.name,
+							tld: data.tld,
+							ttl,
 						},
 					});
 				}
