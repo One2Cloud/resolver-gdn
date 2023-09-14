@@ -35,6 +35,7 @@ import { MissingChainIdError } from "../errors/missing-chain-id.error";
 import { timeIsPassed } from "../utils/time-is-passed";
 import { DomainExpiredError } from "../errors/domain-expired.error";
 import { getChainId } from "../utils/get-chain-id";
+import { ZERO_ADDRESS } from "../ethereum-network-config";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
 	const NetworkConfig = getNetworkConfig();
@@ -92,7 +93,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		if (!(await this.isExists(input.fqdn, options))) return undefined;
 		if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
 		const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, "address");
-		if (!address) return undefined;
+		if (!address) return { address: ZERO_ADDRESS };
 		return { address };
 	}
 
@@ -103,7 +104,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
 
 		const address = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `multi_coin_address:${input.coin}`);
-		if (!address) return undefined;
+		if (!address) return { coin: input.coin, address: ZERO_ADDRESS };
 		return { coin: input.coin, address };
 	}
 
@@ -116,18 +117,17 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
 		const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `text`);
 
-		if (!text) return undefined;
+		if (!text) return { text: undefined };
 		return { text };
 	}
 
 	public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
 		const redis = createRedisClient();
-
 		if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
 		if (!(await this.isExists(input.fqdn, options))) return undefined;
 		if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
 		const text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `typed_text:${input.typed}`);
-		if (!text) return undefined;
+		if (!text) return { text: undefined, typed: input.typed };
 		return { text, typed: input.typed };
 	}
 
@@ -136,9 +136,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
 		if (!(await this.isExists(input.fqdn, options))) return undefined;
 		if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
-
 		const result = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${input.fqdn}:records`, `text`);
-		if (!result) return undefined;
+		if (!result) return { chainId: input.chainId, contractAddress: ZERO_ADDRESS, tokenId: "0" };
 		const [contractAddress, tokenId] = result.split(":");
 		return { contractAddress, tokenId, chainId: input.chainId };
 	}
@@ -269,6 +268,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		const redis = createRedisClient();
 		if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
 		if (!(await this.isExists(fqdn, options))) undefined;
+		const { host, name, tld } = extractFqdn(fqdn);
+		if (!host) fqdn = `@.${name}.${tld}`;
 		const ttl = await redis.get(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:ttl`);
 		return ttl ? parseInt(ttl) : undefined;
 	}
