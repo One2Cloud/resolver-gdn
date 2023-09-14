@@ -69,7 +69,7 @@ export class GlobalApi extends Construct {
 			defaultBehavior: {
 				origin: new origins.S3Origin(bucket),
 				originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_AND_CLOUDFRONT_2022,
-				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+				cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
 				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
 				edgeLambdas: [
 					{
