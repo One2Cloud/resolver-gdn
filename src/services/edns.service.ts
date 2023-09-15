@@ -308,14 +308,13 @@ export class EdnsService implements IEdnsResolverService {
 			cache = "hit";
 		}
 		if (ttl && cache === "miss") {
-			// const { host, name, tld } = extractFqdn(fqdn);
-			// await putSqsMessage({
-			// 	eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
-			// 	provider: DomainProvider.EDNS,
-			// 	fqdn: fqdn,
-			// 	hash: "FROM_EDGE_API",
-			// 	data: { host, name, tld, chainId: output.chainId, contractAddress: output.contractAddress, tokenId: output.tokenId },
-			// });
+			const { host, name, tld } = extractFqdn(fqdn);
+			await putSqsMessage({
+				eventType: EdnsEventType.NEW_HOST,
+				provider: DomainProvider.EDNS,
+				fqdn: fqdn,
+				data: { host, name, tld, ttl },
+			});
 		}
 		return ttl;
 	}
