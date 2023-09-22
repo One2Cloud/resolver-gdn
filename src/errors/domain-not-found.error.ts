@@ -14,12 +14,12 @@ import { BaseError } from "../interfaces/BaseError.interface";
 
 export class DomainNotFoundError extends BaseError {
   constructor(fqdn: string) {
-    const { name, tld } = extractFqdn(fqdn);
-    const domain = [name, tld].join(".");
+    // const { name, tld } = extractFqdn(fqdn);
+    // const domain = [name, tld].join(".");
     super(
       200,
       "DOMAIN_NOT_FOUND",
-      `Domain [${domain}] not found.`
+      `Domain or host [${fqdn}] not found.`
     );
   }
 }

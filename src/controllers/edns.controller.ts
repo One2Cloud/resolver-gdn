@@ -3,6 +3,7 @@ import { EdnsService } from "../services/edns.service";
 import { extract } from "../utils/extract-options-from-request";
 import { IGeneralResponse } from "../interfaces/IGeneralOutput.interface";
 import { extractFqdn } from "../utils/extract-fqdn";
+import { ZERO_ADDRESS } from "../network-config";
 
 const FQDN_REGEX = /\.$/;
 
@@ -18,7 +19,7 @@ export default class EdnsController {
 				success: true,
 				data: output,
 				onchain: !!options.onchain,
-				empty: !output,
+				empty: !output?.fqdn,
 			};
 			res.setHeader("Cache-Control", `public, max-age=600`);
 			res.status(response.status).json(response);
@@ -39,7 +40,7 @@ export default class EdnsController {
 				success: true,
 				data: output,
 				onchain: !!options.onchain,
-				empty: !output,
+				empty: !(output?.address === ZERO_ADDRESS),
 			};
 			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
 			res.status(response.status).json(response);
@@ -60,7 +61,7 @@ export default class EdnsController {
 				success: true,
 				data: output,
 				onchain: !!options.onchain,
-				empty: !output,
+				empty: !(output?.address === ZERO_ADDRESS),
 			};
 			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
 			res.status(response.status).json(response);
@@ -81,7 +82,7 @@ export default class EdnsController {
 				success: true,
 				data: output,
 				onchain: !!options.onchain,
-				empty: !output,
+				empty: !output?.text,
 			};
 			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
 			res.status(response.status).json(response);
@@ -102,7 +103,7 @@ export default class EdnsController {
 				success: true,
 				data: output,
 				onchain: !!options.onchain,
-				empty: !output,
+				empty: !output?.text,
 			};
 			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
 			res.status(response.status).json(response);
@@ -123,7 +124,7 @@ export default class EdnsController {
 				success: true,
 				data: output,
 				onchain: !!options.onchain,
-				empty: !output,
+				empty: !(output?.tokenId === "0"),
 			};
 			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
 			res.status(response.status).json(response);

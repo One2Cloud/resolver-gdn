@@ -148,10 +148,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		let text: string | undefined = undefined;
 		if (host && name && tld) {
 			text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:${host}.${name}.${tld}:records`, `typed_text:${input.typed}`) || undefined;
-			console.debug(`REDIS HGET: edns:${options?.net || Net.MAINNET}:host:${host}.${name}.${tld}:records *** typed_text:${input.typed}`);
 		} else if (name && tld) {
 			text = await redis.hget(`edns:${options?.net || Net.MAINNET}:host:@.${name}.${tld}:records`, `typed_text:${input.typed}`) || undefined;
-			console.debug(`REDIS HGET: edns:${options?.net || Net.MAINNET}:host:@.${name}.${tld}:records *** typed_text:${input.typed}`);
 		}
 		
 		if (!text) return { text: undefined, typed: input.typed };
@@ -183,11 +181,12 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
 
 		const { host, name, tld } = extractFqdn(fqdn);
-		console.debug(`ISEXIST REDIS COMMAND: edns:${options?.net || Net.MAINNET}:domain:${name}.${tld}:info`)
+		// if (host && name && tld) {
+		// 	return !!(await redis.exists(`edns:${options?.net || Net.MAINNET}:host:${host}.${name}.${tld}:info`));
+		// }
 		if (name && tld) {
 			return !!(await redis.exists(`edns:${options?.net || Net.MAINNET}:domain:${name}.${tld}:info`));
 		} else {
-			console.debug(`Redis isExists: True`)
 			return true; // TODO:
 		}
 	}
@@ -313,7 +312,8 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsRegistryService {
 	private async _getDomainChainId(domain: string, options?: IOptions): Promise<number> {
 		const redis = createRedisClient();
-		const inContractChain = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${domain}:info`, "chain");
+		const { host, name, tld } = extractFqdn(domain);
+		const inContractChain = await redis.hget(`edns:${options?.net || Net.MAINNET}:domain:${name}.${tld}:info`, "chain");
 		if (!inContractChain) throw new CantGetChainIdError(domain);
 		return await getChainId(options?.net || Net.MAINNET, parseInt(inContractChain));
 	}
