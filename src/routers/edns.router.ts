@@ -12,7 +12,7 @@ router.get("/record/:fqdn/address", EdnsController.getAddressRecord, errorHandle
 router.get("/record/:fqdn/nft/:chainId", EdnsController.getNftRecord, errorHandler);
 router.get("/record/:fqdn/text/:typed", EdnsController.getTypedTextRecord, errorHandler);
 router.get("/record/:fqdn/text", EdnsController.getTextRecord, errorHandler);
-router.get("/:chainId/:fqdn", EdnsController.getTextRecord, errorHandler);
+router.get("/domain/:fqdn", EdnsController.getDomain, errorHandler);
 
 router.get(
   "/*",

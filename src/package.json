@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"main": "index.js",
 	"scripts": {
-		"start:api": "ts-node-dev app/api/index.local.ts",
+		"start:api": "npx ts-node-dev app/api/index.local.ts",
 		"build:api": "esbuild app/api/index.ts --bundle --minify --sourcemap --platform=node --target=node18.12 --outfile=index.js",
 		"build:listener": "tsc",
 		"prettier": "prettier --write src/**/*.ts"

@@ -207,7 +207,16 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		const redis = createRedisClient();
 
 		if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-		if (!(await this.isExists(fqdn, options))) return undefined;
+		if (!(await this.isExists(fqdn, options))) return {
+			owner: undefined,
+			expiry: undefined,
+			chain: undefined,
+			resolver: undefined,
+			bridging: undefined,
+			user: undefined,
+			operators: undefined,
+			hosts: undefined,
+		};
 
 		const { name, tld } = extractFqdn(fqdn);
 		if (!name) throw new CantGetDomainNameError(fqdn);
@@ -223,10 +232,19 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 			.hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:user`, "user")
 			.hget(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:user`, "expiry")
 			.smembers(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:operators`)
-			.smembers(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:hosts`)
+			.smembers(`edns:${options?.net || Net.MAINNET}:domain:${_domain}:host`)
 			.exec();
 
-		if (!results) return undefined;
+		if (!results) return {
+			owner: undefined,
+			expiry: undefined,
+			chain: undefined,
+			resolver: undefined,
+			bridging: undefined,
+			user: undefined,
+			operators: undefined,
+			hosts: undefined,
+		};
 
 		return {
 			owner: results[0][1] as string,

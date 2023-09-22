@@ -22,6 +22,7 @@ import { DomainProvider } from "../constants/domain-provider.constant";
 import { EdnsEventType } from "../constants/event-type.constant";
 import { extractFqdn } from "../utils/extract-fqdn";
 import { EdnsMainnets, Net } from "../network-config";
+import { IGetDomainOutput } from "../interfaces/IEdnsRegistryService.interface";
 
 export class EdnsService implements IEdnsResolverService {
 	private readonly _v2RedisService: EdnsV2FromRedisService;
@@ -288,6 +289,21 @@ export class EdnsService implements IEdnsResolverService {
 		}
 		return output;
 	}
+
+	public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
+		let output: IGetDomainOutput | undefined;
+		let cache: "miss" | "hit" = "miss";
+		if (options?.version === "v1") {
+			throw new Error("Not available for v1.");
+		}
+		if (!output && options?.onchain) {
+			throw new Error("Not available on chain.");
+		}
+		if (!output && !options?.onchain) {
+			output = await this._v2RedisService.getDomain(fqdn, options);
+		}
+		return output;
+	}	
 
 	public async getTtl(fqdn: string, options?: IOptions): Promise<number | undefined> {
 		let ttl: number | undefined;

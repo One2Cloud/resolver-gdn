@@ -132,4 +132,25 @@ export default class EdnsController {
 			next(error);
 		}
 	}
+
+	public static async getDomain(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			let { fqdn } = req.params;
+			if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
+			const options = extract(req);
+			const service = new EdnsService();
+			const [output, ttl] = await Promise.all([service.getDomain(fqdn, options), service.getTtl(fqdn, options)]);
+			const response: IGeneralResponse<typeof output> = {
+				status: 200,
+				success: true,
+				data: output,
+				onchain: !!options.onchain,
+				empty: !output?.owner,
+			};
+			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
+			res.status(response.status).json(response);
+		} catch (error) {
+			next(error);
+		}		
+	}
 }

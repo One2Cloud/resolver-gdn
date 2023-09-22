@@ -1,17 +1,17 @@
 import { IOptions } from "./IOptions.interface";
 
 export interface IGetDomainOutput {
-	chain: number;
-	owner: string;
-	expiry: luxon.DateTime;
-	resolver: string;
-	bridging: boolean;
-	operators: string[];
+	chain: number | undefined;
+	owner: string | undefined;
+	expiry: luxon.DateTime | undefined;
+	resolver: string | undefined;
+	bridging: boolean | undefined;
+	operators: string[] | undefined;
 	user: {
 		address: string;
 		expiry: luxon.DateTime;
-	};
-	hosts: string[];
+	} | undefined;
+	hosts: string[] | undefined;
 }
 
 export interface IGetHostOutput {
