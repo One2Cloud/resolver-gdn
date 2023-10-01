@@ -289,19 +289,28 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		const redis = createRedisClient();
 		const _domains_ = await redis.smembers(`edns:${options?.net || Net.MAINNET}:account:${account}:domains`);
 		const domains = await Promise.all(_domains_.map((d) => this.getDomain(d, options)));
-		return domains.filter((d) => !!d) as IGetDomainOutput[];
+		return domains.filter((d) => !!d) as IGetDomainOutput[]; //TO-DO: empty result is {} instead of undefined
 	}
 
 	public async getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined> {
 		const redis = createRedisClient();
 		if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
 		if (!(await this.isExists(fqdn, options))) undefined;
+		const { host, name, tld } = extractFqdn(fqdn);
+		if (!name) throw new CantGetDomainNameError(fqdn);
+		let fqdn_: string | undefined = undefined;
+		if (host && name && tld) {
+			fqdn_ = `${fqdn}`
+		} else if (name && tld) {
+			fqdn_ = `@.${fqdn}`
+		}
+		console.log(`edns:${options?.net || Net.MAINNET}:host:${fqdn_}:user`)
 		const results = await redis
 			.pipeline()
-			.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:user`, "user")
-			.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:user`, "expiry")
-			.smembers(`edns:${options?.net || Net.MAINNET}:hosts:${fqdn}:operators`)
-			.smembers(`edns:${options?.net || Net.MAINNET}:hosts:${fqdn}:records:list`)
+			.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn_}:user`, "user")
+			.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn_}:user`, "expiry")
+			.smembers(`edns:${options?.net || Net.MAINNET}:host:${fqdn_}:operators`)
+			.smembers(`edns:${options?.net || Net.MAINNET}:host:${fqdn_}:records:list`)
 			.exec();
 
 		if (!results) return undefined;

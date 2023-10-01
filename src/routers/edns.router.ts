@@ -13,6 +13,10 @@ router.get("/record/:fqdn/nft/:chainId", EdnsController.getNftRecord, errorHandl
 router.get("/record/:fqdn/text/:typed", EdnsController.getTypedTextRecord, errorHandler);
 router.get("/record/:fqdn/text", EdnsController.getTextRecord, errorHandler);
 router.get("/domain/:fqdn", EdnsController.getDomain, errorHandler);
+router.get("/owner/:fqdn", EdnsController.getOwner, errorHandler);
+router.get("/expiry/:fqdn", EdnsController.getExpiry, errorHandler);
+router.get("/account/:account", EdnsController.getDomainsByAccount, errorHandler);
+router.get("/host/:fqdn", EdnsController.getHost, errorHandler);
 
 router.get(
   "/*",

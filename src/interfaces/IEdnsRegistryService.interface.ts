@@ -15,12 +15,12 @@ export interface IGetDomainOutput {
 }
 
 export interface IGetHostOutput {
-	operators: string[];
+	operators: string[] | undefined;
 	user: {
 		address: string;
 		expiry: luxon.DateTime;
-	};
-	records: string[];
+	} | undefined;
+    records: string[] | undefined;
 }
 
 export interface IEdnsRegistryService {
