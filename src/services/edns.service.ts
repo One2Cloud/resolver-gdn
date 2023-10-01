@@ -22,7 +22,7 @@ import { DomainProvider } from "../constants/domain-provider.constant";
 import { EdnsEventType } from "../constants/event-type.constant";
 import { extractFqdn } from "../utils/extract-fqdn";
 import { EdnsMainnets, Net } from "../network-config";
-import { IGetDomainOutput } from "../interfaces/IEdnsRegistryService.interface";
+import { IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
 
 export class EdnsService implements IEdnsResolverService {
 	private readonly _v2RedisService: EdnsV2FromRedisService;
@@ -292,7 +292,6 @@ export class EdnsService implements IEdnsResolverService {
 
 	public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
 		let output: IGetDomainOutput | undefined;
-		let cache: "miss" | "hit" = "miss";
 		if (options?.version === "v1") {
 			throw new Error("Not available for v1.");
 		}
@@ -303,7 +302,66 @@ export class EdnsService implements IEdnsResolverService {
 			output = await this._v2RedisService.getDomain(fqdn, options);
 		}
 		return output;
+	}
+
+	public async getOwner(fqdn: string, options?: IOptions): Promise<string | undefined> {
+		let output: string | undefined;
+		if (options?.version === "v1") {
+			throw new Error("Not implemented for v1");
+		}
+		if (!output && options?.onchain) {
+			return this._v2ContractService.getOwner(fqdn, options);
+		}
+		if (!output && !options?.onchain) {
+			output = await this._v2RedisService.getOwner(fqdn, options);
+		}
+		return output;
 	}	
+
+	public async getExpiry(fqdn: string, options?: IOptions): Promise<number | undefined> {
+		let output: number | undefined;
+		if (options?.version === "v1") {
+			throw new Error("Not implemented for v1");
+		}
+		if (!output && options?.onchain) {
+			return this._v2ContractService.getExpiry(fqdn, options);
+		}
+		if (!output && !options?.onchain) {
+			output = await this._v2RedisService.getExpiry(fqdn, options);
+		}
+		if (!output) {
+			output = await this._v2ContractService.getExpiry(fqdn, options);
+		}
+		return output;
+	}
+
+	public async getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[]> {
+		let output: IGetDomainOutput[] = [];
+		if (options?.version === "v1") {
+			throw new Error("Not implemented for v1");
+		}
+		if (output.length === 0 && options?.onchain) {
+			throw new Error("Not available on chain.");
+		}
+		if (output.length === 0 && !options?.onchain) {
+			output = await this._v2RedisService.getDomainsByAccount(account, options);
+		}
+		return output;
+	}
+
+	public async getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined> {
+		let output: IGetHostOutput | undefined;
+		if (options?.version === "v1") {
+			throw new Error("Not implemented for v1");
+		}
+		if (!output && options?.onchain) {
+			throw new Error("Not available on chain.");
+		}
+		if (!output && !options?.onchain) {
+			output = await this._v2RedisService.getHost(fqdn, options);
+		}
+		return output;
+	}
 
 	public async getTtl(fqdn: string, options?: IOptions): Promise<number | undefined> {
 		let ttl: number | undefined;

@@ -153,4 +153,88 @@ export default class EdnsController {
 			next(error);
 		}		
 	}
+
+	public static async getOwner(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			let { fqdn } = req.params;
+			if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
+			const options = extract(req);
+			const service = new EdnsService();
+			const [output, ttl] = await Promise.all([service.getOwner(fqdn, options), service.getTtl(fqdn, options)]);
+			const response: IGeneralResponse<typeof output> = {
+				status: 200,
+				success: true,
+				data: output,
+				onchain: !!options.onchain,
+				empty: !output,
+			};
+			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
+			res.status(response.status).json(response);
+		} catch (error) {
+			next(error);
+		}		
+	}
+	
+	public static async getExpiry(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			let { fqdn } = req.params;
+			if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
+			const options = extract(req);
+			const service = new EdnsService();
+			const [output, ttl] = await Promise.all([service.getExpiry(fqdn, options), service.getTtl(fqdn, options)]);
+			const response: IGeneralResponse<typeof output> = {
+				status: 200,
+				success: true,
+				data: output,
+				onchain: !!options.onchain,
+				empty: output === undefined,
+			};
+			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
+			res.status(response.status).json(response);
+		} catch (error) {
+			next(error);
+		}		
+	}
+	
+	public static async getDomainsByAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			let { account } = req.params;
+			const options = extract(req);
+			const service = new EdnsService();
+			const output = await service.getDomainsByAccount(account, options);
+			const response: IGeneralResponse<typeof output> = {
+				status: 200,
+				success: true,
+				data: output,
+				onchain: !!options.onchain,
+				empty: output.length === 0,
+			};
+			res.setHeader("Cache-Control", `public, max-age=${600}`);
+			res.status(response.status).json(response);
+		} catch (error) {
+			next(error);
+		}		
+	}
+	
+	public static async getHost(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			let { fqdn } = req.params;
+			if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
+			const options = extract(req);
+			const service = new EdnsService();
+			const [output, ttl] = await Promise.all([service.getHost(fqdn, options), service.getTtl(fqdn, options)]);
+			const response: IGeneralResponse<typeof output> = {
+				status: 200,
+				success: true,
+				data: output,
+				onchain: !!options.onchain,
+				empty: !output?.user,
+			};
+			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
+			res.status(response.status).json(response);
+		} catch (error) {
+			next(error);
+		}		
+	}
+	
 }
