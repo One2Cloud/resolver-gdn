@@ -6,6 +6,7 @@ import {
 	IGetAddressRecordInput,
 	IGetAddressRecordOutput,
 	IGetBridgedEventInput,
+	IGetMultiCoinAddressListOutput,
 	IGetMultiCoinAddressRecordInput,
 	IGetMultiCoinAddressRecordOutput,
 	IGetNftRecordInput,
@@ -14,6 +15,7 @@ import {
 	IGetReverseAddressRecordOutput,
 	IGetTextRecordInput,
 	IGetTextRecordOutput,
+	IGetTypedTextListOutput,
 	IGetTypedTextRecordInput,
 	IGetTypedTextRecordOutput,
 } from "../interfaces/IEdnsResolverService.interface";
@@ -397,6 +399,34 @@ export class EdnsService implements IEdnsResolverService {
 	//   const output = await this._v2RedisService.getBridgedEvent(input, options);
 	//   return output;
 	// }
+
+	public async getMultiCoinAddressList(fqdn: string, options?: IOptions): Promise<IGetMultiCoinAddressListOutput | undefined> {
+		let output: IGetMultiCoinAddressListOutput | undefined;
+		if (options?.version === "v1") {
+			throw new Error("Not implemented for v1");
+		}
+		if (!output && options?.onchain) {
+			throw new Error("Not available on chain.");
+		}
+		if (!output && !options?.onchain) {
+			output = await this._v2RedisService.getMultiCoinAddressList(fqdn, options);
+		}
+		return output;
+	}
+
+	public async getTypedTextList(fqdn: string, options?: IOptions): Promise<IGetTypedTextListOutput | undefined> {
+		let output: IGetTypedTextListOutput | undefined;
+		if (options?.version === "v1") {
+			throw new Error("Not implemented for v1");
+		}
+		if (!output && options?.onchain) {
+			throw new Error("Not available on chain.");
+		}
+		if (!output && !options?.onchain) {
+			output = await this._v2RedisService.getTypedTextList(fqdn, options);
+		}
+		return output;
+	}
 
 	public async revalidate(fqdn: string): Promise<void> {
 		const { host, name, tld } = extractFqdn(fqdn);

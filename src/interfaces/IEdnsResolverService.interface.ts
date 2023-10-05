@@ -54,6 +54,14 @@ export interface IGetNftRecordOutput {
 	tokenId: string;
 }
 
+export interface IGetMultiCoinAddressListOutput {
+	records_list: string[] | undefined;
+}
+
+export interface IGetTypedTextListOutput {
+	records_list: string[] | undefined;
+}
+
 export interface IEdnsResolverService {
 	getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined>;
 	getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined>;

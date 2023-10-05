@@ -17,6 +17,7 @@ import {
 	IGetAddressRecordOutput,
 	IEdnsResolverService,
 	IGetAddressRecordInput,
+	IGetMultiCoinAddressListOutput,
 	IGetMultiCoinAddressRecordInput,
 	IGetTypedTextRecordInput,
 	IGetNftRecordInput,
@@ -24,6 +25,7 @@ import {
 	IGetReverseAddressRecordInput,
 	IGetReverseAddressRecordOutput,
 	IGetBridgedEventInput,
+	IGetTypedTextListOutput,
 } from "../interfaces/IEdnsResolverService.interface";
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../contracts/ethereum/edns-v2/typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
@@ -304,7 +306,6 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		} else if (name && tld) {
 			fqdn_ = `@.${fqdn}`
 		}
-		console.log(`edns:${options?.net || Net.MAINNET}:host:${fqdn_}:user`)
 		const results = await redis
 			.pipeline()
 			.hget(`edns:${options?.net || Net.MAINNET}:host:${fqdn_}:user`, "user")
@@ -333,6 +334,30 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 		if (!host) fqdn = `@.${name}.${tld}`;
 		const ttl = await redis.get(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:ttl`);
 		return ttl ? parseInt(ttl) : undefined;
+	}
+
+	public async getMultiCoinAddressList(fqdn: string, options?: IOptions): Promise<IGetMultiCoinAddressListOutput> {
+		const redis = createRedisClient();
+		if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+		if (!(await this.isExists(fqdn, options))) [];
+		if (await this.isExpired(fqdn, options)) throw new DomainExpiredError(fqdn);
+		const { host, name, tld } = extractFqdn(fqdn);
+		if (!host) fqdn = `@.${name}.${tld}`;
+		const _list_ = await redis.smembers(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records:list`);
+		const list = _list_.filter((r) => r.startsWith("multi_coin_address:")).map(r => r.replace("multi_coin_address:", ""));
+		return { records_list: list }
+	}
+
+	public async getTypedTextList(fqdn: string, options?: IOptions): Promise<IGetTypedTextListOutput> {
+		const redis = createRedisClient();
+		if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+		if (!(await this.isExists(fqdn, options))) [];
+		if (await this.isExpired(fqdn, options)) throw new DomainExpiredError(fqdn);
+		const { host, name, tld } = extractFqdn(fqdn);
+		if (!host) fqdn = `@.${name}.${tld}`;
+		const _list_ = await redis.smembers(`edns:${options?.net || Net.MAINNET}:host:${fqdn}:records:list`);
+		const list = _list_.filter((r) => r.startsWith("typed_text:")).map(r => r.replace("typed_text:", ""));
+		return { records_list: list }
 	}
 }
 

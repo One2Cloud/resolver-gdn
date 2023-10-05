@@ -236,5 +236,47 @@ export default class EdnsController {
 			next(error);
 		}		
 	}
+
+	public static async getMultiCoinAddressList(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			let { fqdn } = req.params;
+			if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
+			const options = extract(req);
+			const service = new EdnsService();
+			const [output, ttl] = await Promise.all([service.getMultiCoinAddressList(fqdn, options), service.getTtl(fqdn, options)]);
+			const response: IGeneralResponse<typeof output> = {
+				status: 200,
+				success: true,
+				data: output,
+				onchain: !!options.onchain,
+				empty: !output?.records_list,
+			};
+			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
+			res.status(response.status).json(response);
+		} catch (error) {
+			next(error);
+		}		
+	}
+
+	public static async getTypedTextList(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			let { fqdn } = req.params;
+			if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
+			const options = extract(req);
+			const service = new EdnsService();
+			const [output, ttl] = await Promise.all([service.getTypedTextList(fqdn, options), service.getTtl(fqdn, options)]);
+			const response: IGeneralResponse<typeof output> = {
+				status: 200,
+				success: true,
+				data: output,
+				onchain: !!options.onchain,
+				empty: !output?.records_list,
+			};
+			res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
+			res.status(response.status).json(response);
+		} catch (error) {
+			next(error);
+		}		
+	}
 	
 }
