@@ -12,6 +12,7 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as lambda_event_sources from "aws-cdk-lib/aws-lambda-event-sources";
+import * as logs from "aws-cdk-lib/aws-logs";
 
 function dynamoNumberFromJson(jsonPath: string) {
 	return sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`States.Format('{}', ${jsonPath})`));
@@ -209,6 +210,15 @@ export class EDNS extends Construct {
 		const workflow = new sfn.StateMachine(this, "Listener", {
 			definition,
 			stateMachineName: "EDNS-Events-Synchronizer",
+			stateMachineType: sfn.StateMachineType.EXPRESS,
+			logs: {
+				destination: new logs.LogGroup(this, 'LogGroup', {
+					logGroupName: '/aws/vendedlogs/states/EDNS-Events-Synchronizer-Logs',
+					retention: logs.RetentionDays.INFINITE,
+				}),
+				includeExecutionData: true,
+				level: sfn.LogLevel.ALL,
+			},
 		});
 		this.workflow = workflow;
 	}
