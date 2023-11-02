@@ -10,5 +10,21 @@
   "hosted-zone:account=578721297310:domainName=resolver.gdn:region=us-east-1": {
     "Id": "/hostedzone/Z06428592K7XVIRJY95LB",
     "Name": "resolver.gdn."
+  },
+  "hosted-zone:account=578721297310:domainName=resolver.gdn:region=ap-southeast-1": {
+    "Id": "/hostedzone/Z06428592K7XVIRJY95LB",
+    "Name": "resolver.gdn."
+  },
+  "hosted-zone:account=578721297310:domainName=resolver.gdn:region=ap-northeast-1": {
+    "Id": "/hostedzone/Z06428592K7XVIRJY95LB",
+    "Name": "resolver.gdn."
+  },
+  "hosted-zone:account=578721297310:domainName=resolver.gdn:region=us-west-2": {
+    "Id": "/hostedzone/Z06428592K7XVIRJY95LB",
+    "Name": "resolver.gdn."
+  },
+  "hosted-zone:account=578721297310:domainName=resolver.gdn:region=eu-central-1": {
+    "Id": "/hostedzone/Z06428592K7XVIRJY95LB",
+    "Name": "resolver.gdn."
   }
 }

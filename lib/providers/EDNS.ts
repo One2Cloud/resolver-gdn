@@ -201,19 +201,15 @@ export class EDNS extends Construct {
 
 		const definition = task_01.next(chains_map);
 
-		const workflow = new sfn.StateMachine(this, "Listener", {
+		this.workflow = new sfn.StateMachine(this, "Listener", {
 			definition,
 			stateMachineName: "EDNS-Events-Synchronizer",
 			stateMachineType: sfn.StateMachineType.EXPRESS,
-			// logs: {
-			// 	destination: new logs.LogGroup(this, "LogGroup", {
-			// 		logGroupName: "/aws/vendedlogs/states/EDNS-Events-Synchronizer-Logs",
-			// 		retention: logs.RetentionDays.INFINITE,
-			// 	}),
-			// 	includeExecutionData: true,
-			// 	level: sfn.LogLevel.ALL,
-			// },
+			logs: {
+				destination: new logs.LogGroup(this, "LogGroup", { retention: logs.RetentionDays.ONE_MONTH }),
+				includeExecutionData: true,
+				level: sfn.LogLevel.ALL,
+			},
 		});
-		this.workflow = workflow;
 	}
 }
