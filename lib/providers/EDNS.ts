@@ -3,46 +3,40 @@ import { Construct } from "constructs";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as sfn_tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as ecs from "aws-cdk-lib/aws-ecs";
-import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecra from "aws-cdk-lib/aws-ecr-assets";
 import * as secretmanager from "aws-cdk-lib/aws-secretsmanager";
-import * as kms from "aws-cdk-lib/aws-kms";
-import * as s3 from "aws-cdk-lib/aws-s3";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as lambda_event_sources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as logs from "aws-cdk-lib/aws-logs";
-
-function dynamoNumberFromJson(jsonPath: string) {
-	return sfn_tasks.DynamoAttributeValue.numberFromString(sfn.JsonPath.stringAt(`States.Format('{}', ${jsonPath})`));
-}
+import path = require("path");
 
 export interface ConstructProps {
-	cluster: ecs.Cluster;
-	images: {
-		ecs: ecra.DockerImageAsset;
-		lambda: ecra.DockerImageAsset;
-	};
 	secret: secretmanager.Secret;
+	queue: sqs.Queue;
 }
 
 export class EDNS extends Construct {
 	public readonly workflow: sfn.StateMachine;
-	public readonly queue: sqs.Queue;
 
 	constructor(scope: Construct, id: string, props: ConstructProps) {
 		super(scope, id);
 
-		const queue = new sqs.Queue(this, "Queue", {
-			visibilityTimeout: cdk.Duration.minutes(3),
+		const image = new ecra.DockerImageAsset(this, "Image", {
+			directory: path.join(process.cwd(), "src"),
+			platform: ecra.Platform.LINUX_AMD64,
+			file: "docker/Dockerfile.lambda",
+			buildArgs: {
+				AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
+				AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
+				AWS_SESSION_TOKEN: process.env.AWS_SESSION_TOKEN!,
+			},
 		});
-		this.queue = queue;
 
 		const handler = new lambda.Function(this, "Handler", {
 			functionName: "EDNS-Event-Handler",
-			code: lambda.Code.fromEcrImage(props.images.lambda.repository, {
-				tagOrDigest: props.images.lambda.imageTag,
+			code: lambda.Code.fromEcrImage(image.repository, {
+				tagOrDigest: image.imageTag,
 				cmd: ["app/listener/handler.index"],
 			}),
 			handler: lambda.Handler.FROM_IMAGE,
@@ -50,14 +44,14 @@ export class EDNS extends Construct {
 			timeout: cdk.Duration.minutes(1),
 			memorySize: 512,
 			environment: {
-				GLOBAL_SECRET_ARN: props.secret.secretArn,
-				EDNS_EVENT_HANDLER_SQS_QUEUE_URL: queue.queueUrl,
+				SECRET_ARN: props.secret.secretArn,
+				EVENT_HANDLER_SQS_QUEUE_URL: props.queue.queueUrl,
 			},
 		});
 		props.secret.grantRead(handler);
 
 		handler.addEventSource(
-			new lambda_event_sources.SqsEventSource(queue, {
+			new lambda_event_sources.SqsEventSource(props.queue, {
 				maxBatchingWindow: cdk.Duration.minutes(1),
 			})
 		);
@@ -73,8 +67,8 @@ export class EDNS extends Construct {
 
 		const listChainsLambdaFunction = new lambda.Function(this, "ListChains", {
 			functionName: "EDNS-Listener-List-Chains",
-			code: lambda.Code.fromEcrImage(props.images.lambda.repository, {
-				tagOrDigest: props.images.lambda.imageTag,
+			code: lambda.Code.fromEcrImage(image.repository, {
+				tagOrDigest: image.imageTag,
 				cmd: ["workflows/synchronizer/edns/01-list-chains.index"],
 			}),
 			handler: lambda.Handler.FROM_IMAGE,
@@ -85,8 +79,8 @@ export class EDNS extends Construct {
 
 		const getBlockRangeLambdaFunction = new lambda.Function(this, "GetBlockRange", {
 			functionName: "EDNS-Listener-Get-Block-Range",
-			code: lambda.Code.fromEcrImage(props.images.lambda.repository, {
-				tagOrDigest: props.images.lambda.imageTag,
+			code: lambda.Code.fromEcrImage(image.repository, {
+				tagOrDigest: image.imageTag,
 				cmd: ["workflows/synchronizer/edns/02-get-block-range.index"],
 			}),
 			handler: lambda.Handler.FROM_IMAGE,
@@ -95,7 +89,7 @@ export class EDNS extends Construct {
 			memorySize: 256,
 			environment: {
 				BLOCK_RANGE_RECORD_TABLE_NAME: blockRangeRecordTable.tableName,
-				GLOBAL_SECRET_ARN: props.secret.secretArn,
+				SECRET_ARN: props.secret.secretArn,
 			},
 		});
 		blockRangeRecordTable.grantReadWriteData(getBlockRangeLambdaFunction);
@@ -103,8 +97,8 @@ export class EDNS extends Construct {
 
 		const listEventsLambdaFunction = new lambda.Function(this, "ListEvents", {
 			functionName: "EDNS-Listener-List-Events",
-			code: lambda.Code.fromEcrImage(props.images.lambda.repository, {
-				tagOrDigest: props.images.lambda.imageTag,
+			code: lambda.Code.fromEcrImage(image.repository, {
+				tagOrDigest: image.imageTag,
 				cmd: ["workflows/synchronizer/edns/03-list-events.index"],
 			}),
 			handler: lambda.Handler.FROM_IMAGE,
@@ -115,8 +109,8 @@ export class EDNS extends Construct {
 
 		const syncEventLambdaFunction = new lambda.Function(this, "SyncEvent", {
 			functionName: "EDNS-Listener-Sync-Event",
-			code: lambda.Code.fromEcrImage(props.images.lambda.repository, {
-				tagOrDigest: props.images.lambda.imageTag,
+			code: lambda.Code.fromEcrImage(image.repository, {
+				tagOrDigest: image.imageTag,
 				cmd: ["workflows/synchronizer/edns/04-sync-event.index"],
 			}),
 			handler: lambda.Handler.FROM_IMAGE,
@@ -124,12 +118,12 @@ export class EDNS extends Construct {
 			timeout: cdk.Duration.minutes(3),
 			memorySize: 256,
 			environment: {
-				GLOBAL_SECRET_ARN: props.secret.secretArn,
-				EDNS_EVENT_HANDLER_SQS_QUEUE_URL: queue.queueUrl,
+				SECRET_ARN: props.secret.secretArn,
+				EVENT_HANDLER_SQS_QUEUE_URL: props.queue.queueUrl,
 			},
 		});
 		props.secret.grantRead(syncEventLambdaFunction);
-		queue.grantSendMessages(syncEventLambdaFunction);
+		props.queue.grantSendMessages(syncEventLambdaFunction);
 
 		const task_01 = new sfn_tasks.LambdaInvoke(this, "01 - List Chains", {
 			lambdaFunction: listChainsLambdaFunction,
@@ -211,14 +205,14 @@ export class EDNS extends Construct {
 			definition,
 			stateMachineName: "EDNS-Events-Synchronizer",
 			stateMachineType: sfn.StateMachineType.EXPRESS,
-			logs: {
-				destination: new logs.LogGroup(this, 'LogGroup', {
-					logGroupName: '/aws/vendedlogs/states/EDNS-Events-Synchronizer-Logs',
-					retention: logs.RetentionDays.INFINITE,
-				}),
-				includeExecutionData: true,
-				level: sfn.LogLevel.ALL,
-			},
+			// logs: {
+			// 	destination: new logs.LogGroup(this, "LogGroup", {
+			// 		logGroupName: "/aws/vendedlogs/states/EDNS-Events-Synchronizer-Logs",
+			// 		retention: logs.RetentionDays.INFINITE,
+			// 	}),
+			// 	includeExecutionData: true,
+			// 	level: sfn.LogLevel.ALL,
+			// },
 		});
 		this.workflow = workflow;
 	}

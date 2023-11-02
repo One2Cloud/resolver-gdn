@@ -47,7 +47,7 @@ export class GlobalApi extends Construct {
 					INFURA_API_KEY: process.env.INFURA_API_KEY || "",
 					GETBLOCK_API_KEY: process.env.GETBLOCK_API_KEY || "",
 					POKT_PORTAL_ID: process.env.POKT_PORTAL_ID || "",
-					EDNS_EVENT_HANDLER_SQS_QUEUE_URL: process.env.EDNS_EVENT_HANDLER_SQS_QUEUE_URL || "",
+					EVENT_HANDLER_SQS_QUEUE_URL: process.env.EVENT_HANDLER_SQS_QUEUE_URL || "",
 				},
 			}),
 		});

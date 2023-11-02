@@ -22,7 +22,7 @@ export const getConfig = (): IConfig => ({
 	edns: {
 		sqs: {
 			queue: {
-				url: process.env.EDNS_EVENT_HANDLER_SQS_QUEUE_URL || "UNKNOWN_EDNS_EVENT_HANDLER_SQS_QUEUE_URL",
+				url: process.env.EVENT_HANDLER_SQS_QUEUE_URL || "UNKNOWN_EVENT_HANDLER_SQS_QUEUE_URL",
 			},
 		},
 	},

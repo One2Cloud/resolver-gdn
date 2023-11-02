@@ -8,7 +8,7 @@ RUN npm ci
 
 FROM builder_dependencies as builder
 COPY . .
-RUN npm run build:listener
+RUN npm run build
 
 FROM base as packager
 COPY package*.json ./
