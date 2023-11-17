@@ -32,8 +32,3 @@ jobs:
         run: npx cdk synth
       - name: Deploy
         run: npx cdk deploy --all --require-approval never
-        env:
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
-          GETBLOCK_API_KEY: ${{ secrets.GETBLOCK_API_KEY }}
-          POKT_PORTAL_ID: ${{ secrets.POKT_PORTAL_ID }}
