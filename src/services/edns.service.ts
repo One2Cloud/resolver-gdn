@@ -8,6 +8,8 @@ import {
   IEdnsResolverService,
   IGetAddressRecordInput,
   IGetAddressRecordOutput,
+  IGetAllRecordsInput,
+  IGetAllRecordsOutput,
   IGetMultiCoinAddressListOutput,
   IGetMultiCoinAddressRecordInput,
   IGetMultiCoinAddressRecordOutput,
@@ -40,6 +42,20 @@ export class EdnsService implements IEdnsResolverService {
     this._v2RedisService = new EdnsV2FromRedisService();
     this._v2ContractService = new EdnsV2FromContractService();
     this._v1ContractService = new EdnsV1FromContractService();
+  }
+
+  public async getAllRecords(
+    input: IGetAllRecordsInput,
+    options?: IOptions
+  ): Promise<IGetAllRecordsOutput | undefined> {
+    if (options?.version === "v1") {
+      throw new Error("Not available for v1.");
+    }
+    if (options?.onchain) {
+      throw new Error("Not available on chain.");
+    }
+    // Get the reverse address from Redis by default
+    return await this._v2RedisService.getAllRecords(input, options);
   }
 
   public async getReverseAddressRecord(
@@ -525,6 +541,7 @@ export class EdnsService implements IEdnsResolverService {
     if (options?.version === "v1") {
       throw new Error("Not implemented for v1");
     }
+
     if (!output && options?.onchain) {
       throw new Error("Not available on chain.");
     }

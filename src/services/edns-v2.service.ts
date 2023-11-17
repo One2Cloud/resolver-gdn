@@ -26,6 +26,8 @@ import {
   IGetReverseAddressRecordOutput,
   IGetBridgedEventInput,
   IGetTypedTextListOutput,
+  IGetAllRecordsInput,
+  IGetAllRecordsOutput,
 } from "../interfaces/IEdnsResolverService.interface";
 import {
   Registrar,
@@ -94,6 +96,42 @@ const getContracts = (
 export class EdnsV2FromRedisService
   implements IEdnsResolverService, IEdnsRegistryService
 {
+  public async getAllRecords(
+    input: IGetAllRecordsInput,
+    options?: IOptions | undefined
+  ): Promise<IGetAllRecordsOutput | undefined> {
+    const redis = createRedisClient();
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    if (!(await this.isExists(input.fqdn, options))) return undefined;
+    if (await this.isExpired(input.fqdn, options))
+      throw new DomainExpiredError(input.fqdn);
+
+    const { host = "@", name, tld } = extractFqdn(input.fqdn);
+    const net = options?.net || Net.MAINNET;
+    const redisKey = `edns:${net}:host:${host}.${name}.${tld}:records`;
+
+    const address = (await redis.hget(redisKey, "address")) || ZERO_ADDRESS;
+    const text = (await redis.hget(redisKey, `text`)) || undefined;
+    const recordList = await redis.hgetall(redisKey);
+    const typedTexts = Object.keys(recordList)
+      .filter((key) => key.startsWith("typed_text:"))
+      .map((key) => {
+        return { [key.split(":")[1]]: recordList[key] };
+      });
+    const typedAddresses = Object.keys(recordList)
+      .filter((key) => key.startsWith("multi_coin_address:"))
+      .map((key) => {
+        return { [key.split(":")[1]]: recordList[key] };
+      });
+    return {
+      fqdn: input.fqdn,
+      address,
+      text,
+      typedTexts,
+      typedAddresses,
+    };
+  }
+
   public async getBridgedEvent(
     input: IGetBridgedEventInput,
     options?: IOptions
@@ -576,6 +614,39 @@ export class EdnsV2FromContractService
       options?.net || Net.MAINNET,
       parseInt(inContractChain)
     );
+  }
+
+  public async getAllRecords(
+    input: IGetAllRecordsInput,
+    options?: IOptions | undefined
+  ): Promise<IGetAllRecordsOutput | undefined> {
+    if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
+    const _chainId =
+      options?.chainId || (await this._getDomainChainId(input.fqdn, options));
+    if (!(await this.isExists(input.fqdn, options, _chainId)))
+      throw new DomainNotFoundError(input.fqdn);
+    if (await this.isExpired(input.fqdn, options, _chainId))
+      throw new DomainExpiredError(input.fqdn);
+    const contracts = getContracts(_chainId);
+
+    const { host = "@", name, tld } = extractFqdn(input.fqdn);
+    if (!name) throw new CantGetDomainNameError(input.fqdn);
+    const ethHostByte = ethers.utils.toUtf8Bytes(host);
+    const ethNameByte = ethers.utils.toUtf8Bytes(name);
+    const ethTldByte = ethers.utils.toUtf8Bytes(tld);
+
+    const address: string = await contracts.Resolver.getAddress(
+      ethHostByte,
+      ethNameByte,
+      ethTldByte
+    );
+    const text: string = await contracts.Resolver.getText(
+      ethHostByte,
+      ethNameByte,
+      ethTldByte
+    );
+
+    throw new Error("Method not implemented.");
   }
 
   public async getReverseAddressRecord(

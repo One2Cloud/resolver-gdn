@@ -8,6 +8,8 @@ import {
   IEdnsResolverService,
   IGetAddressRecordInput,
   IGetAddressRecordOutput,
+  IGetAllRecordsInput,
+  IGetAllRecordsOutput,
   IGetMultiCoinAddressRecordInput,
   IGetMultiCoinAddressRecordOutput,
   IGetNftRecordInput,
@@ -98,7 +100,12 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
     );
     return { resolver, registry, reverse_registrar };
   }
-
+  public async getAllRecords(
+    input: IGetAllRecordsInput,
+    options?: IOptions | undefined
+  ): Promise<IGetAllRecordsOutput | undefined> {
+    throw new Error("Method not implemented.");
+  }
   public async getReverseAddressRecord(
     input: IGetReverseAddressRecordInput,
     options?: IOptions

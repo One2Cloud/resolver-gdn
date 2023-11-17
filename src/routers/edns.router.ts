@@ -5,6 +5,7 @@ import { errorHandler } from "../middleware/returnHandler";
 import { UnknownOperationError } from "../errors/operation-not-found.error";
 
 const router = express.Router();
+router.get("/record/:fqdn", EdnsController.getAllRecords, errorHandler);
 
 router.get(
   "/record/:address/domain",

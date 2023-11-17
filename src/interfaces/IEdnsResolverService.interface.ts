@@ -4,6 +4,16 @@ export interface IGenericInput {
   fqdn: string;
 }
 
+export interface IGetAllRecordsInput extends IGenericInput {}
+
+export interface IGetAllRecordsOutput {
+  fqdn: string;
+  address: string;
+  text?: string;
+  typedTexts: { [key: string]: string }[];
+  typedAddresses: { [key: string]: string }[];
+}
+
 export interface IGetReverseAddressRecordInput {
   address: string;
 }
@@ -63,6 +73,10 @@ export interface IGetTypedTextListOutput {
 }
 
 export interface IEdnsResolverService {
+  getAllRecords(
+    input: IGetAllRecordsInput,
+    options?: IOptions
+  ): Promise<IGetAllRecordsOutput | undefined>;
   getReverseAddressRecord(
     input: IGetReverseAddressRecordInput,
     options?: IOptions
