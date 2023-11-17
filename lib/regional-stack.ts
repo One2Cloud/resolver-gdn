@@ -25,12 +25,5 @@ export class RegionalStack extends cdk.Stack {
 		});
 
 		const api = new RegionalAPI(this, "API", { queue: props.root.queue, secret: props.root.secret });
-
-		// new route53.CnameRecord(this, "ServiceEndpoint", {
-		// 	zone: hostedzone,
-		// 	domainName: api.service.serviceUrl,
-		// 	recordName: "global-api",
-		// 	geoLocation: route53.GeoLocation.country(props.country),
-		// });
 	}
 }

@@ -89,10 +89,10 @@ export class ResolverGdnStack extends cdk.Stack {
 			certificate,
 		});
 
-		new route53.ARecord(this, "ServiceEndpoint", {
-			zone: this.hostedzone,
-			target: route53.RecordTarget.fromAlias(new route53_targets.CloudFrontTarget(distribution)),
-			recordName: "static",
-		});
+		// new route53.ARecord(this, "ServiceEndpoint", {
+		// 	zone: this.hostedzone,
+		// 	target: route53.RecordTarget.fromAlias(new route53_targets.CloudFrontTarget(distribution)),
+		// 	recordName: "static",
+		// });
 	}
 }
