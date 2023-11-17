@@ -16,10 +16,6 @@ export class DomainExpiredError extends BaseError {
   constructor(fqdn: string) {
     const { name, tld } = extractFqdn(fqdn);
     const domain = [name, tld].join(".");
-    super(
-      200,
-      "DOMAIN_EXPIRED",
-      `Domain [${domain}] is expired.`
-    );
+    super(200, "DOMAIN_EXPIRED", `Domain [${domain}] is expired.`);
   }
 }

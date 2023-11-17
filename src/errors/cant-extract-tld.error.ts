@@ -11,10 +11,6 @@ import { BaseError } from "../interfaces/BaseError.interface";
 
 export class CantExtractTldError extends BaseError {
   constructor(fqdn: string) {
-    super(
-      503,
-      "CANT_EXTRACT_TLD",
-      `Unable to extract TLD from [${fqdn}].`
-    );
+    super(503, "CANT_EXTRACT_TLD", `Unable to extract TLD from [${fqdn}].`);
   }
 }

@@ -16,10 +16,6 @@ export class DomainNotFoundError extends BaseError {
   constructor(fqdn: string) {
     // const { name, tld } = extractFqdn(fqdn);
     // const domain = [name, tld].join(".");
-    super(
-      200,
-      "DOMAIN_NOT_FOUND",
-      `Domain or host [${fqdn}] not found.`
-    );
+    super(200, "DOMAIN_NOT_FOUND", `Domain or host [${fqdn}] not found.`);
   }
 }

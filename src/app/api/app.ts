@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(compression());
 
 app.get("/healthcheck", (req: Request, res: Response): Response => {
-	return res.status(200).send();
+  return res.status(200).send();
 });
 
 app.use(routers);

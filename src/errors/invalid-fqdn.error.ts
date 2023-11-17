@@ -11,10 +11,6 @@ import { BaseError } from "../interfaces/BaseError.interface";
 
 export class InvalidFqdnError extends BaseError {
   constructor(fqdn: string) {
-    super(
-      400,
-      "INVALID_FQDN",
-      `Invalid FQDN: [${fqdn}]`
-    );
+    super(400, "INVALID_FQDN", `Invalid FQDN: [${fqdn}]`);
   }
 }

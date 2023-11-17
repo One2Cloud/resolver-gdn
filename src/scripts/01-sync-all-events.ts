@@ -14,45 +14,55 @@ const FROM = 33126861; // Polygon Mumbai
 const BATCH = 200;
 
 async function main() {
-	await setEnvironmentVariable();
+  await setEnvironmentVariable();
 
-	const NetworkConfig = getNetworkConfig();
+  const NetworkConfig = getNetworkConfig();
 
-	const client = new Lambda({ region: "us-east-1" });
+  const client = new Lambda({ region: "us-east-1" });
 
-	const networkConfig = NetworkConfig[NETWORK];
+  const networkConfig = NetworkConfig[NETWORK];
 
-	const provider = new JsonRpcProvider(networkConfig.url);
+  const provider = new JsonRpcProvider(networkConfig.url);
 
-	const TO = await provider.getBlockNumber();
+  const TO = await provider.getBlockNumber();
 
-	for (let _from = FROM; _from <= TO; _from += BATCH) {
-		const eventTypes = _.values(EdnsEventType);
-		for (const eventType of eventTypes) {
-			let _to = _from + BATCH;
+  for (let _from = FROM; _from <= TO; _from += BATCH) {
+    const eventTypes = _.values(EdnsEventType);
+    for (const eventType of eventTypes) {
+      let _to = _from + BATCH;
 
-			console.log({ eventType, from: _from, to: _to });
+      console.log({ eventType, from: _from, to: _to });
 
-			if (_to > TO) {
-				await client.invokeAsync({
-					FunctionName: "EDNS-Listener-Sync-Event",
-					InvokeArgs: JSON.stringify({ chainId: networkConfig.chainId, from: _from, to: await provider.getBlockNumber(), eventType }),
-				});
-			} else {
-				await client.invokeAsync({
-					FunctionName: "EDNS-Listener-Sync-Event",
-					InvokeArgs: JSON.stringify({ chainId: networkConfig.chainId, from: _from, to: _to, eventType }),
-				});
-			}
-		}
-	}
+      if (_to > TO) {
+        await client.invokeAsync({
+          FunctionName: "EDNS-Listener-Sync-Event",
+          InvokeArgs: JSON.stringify({
+            chainId: networkConfig.chainId,
+            from: _from,
+            to: await provider.getBlockNumber(),
+            eventType,
+          }),
+        });
+      } else {
+        await client.invokeAsync({
+          FunctionName: "EDNS-Listener-Sync-Event",
+          InvokeArgs: JSON.stringify({
+            chainId: networkConfig.chainId,
+            from: _from,
+            to: _to,
+            eventType,
+          }),
+        });
+      }
+    }
+  }
 }
 
 main()
-	.then(() => {
-		process.exit(0);
-	})
-	.catch((error) => {
-		console.error(error);
-		process.exit(1);
-	});
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
