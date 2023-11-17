@@ -42,21 +42,35 @@ export class ResolverGdnStack extends cdk.Stack {
 			queue: this.queue,
 		});
 
-		const prod_s3Bucket = s3.Bucket.fromBucketArn(this, "ProdS3Bucket", "arn:aws:s3:::edns-omni-file-folder");
+		const oac = new cloudfront.CfnOriginAccessControl(this, "AOC", {
+			originAccessControlConfig: {
+				name: "Degital Cloud - EDNS Omni - Origin Access Control",
+				originAccessControlOriginType: "s3",
+				signingBehavior: "always",
+				signingProtocol: "sigv4",
+			},
+		});
+
+		const prod_s3Bucket = s3.Bucket.fromBucketAttributes(this, "ProdS3Bucket", {
+			bucketArn: "arn:aws:s3:::edns-omni-file-folder",
+			region: "ap-southeast-1",
+		});
 		const prod_s3Origin = new cloudfront_origins.S3Origin(prod_s3Bucket, {});
 
-		const dev_s3Bucket = s3.Bucket.fromBucketArn(this, "DevS3Bucket", "arn:aws:s3:::edns-omni-dev-test");
+		const dev_s3Bucket = s3.Bucket.fromBucketAttributes(this, "DevS3Bucket", {
+			bucketArn: "arn:aws:s3:::edns-omni-dev-test",
+			region: "ap-southeast-1",
+		});
 		const dev_s3Origin = new cloudfront_origins.S3Origin(dev_s3Bucket);
 
 		const certificate = new acm.Certificate(this, "Certificate", {
-			domainName: `resolver.gdn`,
-			subjectAlternativeNames: [`*.resolver.gdn`],
+			domainName: `static.resolver.gdn`,
 			validation: acm.CertificateValidation.fromDns(this.hostedzone),
 		});
 
 		const distribution = new cloudfront.Distribution(this, "Distribution", {
 			defaultBehavior: {
-				origin: new cloudfront_origins.HttpOrigin("global-api.resolver.gdn"),
+				origin: new cloudfront_origins.HttpOrigin("api.resolver.gdn"),
 				allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
 				cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
 				originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_AND_CLOUDFRONT_2022,
@@ -71,14 +85,14 @@ export class ResolverGdnStack extends cdk.Stack {
 					cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 				},
 			},
-			domainNames: ["api.resolver.gdn"],
+			domainNames: ["static.resolver.gdn"],
 			certificate,
 		});
 
 		new route53.ARecord(this, "ServiceEndpoint", {
 			zone: this.hostedzone,
 			target: route53.RecordTarget.fromAlias(new route53_targets.CloudFrontTarget(distribution)),
-			recordName: "api",
+			recordName: "static",
 		});
 	}
 }
