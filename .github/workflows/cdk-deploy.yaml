@@ -31,7 +31,7 @@ jobs:
       - name: Synth
         run: npx cdk synth
       - name: Deploy
-        run: npx cdk deploy ResolverGdnStack --require-approval never
+        run: npx cdk deploy ResolverGdnStack --require-approval never --exclusively
   aws_cdk_regional_us:
     needs: aws_cdk_main
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
       - name: Synth
         run: npx cdk synth
       - name: Deploy
-        run: npx cdk deploy UnitedStates-RegionalStack --require-approval never
+        run: npx cdk deploy UnitedStates-RegionalStack --require-approval never --exclusively
   aws_cdk_regional_sg:
     needs: aws_cdk_main
     runs-on: ubuntu-latest
@@ -77,7 +77,7 @@ jobs:
       - name: Synth
         run: npx cdk synth
       - name: Deploy
-        run: npx cdk deploy Singapore-RegionalStack --require-approval never
+        run: npx cdk deploy Singapore-RegionalStack --require-approval never --exclusively
   aws_cdk_regional_jp:
     needs: aws_cdk_main
     runs-on: ubuntu-latest
@@ -100,7 +100,7 @@ jobs:
       - name: Synth
         run: npx cdk synth
       - name: Deploy
-        run: npx cdk deploy Japan-RegionalStack --require-approval never
+        run: npx cdk deploy Japan-RegionalStack --require-approval never --exclusively
   aws_cdk_regional_de:
     needs: aws_cdk_main
     runs-on: ubuntu-latest
@@ -123,4 +123,4 @@ jobs:
       - name: Synth
         run: npx cdk synth
       - name: Deploy
-        run: npx cdk deploy Germany-RegionalStack --require-approval never
+        run: npx cdk deploy Germany-RegionalStack --require-approval never --exclusively
