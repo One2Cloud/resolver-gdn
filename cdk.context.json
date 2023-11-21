@@ -26,5 +26,6 @@
   "hosted-zone:account=578721297310:domainName=resolver.gdn:region=eu-central-1": {
     "Id": "/hostedzone/Z06428592K7XVIRJY95LB",
     "Name": "resolver.gdn."
-  }
+  },
+  "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=amzn-ami-vpc-nat-*:filters.state.0=available:owners.0=amazon:region=us-east-1": "ami-0e64637f6498ed00f"
 }

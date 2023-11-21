@@ -37,9 +37,20 @@ export class ResolverGdnStack extends cdk.Stack {
 
 		this.queue = new sqs.Queue(this, "EventHandlerQueue", { queueName: "event-handler-queue", visibilityTimeout: cdk.Duration.minutes(3) });
 
+		const vpc = new ec2.Vpc(this, "VPC", {
+			natGateways: 3,
+			natGatewayProvider: ec2.NatProvider.instance({ instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3A, ec2.InstanceSize.NANO) }),
+		});
+
+		const cluster = new ecs.Cluster(this, "EcsCluster", {
+			vpc,
+			containerInsights: true,
+		});
+
 		const edns = new EDNS(this, "EDNS", {
 			secret: this.secret,
 			queue: this.queue,
+			cluster,
 		});
 
 		const oac = new cloudfront.CfnOriginAccessControl(this, "AOC", {
