@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  aws_cdk:
+  aws_cdk_main:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -30,13 +30,93 @@ jobs:
         run: npm ci
       - name: Synth
         run: npx cdk synth
-      - name: Deploy Main Stack
+      - name: Deploy
         run: npx cdk deploy ResolverGdnStack --require-approval never
-      - name: Deploy Regional API - US
+  aws_cdk_regional_us:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: npm
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: "us-east-1"
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTION_IAM_ROLE }}
+          role-session-name: GitHubActions
+      - name: Install
+        run: npm ci
+      - name: Synth
+        run: npx cdk synth
+      - name: Deploy
         run: npx cdk deploy UnitedStates-RegionalStack --require-approval never
-      - name: Deploy Regional API - SG
+  aws_cdk_regional_sg:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: npm
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: "us-east-1"
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTION_IAM_ROLE }}
+          role-session-name: GitHubActions
+      - name: Install
+        run: npm ci
+      - name: Synth
+        run: npx cdk synth
+      - name: Deploy
         run: npx cdk deploy Singapore-RegionalStack --require-approval never
-      - name: Deploy Regional API - JP
+  aws_cdk_regional_jp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: npm
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: "us-east-1"
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTION_IAM_ROLE }}
+          role-session-name: GitHubActions
+      - name: Install
+        run: npm ci
+      - name: Synth
+        run: npx cdk synth
+      - name: Deploy
         run: npx cdk deploy Japan-RegionalStack --require-approval never
-      - name: Deploy Regional API - DE
+  aws_cdk_regional_de:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: npm
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: "us-east-1"
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTION_IAM_ROLE }}
+          role-session-name: GitHubActions
+      - name: Install
+        run: npm ci
+      - name: Synth
+        run: npx cdk synth
+      - name: Deploy
         run: npx cdk deploy Germany-RegionalStack --require-approval never
