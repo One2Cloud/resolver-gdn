@@ -115,14 +115,14 @@ export class EdnsV2FromRedisService
     const recordList = await redis.hgetall(redisKey);
     const typedTexts = Object.keys(recordList)
       .filter((key) => key.startsWith("typed_text:"))
-      .map((key) => {
-        return { [key.split(":")[1]]: recordList[key] };
-      });
+      .reduce((acc, val) => {
+        return { ...acc, [val.split(":")[1]]: recordList[val] };
+      }, {});
     const typedAddresses = Object.keys(recordList)
       .filter((key) => key.startsWith("multi_coin_address:"))
-      .map((key) => {
-        return { [key.split(":")[1]]: recordList[key] };
-      });
+      .reduce((acc, val) => {
+        return { ...acc, [val.split(":")[1]]: recordList[val] };
+      }, {});
     return {
       fqdn: input.fqdn,
       address,

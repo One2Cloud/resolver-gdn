@@ -10,8 +10,8 @@ export interface IGetAllRecordsOutput {
   fqdn: string;
   address: string;
   text?: string;
-  typedTexts: { [key: string]: string }[];
-  typedAddresses: { [key: string]: string }[];
+  typedTexts: { [key: string]: string };
+  typedAddresses: { [key: string]: string };
 }
 
 export interface IGetReverseAddressRecordInput {
