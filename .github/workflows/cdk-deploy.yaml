@@ -30,5 +30,13 @@ jobs:
         run: npm ci
       - name: Synth
         run: npx cdk synth
-      - name: Deploy
-        run: npx cdk deploy --all --require-approval never
+      - name: Deploy Main Stack
+        run: npx cdk deploy ResolverGdnStack --require-approval never
+      - name: Deploy Regional API - US
+        run: npx cdk deploy UnitedStates-RegionalStack --require-approval never
+      - name: Deploy Regional API - SG
+        run: npx cdk deploy Singapore-RegionalStack --require-approval never
+      - name: Deploy Regional API - JP
+        run: npx cdk deploy Japan-RegionalStack --require-approval never
+      - name: Deploy Regional API - DE
+        run: npx cdk deploy Germany-RegionalStack --require-approval never
