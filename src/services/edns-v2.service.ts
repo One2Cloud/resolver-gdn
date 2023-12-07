@@ -458,6 +458,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 				address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes("@"), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
 			};
 		}
+		
 		return result;
 	}
 
