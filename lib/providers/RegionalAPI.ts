@@ -44,6 +44,7 @@ export class RegionalAPI extends Construct {
 						INFURA_API_KEY: apprunner.Secret.fromSecretsManager(secret, "INFURA_API_KEY"),
 						GETBLOCK_API_KEY: apprunner.Secret.fromSecretsManager(secret, "GETBLOCK_API_KEY"),
 						POKT_PORTAL_ID: apprunner.Secret.fromSecretsManager(secret, "POKT_PORTAL_ID"),
+						GETBLOCK_CONFIG: apprunner.Secret.fromSecretsManager(secret, "GETBLOCK_CONFIG"),
 					},
 					environmentVariables: {
 						EVENT_HANDLER_SQS_QUEUE_URL: props.queue.queueUrl,

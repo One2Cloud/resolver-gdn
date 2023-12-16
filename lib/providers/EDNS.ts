@@ -53,6 +53,7 @@ export class EDNS extends Construct {
 				INFURA_API_KEY: ecs.Secret.fromSecretsManager(props.secret, "INFURA_API_KEY"),
 				GETBLOCK_API_KEY: ecs.Secret.fromSecretsManager(props.secret, "GETBLOCK_API_KEY"),
 				POKT_PORTAL_ID: ecs.Secret.fromSecretsManager(props.secret, "POKT_PORTAL_ID"),
+				GETBLOCK_CONFIG: ecs.Secret.fromSecretsManager(props.secret, "GETBLOCK_CONFIG"),
 			},
 			logging: ecs.LogDriver.awsLogs({ streamPrefix: "Alibaba_Cloud_Account_Synchronizer" }),
 			command: ["node", "app/listener/index.js"],
