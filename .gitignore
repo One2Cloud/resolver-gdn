@@ -18,3 +18,5 @@ dist/
 cdk.out
 
 .env
+
+getblock.config.json
