@@ -1,12 +1,33 @@
 import * as dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+import { InContractChain } from "./constants/in-contract-chain.constant";
+
 dotenv.config();
 
-export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-export enum Net {
-  MAINNET = "mainnet",
-  TESTNET = "testnet",
+interface IGetBlockConfig {
+  shared: {
+    [key: string]: {
+      [key: string]: {
+        jsonRpc: string[];
+      };
+    };
+  };
 }
+
+let GetBlockConfig: IGetBlockConfig = { shared: {} };
+
+if (process.env.GETBLOCK_CONFIG) {
+  GetBlockConfig = JSON.parse(process.env.GETBLOCK_CONFIG);
+}
+
+try {
+  GetBlockConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "getblock.config.json"), "utf-8"));
+} catch {
+  console.warn("getblock.config.json not found");
+}
+
+export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export enum Network {
   ETHEREUM = 1,
@@ -114,6 +135,7 @@ export const Testnets = [
 
 export interface INetworkConfig {
   [chainId: number]: {
+    chain?: InContractChain;
     chainId: number;
     name: string;
     symbol: string;
@@ -172,13 +194,15 @@ export interface INetworkConfig {
 export interface IConfig {
   network: INetworkConfig;
 }
+
 export const getNetworkConfig = (): INetworkConfig => {
   return {
     [Network.ETHEREUM]: {
       chainId: Network.ETHEREUM,
+      chain: InContractChain.ETHEREUM,
       name: "Ethereum",
       symbol: "ETH",
-      url: `https://eth.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.eth.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 60,
       },
@@ -227,16 +251,17 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.GOERLI]: {
       chainId: Network.GOERLI,
+      chain: InContractChain.ETHEREUM,
       name: "Ethereum Goerli",
       symbol: "gETH",
-      url: `https://eth.getblock.io/${process.env.GETBLOCK_API_KEY}/goerli/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.eth.goerli.jsonRpc[0]}`,
       slip44: {
         coinId: 60,
       },
       layerzero: {
         chainId: 10121,
         endpoint: {
-          address: "0x79a63d6d8BBD5c6dfc774dA79bCcD948EAcb53FA",
+          address: "0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23",
         },
       },
       multichain: {
@@ -258,14 +283,15 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.BNB_CHAIN]: {
       chainId: Network.BNB_CHAIN,
+      chain: InContractChain.BNB,
       name: "BNB Chain",
       symbol: "BNB",
-      url: `https://bsc.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.bsc.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 714,
       },
       layerzero: {
-        chainId: 2,
+        chainId: 102,
         endpoint: {
           address: "0x3c2269811836af69497E5F486A85D7316753cf62",
         },
@@ -289,9 +315,10 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.BNB_CHAIN_TESTNET]: {
       chainId: Network.BNB_CHAIN_TESTNET,
+      chain: InContractChain.BNB,
       name: "BNB Chain Testnet",
       symbol: "tBNB",
-      url: `https://bsc.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.bsc.testnet.jsonRpc[0]}`,
       slip44: {
         coinId: 714,
       },
@@ -320,14 +347,15 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.AVALANCHE]: {
       chainId: Network.AVALANCHE,
+      chain: InContractChain.AVALANCHE,
       name: "Avalanche C-Chain",
       symbol: "AVAX",
-      url: `https://avax.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/ext/bc/C/rpc`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.avax.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 9005,
       },
       layerzero: {
-        chainId: 6,
+        chainId: 106,
         endpoint: {
           address: "0x3c2269811836af69497E5F486A85D7316753cf62",
         },
@@ -351,9 +379,10 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.AVALANCHE_FUJI]: {
       chainId: Network.AVALANCHE_FUJI,
+      chain: InContractChain.AVALANCHE,
       name: "Avalanche Fuji",
       symbol: "AVAX",
-      url: `https://avax.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/ext/bc/C/rpc`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.avax.testnet.jsonRpc[0]}`,
       slip44: {
         coinId: 9005,
       },
@@ -374,14 +403,15 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.POLYGON]: {
       chainId: Network.POLYGON,
+      chain: InContractChain.POLYGON,
       name: "Polygon",
       symbol: "MATIC",
-      url: `https://matic.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.matic.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 966,
       },
       layerzero: {
-        chainId: 9,
+        chainId: 109,
         endpoint: {
           address: "0x3c2269811836af69497E5F486A85D7316753cf62",
         },
@@ -405,9 +435,10 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.POLYGON_MUMBAI]: {
       chainId: Network.POLYGON_MUMBAI,
+      chain: InContractChain.POLYGON,
       name: "Polygon Mumbai",
       symbol: "MATIC",
-      url: `https://matic.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.matic.testnet.jsonRpc[0]}`,
       slip44: {
         coinId: 966,
       },
@@ -428,14 +459,15 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.ARBITRUM]: {
       chainId: Network.ARBITRUM,
+      chain: InContractChain.ARBITRUM,
       name: "Arbitrum",
       symbol: "ETH",
-      url: `https://arb.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.arb.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 9001,
       },
       layerzero: {
-        chainId: 10,
+        chainId: 110,
         endpoint: {
           address: "0x3c2269811836af69497E5F486A85D7316753cf62",
         },
@@ -459,9 +491,10 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.ARBITRUM_GOERLI]: {
       chainId: Network.ARBITRUM_GOERLI,
+      chain: InContractChain.ARBITRUM,
       name: "Arbitrum Goerli",
       symbol: "ETH",
-      url: `https://arb.getblock.io/${process.env.GETBLOCK_API_KEY}/goerli/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.arb.goerli.jsonRpc[0]}`,
       slip44: {
         coinId: 9001,
       },
@@ -482,14 +515,15 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.OPTIMISM]: {
       chainId: Network.OPTIMISM,
+      chain: InContractChain.OPTIMISM,
       name: "Optimism",
       symbol: "ETH",
-      url: `https://op.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.op.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 614,
       },
       layerzero: {
-        chainId: 11,
+        chainId: 111,
         endpoint: {
           address: "0x3c2269811836af69497E5F486A85D7316753cf62",
         },
@@ -513,9 +547,10 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.OPTIMISM_GOERLI]: {
       chainId: Network.OPTIMISM_GOERLI,
+      chain: InContractChain.OPTIMISM,
       name: "Optimism Goerli",
       symbol: "ETH",
-      url: `https://optimism-goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.op.testnet.jsonRpc[0]}`,
       slip44: {
         coinId: 614,
       },
@@ -536,14 +571,15 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.FANTOM]: {
       chainId: Network.FANTOM,
+      chain: InContractChain.FANTOM,
       name: "Fantom",
       symbol: "FTM",
-      url: `https://ftm.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.ftm.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 1007,
       },
       layerzero: {
-        chainId: 12,
+        chainId: 112,
         endpoint: {
           address: "0xb6319cC6c8c27A8F5dAF0dD3DF91EA35C4720dd7",
         },
@@ -567,9 +603,10 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.FANTOM_TESTNET]: {
       chainId: Network.FANTOM_TESTNET,
+      chain: InContractChain.FANTOM,
       name: "Fantom testnet",
       symbol: "FTM",
-      url: `https://ftm.getblock.io/${process.env.GETBLOCK_API_KEY}/testnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.ftm.testnet.jsonRpc[0]}`,
       slip44: {
         coinId: 1007,
       },
@@ -598,9 +635,11 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.IOTEX]: {
       chainId: Network.IOTEX,
+      chain: InContractChain.IOTEX,
       name: "IoTeX Mainnet",
       symbol: "IOTX",
-      url: `https://iotex-mainnet.gateway.pokt.network/v1/lb/${process.env.POKT_PORTAL_ID}`,
+      // url: `https://iotex-mainnet.gateway.pokt.network/v1/lb/${process.env.POKT_PORTAL_ID}`,
+      url: "https://babel-api.mainnet.iotex.io",
       slip44: {
         coinId: 304,
       },
@@ -615,6 +654,7 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.IOTEX_TESTNET]: {
       chainId: Network.IOTEX_TESTNET,
+      chain: InContractChain.IOTEX,
       name: "IoTeX Testnet",
       symbol: "IOTX-T",
       url: `https://babel-api.testnet.iotex.io`,
@@ -624,9 +664,13 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.OKC_TESTNET]: {
       chainId: Network.OKC_TESTNET,
+      chain: InContractChain.OKC,
       name: "OKC Testnet",
       symbol: "OKT",
       url: `https://exchaintestrpc.okex.org`,
+      slip44: {
+        coinId: 996,
+      },
       layerzero: {
         chainId: 10155,
         endpoint: {
@@ -636,9 +680,13 @@ export const getNetworkConfig = (): INetworkConfig => {
     },
     [Network.OKC]: {
       chainId: Network.OKC,
+      chain: InContractChain.OKC,
       name: "OKC Mainnet",
       symbol: "OKT",
-      url: `https://okt.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://oKc-mainnet.gateway.pokt.network/v1/lb/${process.env.POKT_PORTAL_ID}`,
+      slip44: {
+        coinId: 996,
+      },
       layerzero: {
         chainId: 155,
         endpoint: {
@@ -646,29 +694,42 @@ export const getNetworkConfig = (): INetworkConfig => {
         },
       },
     },
-    [Network.KCC_TESTNET]: {
-      chainId: Network.KCC_TESTNET,
-      name: "KCC Testnet",
-      symbol: "KCS",
-      url: `https://rpc-testnet.kcc.network`,
-      slip44: {
-        coinId: 641,
-      },
-    },
+    // [Network.HECO_TESTNET]: {
+    //   chainId: Network.HECO_TESTNET,
+    //   name: "HECO Testnet",
+    //   symbol: "HT",
+    //   url: `https://http-testnet.hecochain.com/`,
+    // },
+    // [Network.HECO]: {
+    //   chainId: Network.HECO,
+    //   name: "HECO Mainnet",
+    //   symbol: "HT",
+    //   url: `https://http-mainnet.hecochain.com`,
+    // },
     [Network.KCC]: {
       chainId: Network.KCC,
       name: "KCC Mainnet",
       symbol: "KCS",
-      url: `https://kcc.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.kcc.mainnet.jsonRpc[0]}`,
       slip44: {
-        coinId: 641,
+        coinId: 642,
+      },
+    },
+    [Network.KCC_TESTNET]: {
+      chainId: Network.KCC_TESTNET,
+      name: "KCC Testnet",
+      symbol: "KCS",
+      url: `https://go.getblock.io/${GetBlockConfig.shared.kcc.mainnet.jsonRpc[0]}`,
+      slip44: {
+        coinId: 642,
       },
     },
     [Network.GNOSIS]: {
+      chain: InContractChain.GNOSIS,
       chainId: Network.GNOSIS,
       name: "Gnosis Chain",
       symbol: "XDAI",
-      url: `https://gno.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.gno.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 700,
       },
@@ -688,6 +749,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.GNOSIS_CHIADO]: {
+      chain: InContractChain.GNOSIS,
       chainId: Network.GNOSIS_CHIADO,
       name: "Gnosis Chiado",
       symbol: "XDAI",
@@ -703,10 +765,11 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.MOONBEAM]: {
+      chain: InContractChain.MOONBEAM,
       chainId: Network.MOONBEAM,
       name: "Moonbeam",
       symbol: "GLMR",
-      url: `https://moonbeam.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.glmr.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 1284,
       },
@@ -718,10 +781,11 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.MOONBASE_ALPHA]: {
+      chain: InContractChain.MOONBEAM,
       chainId: Network.MOONBASE_ALPHA,
       name: "Moonbase Alphanet",
       symbol: "DEV",
-      url: `https://rpc.api.moonbase.moonbeam.network`,
+      url: `https://moonbase-alpha.public.blastapi.io`,
       layerzero: {
         chainId: 10126,
         endpoint: {
@@ -730,10 +794,11 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.MOONRIVER]: {
+      chain: InContractChain.MOONRIVER,
       chainId: Network.MOONRIVER,
       name: "Moonriver",
       symbol: "MOVR",
-      url: `https://moonriver.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.movr.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 1285,
       },
@@ -753,10 +818,14 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.CELO]: {
+      chain: InContractChain.CELO,
       chainId: Network.CELO,
       name: "Celo Mainnet",
       symbol: "CELO",
       url: `https://celo-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      slip44: {
+        coinId: 52751,
+      },
       layerzero: {
         chainId: 125,
         endpoint: {
@@ -765,10 +834,14 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.CELO_ALFAJORES]: {
+      chain: InContractChain.CELO,
       chainId: Network.CELO_ALFAJORES,
       name: "Celo Alfajores Testnet",
       symbol: "CELO",
       url: `https://celo-alfajores.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      slip44: {
+        coinId: 52751,
+      },
       layerzero: {
         chainId: 10125,
         endpoint: {
@@ -777,10 +850,14 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.ZKSYNC_ERA]: {
+      chain: InContractChain.ZKSYNC,
       chainId: Network.ZKSYNC_ERA,
       name: "zkSync Era Mainnet",
       symbol: "ETH",
-      url: `https://mainnet.era.zksync.io	`,
+      url: `https://mainnet.era.zksync.io`,
+      slip44: {
+        coinId: 804,
+      },
       layerzero: {
         chainId: 165,
         endpoint: {
@@ -789,10 +866,14 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.ZKSYNC_ERA_TESTNET]: {
+      chain: InContractChain.ZKSYNC,
       chainId: Network.ZKSYNC_ERA_TESTNET,
       name: "zkSync Era Testnet",
       symbol: "ETH",
-      url: `https://testnet.era.zksync.dev	`,
+      url: `https://testnet.era.zksync.dev`,
+      slip44: {
+        coinId: 60,
+      },
       layerzero: {
         chainId: 10165,
         endpoint: {
@@ -801,6 +882,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.POLYGON_ZKEVM]: {
+      chain: InContractChain.POLYGON_ZKEVM,
       chainId: Network.POLYGON_ZKEVM,
       name: "Polygon zkEVM",
       symbol: "ETH",
@@ -813,10 +895,14 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.POLYGON_ZKEVM_TESTNET]: {
+      chain: InContractChain.POLYGON_ZKEVM,
       chainId: Network.POLYGON_ZKEVM_TESTNET,
       name: "Polygon zkEVM Testnet",
       symbol: "ETH",
-      url: `https://rpc.public.zkevm-test.net	`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared["polygon-zkevm"].mainnet.jsonRpc[0]}`,
+      slip44: {
+        coinId: 60,
+      },
       layerzero: {
         chainId: 10158,
         endpoint: {
@@ -825,10 +911,14 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.HARMONY]: {
+      chain: InContractChain.HARMONY,
       chainId: Network.HARMONY,
       name: "Harmony One",
       symbol: "ONE",
-      url: `https://one.getblock.io/${process.env.GETBLOCK_API_KEY}/mainnet/`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.one.mainnet.jsonRpc[0]}`,
+      slip44: {
+        coinId: 1023,
+      },
       layerzero: {
         chainId: 116,
         endpoint: {
@@ -837,10 +927,14 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.HARMONY_TESTNET]: {
+      chain: InContractChain.HARMONY,
       chainId: Network.HARMONY_TESTNET,
       name: "Harmony One Testnet",
       symbol: "ONE",
       url: `https://api.s0.b.hmny.io`,
+      slip44: {
+        coinId: 1023,
+      },
       layerzero: {
         chainId: 10133,
         endpoint: {
@@ -849,10 +943,11 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.LINEA]: {
+      chain: InContractChain.LINEA,
       chainId: Network.LINEA,
       name: "Linea",
       symbol: "ETH",
-      url: `https://rpc.linea.build`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.linea.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 60,
       },
@@ -864,6 +959,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.LINEA_GOERLI]: {
+      chain: InContractChain.LINEA,
       chainId: Network.LINEA_GOERLI,
       name: "Linea Goerli Testnet",
       symbol: "ETH",
@@ -879,10 +975,11 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.BASE]: {
+      chain: InContractChain.BASE,
       chainId: Network.BASE,
       name: "BASE",
       symbol: "ETH",
-      url: `https://mainnet.base.org`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.base.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 60,
       },
@@ -894,6 +991,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.BASE_SEPOLIA]: {
+      chain: InContractChain.BASE,
       chainId: Network.BASE_SEPOLIA,
       name: "Base Sepolia Testnet",
       symbol: "ETH",
@@ -909,10 +1007,11 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.BASE_GOERLI]: {
+      chain: InContractChain.BASE,
       chainId: Network.BASE_GOERLI,
       name: "Base Goerli Testnet",
       symbol: "ETH",
-      url: `https://base-goerli.publicnode.com`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.base.goerli.jsonRpc[0]}`,
       slip44: {
         coinId: 60,
       },
@@ -924,6 +1023,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.SCROLL_SEPOLIA]: {
+      chain: InContractChain.SCROLL,
       chainId: Network.SCROLL_SEPOLIA,
       name: "Scroll Sepolia Testnet",
       symbol: "ETH",
@@ -936,6 +1036,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.SCROLL]: {
+      chain: InContractChain.SCROLL,
       chainId: Network.SCROLL,
       name: "Scroll",
       symbol: "ETH",
@@ -951,6 +1052,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.CORE_DAO]: {
+      chain: InContractChain.CORE_DAO,
       chainId: Network.CORE_DAO,
       name: "Core Chain MainNet",
       symbol: "CORE",
@@ -966,6 +1068,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       },
     },
     [Network.CORE_DAO_TESTNET]: {
+      chain: InContractChain.CORE_DAO,
       chainId: Network.CORE_DAO_TESTNET,
       name: "Core Chain TestNet",
       symbol: "tCORE",
