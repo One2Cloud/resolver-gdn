@@ -27,6 +27,11 @@ try {
   console.warn("getblock.config.json not found");
 }
 
+export enum Net {
+  MAINNET = "mainnet",
+  TESTNET = "testnet",
+}
+
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export enum Network {
