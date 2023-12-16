@@ -774,7 +774,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chainId: Network.MOONBEAM,
       name: "Moonbeam",
       symbol: "GLMR",
-      url: `https://go.getblock.io/${GetBlockConfig.shared.glmr.mainnet.jsonRpc[0]}`,
+      url: `https://moonbeam-mainnet.rpc.grove.city/v1/${process.env.GROVE_CITY_APP_ID}`,
       slip44: {
         coinId: 1284,
       },
@@ -803,7 +803,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chainId: Network.MOONRIVER,
       name: "Moonriver",
       symbol: "MOVR",
-      url: `https://go.getblock.io/${GetBlockConfig.shared.movr.mainnet.jsonRpc[0]}`,
+      url: `https://moonriver-mainnet.rpc.grove.city/v1/${process.env.GROVE_CITY_APP_ID}`,
       slip44: {
         coinId: 1285,
       },
