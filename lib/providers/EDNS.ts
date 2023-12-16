@@ -50,9 +50,6 @@ export class EDNS extends Construct {
 			environment: { BLOCK_RANGE_RECORD_TABLE_NAME: blockRangeRecordTable.tableName },
 			secrets: {
 				REDIS_URL: ecs.Secret.fromSecretsManager(props.secret, "REDIS_URL"),
-				INFURA_API_KEY: ecs.Secret.fromSecretsManager(props.secret, "INFURA_API_KEY"),
-				GETBLOCK_API_KEY: ecs.Secret.fromSecretsManager(props.secret, "GETBLOCK_API_KEY"),
-				POKT_PORTAL_ID: ecs.Secret.fromSecretsManager(props.secret, "POKT_PORTAL_ID"),
 				GETBLOCK_CONFIG: ecs.Secret.fromSecretsManager(props.secret, "GETBLOCK_CONFIG"),
 				GROVE_CITY_APP_ID: ecs.Secret.fromSecretsManager(props.secret, "GROVE_CITY_APP_ID"),
 			},

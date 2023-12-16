@@ -44,7 +44,6 @@ export class GlobalApi extends Construct {
 				platform: "linux/amd64",
 				buildArgs: {
 					REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
-					INFURA_API_KEY: process.env.INFURA_API_KEY || "",
 					GETBLOCK_API_KEY: process.env.GETBLOCK_API_KEY || "",
 					POKT_PORTAL_ID: process.env.POKT_PORTAL_ID || "",
 					EVENT_HANDLER_SQS_QUEUE_URL: process.env.EVENT_HANDLER_SQS_QUEUE_URL || "",

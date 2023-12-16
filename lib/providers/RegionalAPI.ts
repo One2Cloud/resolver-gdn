@@ -41,9 +41,6 @@ export class RegionalAPI extends Construct {
 					port: 8080,
 					environmentSecrets: {
 						REDIS_URL: apprunner.Secret.fromSecretsManager(secret, "REDIS_URL"),
-						INFURA_API_KEY: apprunner.Secret.fromSecretsManager(secret, "INFURA_API_KEY"),
-						GETBLOCK_API_KEY: apprunner.Secret.fromSecretsManager(secret, "GETBLOCK_API_KEY"),
-						POKT_PORTAL_ID: apprunner.Secret.fromSecretsManager(secret, "POKT_PORTAL_ID"),
 						GETBLOCK_CONFIG: apprunner.Secret.fromSecretsManager(secret, "GETBLOCK_CONFIG"),
 						GROVE_CITY_APP_ID: apprunner.Secret.fromSecretsManager(secret, "GROVE_CITY_APP_ID"),
 					},
