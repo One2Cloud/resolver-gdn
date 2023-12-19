@@ -47,7 +47,10 @@ export class EDNS extends Construct {
 		});
 		const containerDefinition = taskDefinition.addContainer("runner", {
 			image: ecs.ContainerImage.fromDockerImageAsset(ecs_image),
-			environment: { BLOCK_RANGE_RECORD_TABLE_NAME: blockRangeRecordTable.tableName },
+			environment: {
+				BLOCK_RANGE_RECORD_TABLE_NAME: blockRangeRecordTable.tableName,
+				EVENT_HANDLER_SQS_QUEUE_URL: props.queue.queueUrl,
+			},
 			secrets: {
 				REDIS_URL: ecs.Secret.fromSecretsManager(props.secret, "REDIS_URL"),
 				GETBLOCK_CONFIG: ecs.Secret.fromSecretsManager(props.secret, "GETBLOCK_CONFIG"),
