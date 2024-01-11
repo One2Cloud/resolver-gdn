@@ -8,7 +8,14 @@ import { setEnvironmentVariable } from "../utils/set-environment-variable";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { EdnsEventType } from "../constants/event-type.constant";
 
-const NETWORK = Network.POLYGON_MUMBAI;
+if (!process.env.NETWORK) throw new Error("NETWORK environment variable is not set");
+
+const BLOCK_NUMBER: { [key: number]: number } = {
+  [Network.BNB_CHAIN]: 0,
+
+};
+
+const NETWORK = parseInt(process.env.NETWORK) as Network;
 // const FROM = 8960446; // Goerli
 const FROM = 33126861; // Polygon Mumbai
 const BATCH = 200;
