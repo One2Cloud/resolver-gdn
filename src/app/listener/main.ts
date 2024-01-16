@@ -558,7 +558,7 @@ export const sync = async (input: ISyncInput) => {
             const _host = ethers.utils.toUtf8String(host);
             const _name = ethers.utils.toUtf8String(name);
             const _tld = ethers.utils.toUtf8String(tld);
-            const _type_ = ethers.utils.toUtf8String(type_);
+            const _typed_ = ethers.utils.toUtf8String(type_);
             const hash = event.transactionHash;
             const fqdn = `${_host}.${_name}.${_tld}`;
             await putSqsMessage({
@@ -572,7 +572,7 @@ export const sync = async (input: ISyncInput) => {
                 host: _host,
                 name: _name,
                 tld: _tld,
-                type: _type_,
+                typed: _typed_,
                 text,
               },
             });

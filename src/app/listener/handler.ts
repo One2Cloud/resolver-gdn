@@ -184,7 +184,7 @@ export class Key {
     return `edns:${net}:domain:${domain}:user`;
   }
   public static DOMAIN_HOSTS_$SET(net: Net, domain: string): string {
-    return `edns:${net}:domain:${domain}:hosts`;
+    return `edns:${net}:domain:${domain}:host`;
   }
   public static DOMAIN_OPERATORS_$SET(net: Net, domain: string): string {
     return `edns:${net}:domain:${domain}:operators`;
@@ -332,7 +332,7 @@ export const main = async (body: IBody): Promise<void> => {
         .catch((error) => {
           logger.error(error);
         });
-      logger.info("Exec DOMAIN_REGISTERED");
+      logger.info("Execution completed - DOMAIN_REGISTERED");
       break;
     }
     case EdnsEventType.DOMAIN_RENEWED: {
@@ -365,7 +365,7 @@ export const main = async (body: IBody): Promise<void> => {
 
       // Execute
       await batch.exec();
-
+      logger.info("Execution completed - DOMAIN_RENEWED");
       break;
     }
     // case EdnsEventType.DOMAIN_BRIDGED: {
@@ -513,7 +513,7 @@ export const main = async (body: IBody): Promise<void> => {
         .catch((error) => {
           console.log(error);
         });
-      logger.info("Exec SET_HOST_USER");
+      logger.info("Execution completed - SET_HOST_USER");
 
       break;
     }
@@ -531,7 +531,7 @@ export const main = async (body: IBody): Promise<void> => {
             console.log(error);
           });
       }
-      logger.info("Exec SET_REVERSE_ADDRESS_RECORD");
+      logger.info("Execution completed - SET_REVERSE_ADDRESS_RECORD");
 
       break;
     }
@@ -553,7 +553,7 @@ export const main = async (body: IBody): Promise<void> => {
           console.log(error);
         });
 
-      logger.info("Exec UNSET_REVERSE_ADDRESS_RECORD");
+      logger.info("Execution completed - UNSET_REVERSE_ADDRESS_RECORD");
 
       break;
     }
@@ -705,13 +705,13 @@ export const main = async (body: IBody): Promise<void> => {
       try {
         await client
           .pipeline()
-          .hset(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `typed_text:${data.type}`, data.text)
-          .sadd(Key.HOST_RECORDS_$SET(body.net, fqdn, user), `typed_text:${data.type}`)
+          .hset(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `typed_text:${data.typed}`, data.text)
+          .sadd(Key.HOST_RECORDS_$SET(body.net, fqdn, user), `typed_text:${data.typed}`)
           .exec()
           .catch((error) => {
             console.log(error);
           });
-        logger.info("Exec SET_TYPED_TEXT_RECORD");
+        logger.info("Execution completed - SET_TYPED_TEXT_RECORD");
         break;
       } catch (error) {
         console.log(error);
@@ -736,7 +736,7 @@ export const main = async (body: IBody): Promise<void> => {
           .catch((error) => {
             console.log(error);
           });
-        logger.info("Exec UNSET_TYPED_TEXT_RECORD");
+        logger.info("Execution completed - UNSET_TYPED_TEXT_RECORD");
         break;
       } catch (error) {
         console.log(error);

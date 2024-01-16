@@ -306,13 +306,13 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
 
     return {
       owner: results[0][1] as string,
-      expiry: luxon.DateTime.fromSeconds(parseInt(results[1][1] as string)),
+      expiry: luxon.DateTime.fromMillis(parseInt(results[1][1] as string)),
       chain: parseInt(results[2][1] as string),
       resolver: results[3][1] as string,
       bridging: (results[4][1] as string) === "1",
       user: {
         address: results[5][1] as string,
-        expiry: luxon.DateTime.fromSeconds(parseInt(results[6][1] as string)),
+        expiry: luxon.DateTime.fromMillis(parseInt(results[6][1] as string)),
       },
       operators: results[7][1] as string[],
       hosts: results[8][1] as string[],
@@ -375,7 +375,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     return {
       user: {
         address: results[0][1] as string,
-        expiry: luxon.DateTime.fromSeconds(parseInt(results[1][1] as string)),
+        expiry: luxon.DateTime.fromMillis(parseInt(results[1][1] as string)),
       },
       operators: results[2][1] as string[],
       records: results[3][1] as string[],
