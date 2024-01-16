@@ -101,12 +101,12 @@ interface IUnsetTextRecordData extends IBaseSetRecordData {
 }
 
 interface ISetTypedTextRecordData extends IBaseSetRecordData {
-  type: string;
+  typed: string;
   text: string;
 }
 
 interface IUnsetTypedTextRecordData extends IBaseSetRecordData {
-  type: string;
+  typed: string;
 }
 
 interface ISetNftRecordData extends IBaseSetRecordData {
@@ -730,8 +730,8 @@ export const main = async (body: IBody): Promise<void> => {
       try {
         await client
           .pipeline()
-          .hdel(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `typed_text:${data.type}`)
-          .srem(Key.HOST_RECORDS_$SET(body.net, fqdn, user), `typed_text:${data.type}`)
+          .hdel(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `typed_text:${data.typed}`)
+          .srem(Key.HOST_RECORDS_$SET(body.net, fqdn, user), `typed_text:${data.typed}`)
           .exec()
           .catch((error) => {
             console.log(error);
