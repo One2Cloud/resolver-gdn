@@ -7,17 +7,20 @@ import { Network, getNetworkConfig } from "../network-config";
 import { setEnvironmentVariable } from "../utils/set-environment-variable";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { EdnsEventType } from "../constants/event-type.constant";
+import fs from "fs";
+import path from "path";
 
 if (!process.env.NETWORK) throw new Error("NETWORK environment variable is not set");
 
-const BLOCK_NUMBER: { [key: number]: number } = {
-  [Network.BNB_CHAIN]: 0,
-
-};
-
 const NETWORK = parseInt(process.env.NETWORK) as Network;
-// const FROM = 8960446; // Goerli
-const FROM = 33126861; // Polygon Mumbai
+
+const CONTRACTS_METADATA: { [key: number]: { [key: string]: { hash: string; block: number } } } = JSON.parse(
+  fs.readFileSync(path.join(process.cwd(), "scripts/data/contracts_metadata.json"), "utf8"),
+);
+
+const METADATA = CONTRACTS_METADATA[NETWORK];
+if (!METADATA) throw new Error(`Contracts metadata for network ${NETWORK} not found`);
+
 const BATCH = 200;
 
 async function main() {
@@ -33,7 +36,7 @@ async function main() {
 
   const TO = await provider.getBlockNumber();
 
-  for (let _from = FROM; _from <= TO; _from += BATCH) {
+  for (let _from = METADATA["Registrar"].block; _from <= TO; _from += BATCH) {
     const eventTypes = _.values(EdnsEventType);
     for (const eventType of eventTypes) {
       let _to = _from + BATCH;
@@ -42,7 +45,7 @@ async function main() {
 
       if (_to > TO) {
         await client.invokeAsync({
-          FunctionName: "EDNS-Listener-Sync-Event",
+          FunctionName: "EDNS-Sync-Event",
           InvokeArgs: JSON.stringify({
             chainId: networkConfig.chainId,
             from: _from,
@@ -52,7 +55,7 @@ async function main() {
         });
       } else {
         await client.invokeAsync({
-          FunctionName: "EDNS-Listener-Sync-Event",
+          FunctionName: "EDNS-Sync-Event",
           InvokeArgs: JSON.stringify({
             chainId: networkConfig.chainId,
             from: _from,

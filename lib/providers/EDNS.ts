@@ -107,6 +107,23 @@ export class EDNS extends Construct {
 			})
 		);
 
+		const syncEvent = new lambda.Function(this, "SyncEvent", {
+			functionName: "EDNS-Sync-Event",
+			code: lambda.Code.fromEcrImage(lambda_image.repository, {
+				tagOrDigest: lambda_image.imageTag,
+				cmd: ["handler/sync-event.index"],
+			}),
+			handler: lambda.Handler.FROM_IMAGE,
+			runtime: lambda.Runtime.FROM_IMAGE,
+			timeout: cdk.Duration.minutes(1),
+			memorySize: 1024,
+			environment: {
+				SECRET_ARN: props.secret.secretArn,
+				EVENT_HANDLER_SQS_QUEUE_URL: props.queue.queueUrl,
+			},
+		});
+		props.secret.grantRead(syncEvent);
+
 		// const listChainsLambdaFunction = new lambda.Function(this, "ListChains", {
 		// 	functionName: "EDNS-Listener-List-Chains",
 		// 	code: lambda.Code.fromEcrImage(image.repository, {

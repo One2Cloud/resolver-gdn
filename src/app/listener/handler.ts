@@ -192,10 +192,12 @@ export class Key {
   }
   // Host
   public static HOST_RECORDS_$HASH(net: Net, fqdn: string, user: string): string {
-    return `edns:${net}:host:${fqdn}:${user}:records`;
+    // return `edns:${net}:host:${fqdn}:${user}:records`;
+    return `edns:${net}:host:${fqdn}:records`;
   }
   public static HOST_RECORDS_$SET(net: Net, fqdn: string, user: string): string {
-    return `edns:${net}:host:${fqdn}:${user}:list`;
+    // return `edns:${net}:host:${fqdn}:${user}:list`;
+    return `edns:${net}:host:${fqdn}:list`;
   }
   public static HOST_USER_$HASH(net: Net, fqdn: string): string {
     return `edns:${net}:host:${fqdn}:user`;
