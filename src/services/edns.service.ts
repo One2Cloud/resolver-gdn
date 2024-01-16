@@ -111,6 +111,7 @@ export class EdnsService implements IEdnsResolverService {
           await putSqsMessage({
             eventType: EdnsEventType.REVALIDATE,
             provider: DomainProvider.EDNS,
+            chainId: options.chainId,
             fqdn: input.fqdn,
             data: { host: host || "@", name, tld, chainId: options.chainId },
             net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
@@ -154,6 +155,7 @@ export class EdnsService implements IEdnsResolverService {
           await putSqsMessage({
             eventType: EdnsEventType.REVALIDATE,
             provider: DomainProvider.EDNS,
+            chainId: options.chainId,
             fqdn: input.fqdn,
             data: { host: host || "@", name, tld, chainId: options.chainId },
             net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
@@ -204,6 +206,7 @@ export class EdnsService implements IEdnsResolverService {
           await putSqsMessage({
             eventType: EdnsEventType.REVALIDATE,
             provider: DomainProvider.EDNS,
+            chainId: options.chainId,
             fqdn: input.fqdn,
             data: { host: host || "@", name, tld, chainId: options.chainId },
             net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
@@ -249,6 +252,7 @@ export class EdnsService implements IEdnsResolverService {
           await putSqsMessage({
             eventType: EdnsEventType.REVALIDATE,
             provider: DomainProvider.EDNS,
+            chainId: options.chainId,
             fqdn: input.fqdn,
             data: { host: host || "@", name, tld, chainId: options.chainId },
             net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
@@ -256,6 +260,7 @@ export class EdnsService implements IEdnsResolverService {
         }
       }
       await putSqsMessage({
+        chainId: options?.chainId,
         eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
         provider: DomainProvider.EDNS,
         fqdn: input.fqdn,
@@ -299,6 +304,7 @@ export class EdnsService implements IEdnsResolverService {
           await putSqsMessage({
             eventType: EdnsEventType.REVALIDATE,
             provider: DomainProvider.EDNS,
+            chainId: options.chainId,
             fqdn: input.fqdn,
             data: { host: host || "@", name, tld, chainId: options.chainId },
             net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
@@ -306,7 +312,7 @@ export class EdnsService implements IEdnsResolverService {
         }
       }
       await putSqsMessage({
-        eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
+        eventType: EdnsEventType.SET_NFT_RECORD,
         provider: DomainProvider.EDNS,
         fqdn: input.fqdn,
         hash: "FROM_EDGE_API",

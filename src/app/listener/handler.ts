@@ -1,3 +1,4 @@
+import "source-map-support/register";
 import { SQSHandler } from "aws-lambda";
 import Redis from "ioredis";
 import _ from "lodash";
@@ -10,7 +11,7 @@ import EdnsContractsAddress from "../../static/edns-contracts-address.json";
 import { Bridge__factory } from "../../contracts/ethereum/edns-v2/typechain/factories/Bridge__factory";
 import { getConfig } from "../../config";
 import { getInContractChain } from "../../utils/get-in-contract-chain";
-import { EdnsV2FromContractService } from "../../services/edns-v2.service";
+import { EdnsV2FromContractService, EdnsV2FromRedisService } from "../../services/edns-v2.service";
 import { Net } from "../../network-config";
 
 const logger = createLogger();
@@ -282,8 +283,10 @@ export const main = async (body: IBody): Promise<void> => {
         const _hosts = await client.smembers(Key.DOMAIN_HOSTS_$SET(body.net, domain));
         if (_hosts.length) {
           for (const _host of _hosts) {
-            const _user = await client.hget(Key.HOST_USER_$HASH(body.net, `${_host}.${domain}`), "user");
-            if (!_user) throw new Error(`User not found for ${_host}.${domain}`);
+            const service = new EdnsV2FromRedisService();
+            const _host_data = await service.getHost(`${_host}.${domain}`);
+            if (!_host_data?.user?.address) throw new Error(`User not found for ${_host}.${domain}`);
+            const _user = _host_data.user.address;
             dels.push(
               Key.HOST_RECORDS_$HASH(body.net, `${_host}.${domain}`, _user),
               Key.HOST_USER_$HASH(body.net, `${_host}.${domain}`),
@@ -342,8 +345,10 @@ export const main = async (body: IBody): Promise<void> => {
       const _hosts = await client.smembers(Key.DOMAIN_HOSTS_$SET(body.net, domain));
       if (_hosts.length) {
         for (const _host of _hosts) {
-          const _user = await client.hget(Key.HOST_USER_$HASH(body.net, `${_host}.${domain}`), "user");
-          if (!_user) throw new Error(`User not found for ${_host}.${domain}`);
+          const service = new EdnsV2FromRedisService();
+          const _host_data = await service.getHost(`${_host}.${domain}`);
+          if (!_host_data?.user?.address) throw new Error(`User not found for ${_host}.${domain}`);
+          const _user = _host_data.user.address;
           batch = batch
             .expireat(Key.HOST_RECORDS_$HASH(body.net, `${_host}.${domain}`, _user), data.expiry)
             .expireat(Key.HOST_USER_$HASH(body.net, `${_host}.${domain}`), data.expiry)
@@ -533,8 +538,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.UNSET_REVERSE_ADDRESS_RECORD: {
       const data: IUnsetReverseAddressRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .del(Key.ACCOUNT_REVERSE_DOMAIN_$KV(body.net, data.address))
@@ -551,8 +560,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.SET_ADDRESS_RECORD: {
       const data: ISetAddressRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .hset(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), "address", data.address)
@@ -564,8 +577,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.UNSET_ADDRESS_RECORD: {
       const data: IUnsetAddressRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .hdel(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), "address")
@@ -577,8 +594,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.SET_MULTI_COIN_ADDRESS_RECORD: {
       const data: ISetMultiCoinAddressRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .hset(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `multi_coin_address:${data.coin}`, data.address)
@@ -590,8 +611,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.UNSET_MULTI_COIN_ADDRESS_RECORD: {
       const data: IUnsetMultiCoinAddressRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .hdel(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `multi_coin_address:${data.coin}`)
@@ -603,8 +628,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.SET_NFT_RECORD: {
       const data: ISetNftRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .hset(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `nft:${data.chainId}`, `${data.contractAddress}:${data.tokenId}`)
@@ -616,8 +645,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.UNSET_NFT_RECORD: {
       const data: IUnsetNftRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .hdel(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `nft:${data.chainId}`)
@@ -629,8 +662,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.SET_TEXT_RECORD: {
       const data: ISetTextRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .hset(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `text`, data.text)
@@ -642,8 +679,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.UNSET_TEXT_RECORD: {
       const data: IUnsetTextRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       await client
         .pipeline()
         .hdel(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `text`)
@@ -655,8 +696,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.SET_TYPED_TEXT_RECORD: {
       const data: ISetTypedTextRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       try {
         await client
           .pipeline()
@@ -676,8 +721,12 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.UNSET_TYPED_TEXT_RECORD: {
       const data: IUnsetTypedTextRecordData = body.data;
       const fqdn = `${data.host}.${data.name}.${data.tld}`;
-      const user = await client.hget(Key.DOMAIN_USER_$HASH(body.net, fqdn), "user");
-      if (!user) throw new Error(`User not found for ${fqdn}`);
+
+      const service = new EdnsV2FromRedisService();
+      const _host_data = await service.getHost(fqdn);
+      if (!_host_data?.user?.address) throw new Error(`User not found for ${fqdn}`);
+      const user = _host_data.user.address;
+
       try {
         await client
           .pipeline()
@@ -709,8 +758,11 @@ export const main = async (body: IBody): Promise<void> => {
           const _hosts = await client.smembers(Key.DOMAIN_HOSTS_$SET(body.net, domain));
           if (_hosts.length) {
             for (const _host of _hosts) {
-              const _user = await client.hget(Key.HOST_USER_$HASH(body.net, `${_host}.${domain}`), "user");
-              if (!_user) throw new Error(`User not found for ${_user}`);
+              const service = new EdnsV2FromRedisService();
+              const _host_data = await service.getHost(body.fqdn);
+              if (!_host_data?.user?.address) throw new Error(`User not found for ${body.fqdn}`);
+              const _user = _host_data.user.address;
+
               dels.push(
                 Key.HOST_RECORDS_$HASH(body.net, `${_host}.${domain}`, _user),
                 Key.HOST_USER_$HASH(body.net, `${_host}.${domain}`),
