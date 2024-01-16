@@ -21,10 +21,12 @@ if (process.env.GETBLOCK_CONFIG) {
   GetBlockConfig = JSON.parse(process.env.GETBLOCK_CONFIG);
 }
 
-try {
-  GetBlockConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "getblock.config.json"), "utf-8"));
-} catch {
-  console.warn("getblock.config.json not found");
+if (!GetBlockConfig) {
+  try {
+    GetBlockConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "getblock.config.json"), "utf-8"));
+  } catch {
+    console.warn("getblock.config.json not found");
+  }
 }
 
 export enum Net {
@@ -1090,6 +1092,6 @@ export const getNetworkConfig = (): INetworkConfig => {
   };
 };
 
-const config: INetworkConfig = getNetworkConfig();
+// const config: INetworkConfig = getNetworkConfig();
 
-export default config;
+// export default config;

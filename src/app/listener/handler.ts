@@ -10,9 +10,7 @@ import EdnsContractsAddress from "../../static/edns-contracts-address.json";
 import { Bridge__factory } from "../../contracts/ethereum/edns-v2/typechain/factories/Bridge__factory";
 import { getConfig } from "../../config";
 import { getInContractChain } from "../../utils/get-in-contract-chain";
-import { IRegistry__factory } from "../../contracts/ethereum/edns-v2/typechain";
 import { EdnsV2FromContractService } from "../../services/edns-v2.service";
-import { extractFqdn } from "../../utils/extract-fqdn";
 import { Net } from "../../network-config";
 
 const logger = createLogger();
