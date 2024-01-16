@@ -45,7 +45,7 @@ export class EDNS extends Construct {
 			cpu: 1024,
 			memoryLimitMiB: 2048,
 		});
-		const containerDefinition = taskDefinition.addContainer("runner", {
+		taskDefinition.addContainer("runner", {
 			image: ecs.ContainerImage.fromDockerImageAsset(ecs_image),
 			environment: {
 				BLOCK_RANGE_RECORD_TABLE_NAME: blockRangeRecordTable.tableName,

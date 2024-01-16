@@ -19,7 +19,6 @@ const body: IBody = {
 
 async function index() {
   await setEnvironmentVariable();
-
   await EventHandler(body);
 }
 
