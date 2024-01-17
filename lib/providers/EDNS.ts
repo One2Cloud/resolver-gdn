@@ -120,11 +120,12 @@ export class EDNS extends Construct {
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 				EVENT_HANDLER_SQS_QUEUE_URL: props.queue.queueUrl,
+				BLOCK_RANGE_RECORD_TABLE_NAME: blockRangeRecordTable.tableName,
 			},
 		});
 		props.secret.grantRead(syncEvent);
 		if (taskDefinition.taskRole) syncEvent.grantInvoke(taskDefinition.taskRole);
-		
+
 		// const listChainsLambdaFunction = new lambda.Function(this, "ListChains", {
 		// 	functionName: "EDNS-Listener-List-Chains",
 		// 	code: lambda.Code.fromEcrImage(image.repository, {
