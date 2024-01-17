@@ -15,20 +15,6 @@ interface IGetBlockConfig {
   };
 }
 
-let GetBlockConfig: IGetBlockConfig = { shared: {} };
-
-if (process.env.GETBLOCK_CONFIG) {
-  GetBlockConfig = JSON.parse(process.env.GETBLOCK_CONFIG);
-}
-
-if (!GetBlockConfig) {
-  try {
-    GetBlockConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "getblock.config.json"), "utf-8"));
-  } catch {
-    console.warn("getblock.config.json not found");
-  }
-}
-
 export enum Net {
   MAINNET = "mainnet",
   TESTNET = "testnet",
@@ -203,6 +189,19 @@ export interface IConfig {
 }
 
 export const getNetworkConfig = (): INetworkConfig => {
+  let GetBlockConfig: IGetBlockConfig = { shared: {} };
+
+  if (process.env.GETBLOCK_CONFIG) {
+    GetBlockConfig = JSON.parse(process.env.GETBLOCK_CONFIG);
+  }
+
+  if (!GetBlockConfig) {
+    try {
+      GetBlockConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "getblock.config.json"), "utf-8"));
+    } catch {
+      console.warn("getblock.config.json not found");
+    }
+  }
   return {
     [Network.ETHEREUM]: {
       chainId: Network.ETHEREUM,
