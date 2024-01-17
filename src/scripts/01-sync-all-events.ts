@@ -1,5 +1,4 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+import "source-map-support/register";
 
 import _ from "lodash";
 import { Lambda } from "@aws-sdk/client-lambda";
@@ -24,8 +23,6 @@ if (!METADATA) throw new Error(`Contracts metadata for network ${NETWORK} not fo
 const BATCH = 200;
 
 async function main() {
-  await setEnvironmentVariable();
-
   const NetworkConfig = getNetworkConfig();
 
   const client = new Lambda({ region: "us-east-1" });

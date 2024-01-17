@@ -46,19 +46,20 @@ const getBlockRange = async (chainId: number) => {
   const provider = createProvider(chainId);
   if (response.Item?.from.N && response.Item?.to.N) {
     const from = parseInt(response.Item.to.N);
-    const to = await provider.getBlockNumber();
-    if (to - from > 300) {
-      return { from: to - 300, to };
-    } else {
-      return { from, to };
-    }
+    const to = from + 300;
+    // const to = await provider.getBlockNumber();
+    // if (to - from > 300) {
+    //   return { from: to - 300, to };
+    // } else {
+    //   return { from, to };
+    // }
+    return { from, to };
   }
   const to = await provider.getBlockNumber();
   return { from: to - 300, to };
 };
 
 export const sync = async (input: ISyncInput) => {
-  // logger.debug(`Syncing [${input.eventType}] event in [${NetworkConfig[input.chainId].name}] from [${input.from}] to [${input.to}]...`);
   try {
     const networkConfig = NetworkConfig[input.chainId];
     if (!networkConfig) throw new Error("NetworkCOnfig is missing");
