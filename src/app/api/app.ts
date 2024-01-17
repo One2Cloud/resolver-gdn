@@ -1,8 +1,9 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application, NextFunction, Request, Response } from "express";
 import routers from "../../routers";
 import compression from "compression";
 import cors from "cors";
 import morgan from "morgan";
+import { errorHandler } from "../../middleware/returnHandler";
 
 const app: Application = express();
 
@@ -19,5 +20,7 @@ app.get("/healthcheck", (req: Request, res: Response): Response => {
 });
 
 app.use(routers);
+
+app.use(errorHandler);
 
 export default app;
