@@ -116,7 +116,7 @@ export class EDNS extends Construct {
 			handler: lambda.Handler.FROM_IMAGE,
 			runtime: lambda.Runtime.FROM_IMAGE,
 			timeout: cdk.Duration.minutes(1),
-			memorySize: 1024,
+			memorySize: 256,
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 				EVENT_HANDLER_SQS_QUEUE_URL: props.queue.queueUrl,
