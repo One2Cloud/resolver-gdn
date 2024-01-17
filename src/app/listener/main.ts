@@ -19,7 +19,6 @@ import { main as exec } from "./handler";
 
 const MAINNET_INTERVAL = process.env.MAINNET_INTERVAL ? parseInt(process.env.MAINNET_INTERVAL) : 60000;
 const TESTNET_INTERVAL = process.env.TESTNET_INTERVAL ? parseInt(process.env.TESTNET_INTERVAL) : 300000;
-const NetworkConfig = getNetworkConfig();
 const logger = createLogger({ service: "workflow/edns/event-listener" });
 const EdnsEvents = Object.values(EdnsEventType);
 
@@ -61,6 +60,7 @@ const getBlockRange = async (chainId: number) => {
 
 export const sync = async (input: ISyncInput) => {
   try {
+    const NetworkConfig = getNetworkConfig();
     const networkConfig = NetworkConfig[input.chainId];
     if (!networkConfig) throw new Error("NetworkCOnfig is missing");
     let provider: JsonRpcProvider | WebSocketProvider | undefined;
@@ -735,6 +735,7 @@ export const sync = async (input: ISyncInput) => {
 };
 
 async function main() {
+  const NetworkConfig = getNetworkConfig();
   // Mainnets
   setInterval(async () => {
     const chain_limit = pLimit(5);

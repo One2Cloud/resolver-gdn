@@ -3,11 +3,11 @@ import "source-map-support/register";
 import _ from "lodash";
 import { Lambda } from "@aws-sdk/client-lambda";
 import { Network, getNetworkConfig } from "../network-config";
-import { setEnvironmentVariable } from "../utils/set-environment-variable";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { EdnsEventType } from "../constants/event-type.constant";
 import fs from "fs";
 import path from "path";
+import { setEnvironmentVariable } from "../utils/set-environment-variable";
 
 if (!process.env.NETWORK) throw new Error("NETWORK environment variable is not set");
 
@@ -23,6 +23,8 @@ if (!METADATA) throw new Error(`Contracts metadata for network ${NETWORK} not fo
 const BATCH = 200;
 
 async function main() {
+  await setEnvironmentVariable();
+  
   const NetworkConfig = getNetworkConfig();
 
   const client = new Lambda({ region: "us-east-1" });
@@ -38,7 +40,8 @@ async function main() {
     for (const eventType of eventTypes) {
       let _to = _from + BATCH;
 
-      console.log({ eventType, from: _from, to: _to });
+      const latest = await provider.getBlockNumber();
+      console.log(`[${latest}] Invoking ${eventType} for ${_from} - ${_to}.`);
 
       if (_to > TO) {
         await client.invokeAsync({
