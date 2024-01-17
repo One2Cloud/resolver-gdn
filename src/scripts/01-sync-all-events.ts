@@ -15,7 +15,7 @@ if (!process.env.NETWORK) throw new Error("NETWORK environment variable is not s
 const NETWORK = parseInt(process.env.NETWORK) as Network;
 
 const CONTRACTS_METADATA: { [key: number]: { [key: string]: { hash: string; block: number } } } = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), "scripts/data/contracts_metadata.json"), "utf8"),
+  fs.readFileSync(path.join(process.cwd(), "static/contracts_metadata.json"), "utf8"),
 );
 
 const METADATA = CONTRACTS_METADATA[NETWORK];
