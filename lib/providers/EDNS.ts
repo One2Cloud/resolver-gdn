@@ -123,7 +123,8 @@ export class EDNS extends Construct {
 			},
 		});
 		props.secret.grantRead(syncEvent);
-
+		if (taskDefinition.taskRole) syncEvent.grantInvoke(taskDefinition.taskRole);
+		
 		// const listChainsLambdaFunction = new lambda.Function(this, "ListChains", {
 		// 	functionName: "EDNS-Listener-List-Chains",
 		// 	code: lambda.Code.fromEcrImage(image.repository, {
