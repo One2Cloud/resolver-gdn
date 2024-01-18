@@ -11,15 +11,10 @@ export async function getSecret(secretArn: string): Promise<string> {
 }
 
 export async function getSecretInLambda(secretArn: string): Promise<string> {
-  const response = await axios.get<string>(
-    `http://localhost:${
-      process.env.PARAMETERS_SECRETS_EXTENSION_HTTP_PORT || 2773
-    }/secretsmanager/get?secretId=${secretArn}`,
-    {
-      headers: {
-        "X-Aws-Parameters-Secrets-Token": `${process.env.AWS_SESSION_TOKEN}`,
-      },
-    }
-  );
+  const response = await axios.get<string>(`http://localhost:${process.env.PARAMETERS_SECRETS_EXTENSION_HTTP_PORT || 2773}/secretsmanager/get?secretId=${secretArn}`, {
+    headers: {
+      "X-Aws-Parameters-Secrets-Token": `${process.env.AWS_SESSION_TOKEN}`,
+    },
+  });
   return response.data;
 }

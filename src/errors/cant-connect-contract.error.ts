@@ -11,10 +11,6 @@ import { BaseError } from "../interfaces/BaseError.interface";
 
 export class CantConnectContractError extends BaseError {
   constructor(chainId: number) {
-    super(
-      503,
-      "CANT_CONNECT_CONTRACT",
-      `Unable to connect contract of chain ID [${chainId}].`
-    );
+    super(503, "CANT_CONNECT_CONTRACT", `Unable to connect contract of chain ID [${chainId}].`);
   }
 }

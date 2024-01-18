@@ -14,10 +14,6 @@ export class CantGetDomainNameError extends BaseError {
   constructor(fqdn: string) {
     const { name, tld } = extractFqdn(fqdn);
     const domain = [name, tld].join(".");
-    super(
-      400,
-      "CANT_GET_DOMAIN_NAME",
-      `Unable to get domain name from [${domain}].`
-    );
+    super(400, "CANT_GET_DOMAIN_NAME", `Unable to get domain name from [${domain}].`);
   }
 }

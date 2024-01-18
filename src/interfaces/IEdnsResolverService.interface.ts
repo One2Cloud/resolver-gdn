@@ -73,33 +73,12 @@ export interface IGetTypedTextListOutput {
 }
 
 export interface IEdnsResolverService {
-  getAllRecords(
-    input: IGetAllRecordsInput,
-    options?: IOptions
-  ): Promise<IGetAllRecordsOutput | undefined>;
-  getReverseAddressRecord(
-    input: IGetReverseAddressRecordInput,
-    options?: IOptions
-  ): Promise<IGetReverseAddressRecordOutput | undefined>;
-  getAddressRecord(
-    input: IGetAddressRecordInput,
-    options?: IOptions
-  ): Promise<IGetAddressRecordOutput | undefined>;
-  getMultiCoinAddressRecord(
-    input: IGetMultiCoinAddressRecordInput,
-    options?: IOptions
-  ): Promise<IGetMultiCoinAddressRecordOutput | undefined>;
-  getTextRecord(
-    input: IGetTextRecordInput,
-    options?: IOptions
-  ): Promise<IGetTextRecordOutput | undefined>;
-  getTypedTextRecord(
-    input: IGetTypedTextRecordInput,
-    options?: IOptions
-  ): Promise<IGetTypedTextRecordOutput | undefined>;
-  getNftRecord(
-    input: IGetNftRecordInput,
-    options?: IOptions
-  ): Promise<IGetNftRecordOutput | undefined>;
+  getAllRecords(input: IGetAllRecordsInput, options?: IOptions): Promise<IGetAllRecordsOutput | undefined>;
+  getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined>;
+  getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined>;
+  getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined>;
+  getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined>;
+  getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined>;
+  getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined>;
   // getAllRecords(fqdn: string): Promise<IGetAddressRecordOutput[] | undefined>;
 }

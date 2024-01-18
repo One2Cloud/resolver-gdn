@@ -11,10 +11,6 @@ import { BaseError } from "../interfaces/BaseError.interface";
 
 export class MissingChainIdError extends BaseError {
   constructor() {
-    super(
-      400,
-      "MISSING_CHAIN_ID",
-      `Missing chain ID for query reversed address record.`
-    );
+    super(400, "MISSING_CHAIN_ID", `Missing chain ID for query reversed address record.`);
   }
 }

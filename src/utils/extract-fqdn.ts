@@ -1,8 +1,6 @@
 import { CantExtractTldError } from "../errors/cant-extract-tld.error";
 
-export const extractFqdn = (
-  fqdn: string
-): { tld: string; name?: string; host?: string } => {
+export const extractFqdn = (fqdn: string): { tld: string; name?: string; host?: string } => {
   const parts = fqdn.split(".");
   const tld = parts.pop();
   if (!tld) throw new CantExtractTldError(fqdn);
