@@ -26,6 +26,7 @@ import { EdnsEventType } from "../constants/event-type.constant";
 import { extractFqdn } from "../utils/extract-fqdn";
 import { Mainnets as EdnsMainnets, Net } from "../network-config";
 import { IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
+import { DomainNotFoundError } from "../errors/domain-not-found.error";
 
 export class EdnsService implements IEdnsResolverService {
   private readonly _v2RedisService: EdnsV2FromRedisService;
@@ -236,7 +237,6 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (!output && !options?.onchain) {
       output = await this._v2RedisService.getTypedTextRecord(input, options);
-      console.log({ output });
     }
     if (!output) {
       output = await this._v2ContractService.getTypedTextRecord(input, options);
@@ -340,6 +340,7 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (!output && !options?.onchain) {
       output = await this._v2RedisService.getDomain(fqdn, options);
+      if (!output) throw new DomainNotFoundError(fqdn);
     }
     return output;
   }

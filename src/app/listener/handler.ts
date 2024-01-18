@@ -821,7 +821,6 @@ export const main = async (body: IBody): Promise<void> => {
     case EdnsEventType.REVALIDATE: {
       const data: IRevalidateData = body.data;
       const domain = `${data.name}.${data.tld}`;
-      console.debug({ data });
       // Domain Register
       const currentOwner = await client.hget(Key.DOMAIN_INFO_$HASH(body.net, domain), "owner");
       if (!currentOwner) {

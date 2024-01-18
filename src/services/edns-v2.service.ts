@@ -263,17 +263,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     const redis = createRedisClient();
 
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
-    if (!(await this.isExists(fqdn, options)))
-      return {
-        owner: undefined,
-        expiry: undefined,
-        chain: undefined,
-        resolver: undefined,
-        bridging: undefined,
-        user: undefined,
-        operators: undefined,
-        hosts: undefined,
-      };
+    if (!(await this.isExists(fqdn, options))) return undefined;
 
     const { name, tld } = extractFqdn(fqdn);
     if (!name) throw new CantGetDomainNameError(fqdn);
@@ -292,22 +282,12 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
       .smembers(Key.DOMAIN_HOSTS_$SET(options?.net || Net.MAINNET, _domain))
       .exec();
 
-    if (!results)
-      return {
-        owner: undefined,
-        expiry: undefined,
-        chain: undefined,
-        resolver: undefined,
-        bridging: undefined,
-        user: undefined,
-        operators: undefined,
-        hosts: undefined,
-      };
+    if (!results) return undefined;
 
     return {
       owner: results[0][1] as string,
       expiry: luxon.DateTime.fromMillis(parseInt(results[1][1] as string)),
-      chain: parseInt(results[2][1] as string),
+      chain: await getChainId(options?.net || Net.MAINNET, parseInt(results[2][1] as string)),
       resolver: results[3][1] as string,
       bridging: (results[4][1] as string) === "1",
       user: {

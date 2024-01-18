@@ -2,17 +2,23 @@ import { Request, Response, NextFunction } from "express";
 import { IGeneralResponse } from "../interfaces/IGeneralOutput.interface";
 import { BaseError } from "../interfaces/BaseError.interface";
 
-export function errorHandler(
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
   let response: IGeneralResponse<undefined>;
   let ttl = 60;
   if (err instanceof BaseError) {
     response = {
       status: err.status,
+      onchain: !!req.query.onchain,
+      success: false,
+      error: {
+        code: err.name,
+        reason: err.message,
+      },
+      empty: true,
+    };
+  } else if (err instanceof Error) {
+    response = {
+      status: 500,
       onchain: !!req.query.onchain,
       success: false,
       error: {
