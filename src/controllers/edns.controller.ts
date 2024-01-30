@@ -13,20 +13,23 @@ const FQDN_REGEX = /\.$/;
 
 export default class EdnsController {
   public static async getAllRecords(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { fqdn } = req.params;
-    const options = extract(req);
-    const service = new EdnsService();
-    // const output = await service.getAllRecords({ fqdn }, options);
-    const output = {};
-    const response: IGeneralResponse<typeof output> = {
-      status: 200,
-      success: true,
-      data: output,
-      onchain: !!options.onchain,
-      empty: false,
-    };
-    res.setHeader("Cache-Control", `public, max-age=600`);
-    res.status(response.status).json(response);
+    try {
+      const { fqdn } = req.params;
+      const options = extract(req);
+      const service = new EdnsService();
+      const output = await service.getAllRecords({ fqdn }, options);
+      const response: IGeneralResponse<typeof output> = {
+        status: 200,
+        success: true,
+        data: output,
+        onchain: !!options.onchain,
+        empty: false,
+      };
+      res.setHeader("Cache-Control", `public, max-age=600`);
+      res.status(response.status).json(response);
+    } catch (error) {
+      next(error);
+    }
   }
 
   public static async getReverseAddressRecord(req: Request, res: Response, next: NextFunction): Promise<void> {
