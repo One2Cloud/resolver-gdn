@@ -16,7 +16,8 @@ export default class EdnsController {
     const { fqdn } = req.params;
     const options = extract(req);
     const service = new EdnsService();
-    const output = await service.getAllRecords({ fqdn }, options);
+    // const output = await service.getAllRecords({ fqdn }, options);
+    const output = {};
     const response: IGeneralResponse<typeof output> = {
       status: 200,
       success: true,
