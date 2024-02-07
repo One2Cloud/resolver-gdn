@@ -28,6 +28,7 @@ import {
   IGetTypedTextListOutput,
   IGetAllRecordsInput,
   IGetAllRecordsOutput,
+  IGetUrlRecordOutput,
 } from "../interfaces/IEdnsResolverService.interface";
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../contracts/ethereum/edns-v2/typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
@@ -41,6 +42,7 @@ import { DomainExpiredError } from "../errors/domain-expired.error";
 import { getChainId } from "../utils/get-chain-id";
 import { ZERO_ADDRESS } from "../network-config";
 import { Key } from "../app/listener/handler";
+import { url } from "inspector";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const NetworkConfig = getNetworkConfig();
@@ -101,6 +103,24 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
       typedTexts,
       typedAddresses,
     };
+  }
+
+  public async getUrlRecord(fqdn: string, options?: IOptions | undefined): Promise<IGetUrlRecordOutput | undefined> {
+    const redis = createRedisClient();
+    if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
+
+    const { host = "@", name, tld } = extractFqdn(fqdn);
+    const net = options?.net || Net.MAINNET;
+
+    const _host_ = await this.getHost(`${host}.${name}.${tld}`);
+    if (!_host_) return undefined;
+    const user = (await redis.hget(Key.HOST_USER_$HASH(net, `${host}.${name}.${tld}`), "user")) || undefined;
+    if (user) {
+      const text = (await redis.hget(Key.HOST_RECORDS_$HASH(net, `${host}.${name}.${tld}`, user), `typed_text:url`)) || undefined;
+      return { text };
+    } else {
+      return undefined;
+    }
   }
 
   public async getBridgedEvent(input: IGetBridgedEventInput, options?: IOptions): Promise<string | undefined> {

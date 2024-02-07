@@ -6,6 +6,7 @@ import { UnknownOperationError } from "../errors/operation-not-found.error";
 
 const router = express.Router();
 router.get("/record/:fqdn", EdnsController.getAllRecords, errorHandler);
+router.get("/record/:fqdn/chain", EdnsController.getUrlRecord, errorHandler);
 
 router.get("/record/:address/domain", EdnsController.getReverseAddressRecord, errorHandler);
 router.get("/record/:fqdn/address/list", EdnsController.getMultiCoinAddressList, errorHandler);

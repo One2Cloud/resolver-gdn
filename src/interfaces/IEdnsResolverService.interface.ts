@@ -14,6 +14,10 @@ export interface IGetAllRecordsOutput {
   typedAddresses: { [key: string]: string };
 }
 
+export interface IGetUrlRecordOutput {
+  text: string | undefined;
+}
+
 export interface IGetReverseAddressRecordInput {
   address: string;
 }

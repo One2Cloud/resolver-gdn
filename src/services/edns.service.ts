@@ -19,6 +19,7 @@ import {
   IGetTypedTextListOutput,
   IGetTypedTextRecordInput,
   IGetTypedTextRecordOutput,
+  IGetUrlRecordOutput,
 } from "../interfaces/IEdnsResolverService.interface";
 import { putSqsMessage } from "../utils/put-sqs-message";
 import { DomainProvider } from "../constants/domain-provider.constant";
@@ -48,6 +49,10 @@ export class EdnsService implements IEdnsResolverService {
     }
     // Get the reverse address from Redis by default
     return await this._v2RedisService.getAllRecords(input, options);
+  }
+
+  public async getUrlRecord(fqdn: string): Promise<IGetUrlRecordOutput | undefined> {
+    return await this._v2RedisService.getUrlRecord(fqdn);
   }
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
