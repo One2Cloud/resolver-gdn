@@ -720,15 +720,23 @@ export const main = async (body: IBody): Promise<void> => {
 
           const connection = mongoose.connection;
           console.log(connection.readyState);
-
           connection.on("error", console.error.bind(console, "connection error:"));
           const collection = connection.db.collection("pods");
           console.log(collection.dbName);
-          let _data = await collection.findOneAndUpdate(
-            { name: data.text.substring(data.text.indexOf("/") + 2, data.text.lastIndexOf(".pod")) },
-            { $set: { boundedDomain: fqdn, domain: fqdn } },
-          );
-          console.log(_data);
+
+          if (data.host === "@") {
+            let _data = await collection.findOneAndUpdate(
+              { name: data.text.substring(data.text.indexOf("/") + 2, data.text.lastIndexOf(".pod")) },
+              { $set: { boundedDomain: `${data.name}.${data.tld}`, domain: `${data.name}.${data.tld}` } },
+            );
+            console.log(_data);
+          } else {
+            let _data = await collection.findOneAndUpdate(
+              { name: data.text.substring(data.text.indexOf("/") + 2, data.text.lastIndexOf(".pod")) },
+              { $set: { boundedDomain: fqdn, domain: fqdn } },
+            );
+            console.log(_data);
+          }
           connection.close();
         }
         break;
