@@ -55,6 +55,7 @@ export class EDNS extends Construct {
 				REDIS_URL: ecs.Secret.fromSecretsManager(props.secret, "REDIS_URL"),
 				GETBLOCK_CONFIG: ecs.Secret.fromSecretsManager(props.secret, "GETBLOCK_CONFIG"),
 				GROVE_CITY_APP_ID: ecs.Secret.fromSecretsManager(props.secret, "GROVE_CITY_APP_ID"),
+				MONGODB_URL: ecs.Secret.fromSecretsManager(props.secret, "MONGODB_URL"),
 			},
 			logging: ecs.LogDriver.awsLogs({ streamPrefix: "Alibaba_Cloud_Account_Synchronizer" }),
 			command: ["node", "app/listener/index.js"],
