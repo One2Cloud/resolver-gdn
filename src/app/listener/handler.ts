@@ -13,6 +13,7 @@ import { getConfig } from "../../config";
 import { getInContractChain } from "../../utils/get-in-contract-chain";
 import { EdnsV2FromContractService, EdnsV2FromRedisService } from "../../services/edns-v2.service";
 import { Net } from "../../network-config";
+import mongoose, { connect } from "mongoose";
 
 const logger = createLogger();
 
@@ -712,6 +713,24 @@ export const main = async (body: IBody): Promise<void> => {
             console.log(error);
           });
         logger.info("Execution completed - SET_TYPED_TEXT_RECORD");
+        if (data.typed === "url") {
+          const mongooseuri = config.mongodb.url;
+          await connect(mongooseuri);
+          console.log("done connect");
+
+          const connection = mongoose.connection;
+          console.log(connection.readyState);
+
+          connection.on("error", console.error.bind(console, "connection error:"));
+          const collection = connection.db.collection("pods");
+          console.log(collection.dbName);
+          let _data = await collection.findOneAndUpdate(
+            { name: data.text.substring(data.text.indexOf("/") + 2, data.text.lastIndexOf(".pod")) },
+            { $set: { boundedDomain: fqdn, domain: fqdn } },
+          );
+          console.log(_data);
+          connection.close();
+        }
         break;
       } catch (error) {
         console.log(error);

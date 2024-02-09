@@ -6,6 +6,9 @@ export interface IConfig {
   redis: {
     url: string;
   };
+  mongodb: {
+    url: string;
+  };
   edns: {
     sqs: {
       queue: {
@@ -19,12 +22,13 @@ export const getConfig = (): IConfig => ({
   redis: {
     url: process.env.REDIS_URL || "localhost:6379",
   },
+  mongodb: {
+    url: process.env.MONGODB_URL || "mongodb://localhost:27017",
+  },
   edns: {
     sqs: {
       queue: {
-        url:
-          process.env.EVENT_HANDLER_SQS_QUEUE_URL ||
-          "UNKNOWN_EVENT_HANDLER_SQS_QUEUE_URL",
+        url: process.env.EVENT_HANDLER_SQS_QUEUE_URL || "UNKNOWN_EVENT_HANDLER_SQS_QUEUE_URL",
       },
     },
   },
