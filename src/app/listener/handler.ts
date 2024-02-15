@@ -722,7 +722,7 @@ export const main = async (body: IBody): Promise<void> => {
               podName.replace('://','')
             }
 
-            //Save -> {domain} : https://{domain}.meta.edns.link/
+            //Save -> {podName} : {domain}
             await client
                 .pipeline()
                 .hset(
