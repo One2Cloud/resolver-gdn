@@ -714,17 +714,29 @@ export const main = async (body: IBody): Promise<void> => {
           });
         logger.info("Execution completed - SET_TYPED_TEXT_RECORD");
         if (data.typed === "url") {
-          await client
-            .pipeline()
-            .hset(
-              `edns:${body.net}:pod:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}:name`,
-              `pod_name:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}`,
-              `domain_fqdn:${fqdn}`,
-            )
-            .exec()
-            .catch((error) => {
-              console.log(error);
-            });
+          if (data.text.endsWith('.dedrive.io')) {
+            //check is web hosting url ( eg, nextguard.pod.gateway.dedrive.io)
+            let podName = data.text.split('.')[0]
+            if(podName.includes('://')){
+              // check if text includs http or https ( eg,  http://nextguard)
+              podName.replace('://','')
+            }
+
+            //Save -> {domain} : https://{domain}.meta.edns.link/
+            await client
+                .pipeline()
+                .hset(
+                    `edns:${body.net}:pod:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}:name`,
+                    `pod_name:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}`,
+                    `domain_fqdn:${fqdn}`,
+                )
+                .exec()
+                .catch((error) => {
+                  console.log(error);
+                });
+          }
+
+
         }
         // if (data.typed === "url") {
         //   const mongooseuri = config.mongodb.url;
