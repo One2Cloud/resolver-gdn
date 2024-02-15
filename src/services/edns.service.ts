@@ -28,6 +28,8 @@ import { extractFqdn } from "../utils/extract-fqdn";
 import { Mainnets as EdnsMainnets, Net } from "../network-config";
 import { IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
 import { DomainNotFoundError } from "../errors/domain-not-found.error";
+import { createRedisClient } from "../utils/create-redis-client";
+import { Key } from "../app/listener/handler";
 
 export class EdnsService implements IEdnsResolverService {
   private readonly _v2RedisService: EdnsV2FromRedisService;
@@ -471,6 +473,14 @@ export class EdnsService implements IEdnsResolverService {
       output = await this._v2RedisService.getTypedTextList(fqdn, options);
     }
     return output;
+  }
+  public async getFqdnByPod(podName: string, options?: IOptions) {
+    const redis = createRedisClient();
+    const user = await redis.hget(`edns:${options?.net}:pod:${podName}:name`, "user");
+    if (!user) return { records_list: [] };
+    const _list_ = await redis.smembers(Key.HOST_RECORDS_$SET(Net.MAINNET, podName, user));
+    const list = _list_.filter((r) => r.startsWith("pod_name:")).map((r) => r.replace("pod_name:", ""));
+    return { records_list: list };
   }
 
   public async revalidate(fqdn: string): Promise<void> {

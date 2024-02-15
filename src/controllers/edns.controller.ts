@@ -331,6 +331,25 @@ export default class EdnsController {
     }
   }
 
+  public static async getByPodname(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      let { podname } = req.params;
+      const options = extract(req);
+      const service = new EdnsService();
+      const [output] = await Promise.all([service.getFqdnByPod(podname, options)]);
+      const response: IGeneralResponse<typeof output> = {
+        status: 200,
+        success: true,
+        data: output,
+        onchain: !!options.onchain,
+        empty: !output?.records_list,
+      };
+      res.status(response.status).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async revalidate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       let { fqdn } = req.params;

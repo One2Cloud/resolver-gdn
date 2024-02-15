@@ -714,31 +714,44 @@ export const main = async (body: IBody): Promise<void> => {
           });
         logger.info("Execution completed - SET_TYPED_TEXT_RECORD");
         if (data.typed === "url") {
-          const mongooseuri = config.mongodb.url;
-          await connect(mongooseuri);
-          console.log("done connect");
-
-          const connection = mongoose.connection;
-          console.log(connection.readyState);
-          connection.on("error", console.error.bind(console, "connection error:"));
-          const collection = connection.db.collection("pods");
-          console.log(collection.dbName);
-
-          if (data.host === "@") {
-            let _data = await collection.findOneAndUpdate(
-              { name: data.text.substring(data.text.indexOf("/") + 2, data.text.lastIndexOf(".pod")) },
-              { $set: { boundedDomain: `${data.name}.${data.tld}`, domain: `${data.name}.${data.tld}` } },
-            );
-            console.log(_data);
-          } else {
-            let _data = await collection.findOneAndUpdate(
-              { name: data.text.substring(data.text.indexOf("/") + 2, data.text.lastIndexOf(".pod")) },
-              { $set: { boundedDomain: fqdn, domain: fqdn } },
-            );
-            console.log(_data);
-          }
-          connection.close();
+          await client
+            .pipeline()
+            .hset(
+              `edns:${body.net}:pod:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}:name`,
+              `pod_name:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}`,
+              `domain_fqdn:${fqdn}`,
+            )
+            .exec()
+            .catch((error) => {
+              console.log(error);
+            });
         }
+        // if (data.typed === "url") {
+        //   const mongooseuri = config.mongodb.url;
+        //   await connect(mongooseuri);
+        //   console.log("done connect");
+
+        //   const connection = mongoose.connection;
+        //   console.log(connection.readyState);
+        //   connection.on("error", console.error.bind(console, "connection error:"));
+        //   const collection = connection.db.collection("pods");
+        //   console.log(collection.dbName);
+
+        //   if (data.host === "@") {
+        //     let _data = await collection.findOneAndUpdate(
+        //       { name: data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod")) },
+        //       { $set: { boundedDomain: `${data.name}.${data.tld}`, domain: `${data.name}.${data.tld}` } },
+        //     );
+        //     console.log(_data);
+        //   } else {
+        //     let _data = await collection.findOneAndUpdate(
+        //       { name: data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod")) },
+        //       { $set: { boundedDomain: fqdn, domain: fqdn } },
+        //     );
+        //     console.log(_data);
+        //   }
+        //   connection.close();
+        // }
         break;
       } catch (error) {
         console.log(error);

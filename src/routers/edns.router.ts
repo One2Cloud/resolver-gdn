@@ -21,6 +21,7 @@ router.get("/owner/:fqdn", EdnsController.getOwner, errorHandler);
 router.get("/expiry/:fqdn", EdnsController.getExpiry, errorHandler);
 router.get("/account/:account", EdnsController.getDomainsByAccount, errorHandler);
 router.get("/host/:fqdn", EdnsController.getHost, errorHandler);
+router.get("/pod/:podname", EdnsController.getByPodname, errorHandler);
 
 router.post("/revalidate/:fqdn", EdnsController.revalidate, errorHandler);
 
