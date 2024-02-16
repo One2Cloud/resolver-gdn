@@ -336,13 +336,13 @@ export default class EdnsController {
       let { podname } = req.params;
       const options = extract(req);
       const service = new EdnsService();
-      const [output] = await Promise.all([service.getFqdnByPod(podname, options)]);
+      const output = await service.getUrlByPodName(podname, options);
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
         data: output,
         onchain: !!options.onchain,
-        empty: !output?.records_list,
+        empty: !!output,
       };
       res.status(response.status).json(response);
     } catch (error) {

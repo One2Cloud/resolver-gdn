@@ -419,6 +419,16 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
     const list = _list_.filter((r) => r.startsWith("typed_text:")).map((r) => r.replace("typed_text:", ""));
     return { records_list: list };
   }
+
+  public async getUrlByPodName(podName:string, options?:IOptions):Promise<string>{
+    const redis = await createRedisClient()
+    const net = options?.net || Net.MAINNET;
+    const url = await redis.hget(Key.DEDRIVE_DNS_$SET(net,podName),'url')
+    if(!url){
+      throw new Error(" Url Record Not Found ")
+    }
+    return url
+  }
 }
 
 export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsRegistryService {
@@ -430,6 +440,15 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     return await getChainId(options?.net || Net.MAINNET, parseInt(inContractChain));
   }
 
+  public async getUrlByPodName(podName:string, options?:IOptions):Promise<string>{
+    const redis = await createRedisClient()
+    const net = options?.net || Net.MAINNET;
+    const url = await redis.hget(Key.DEDRIVE_DNS_$SET(net,podName),'url')
+    if(!url){
+      throw new Error(" Url Record Not Found ")
+    }
+    return url
+  }
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
@@ -714,4 +733,6 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     }
     return undefined;
   }
+
+
 }

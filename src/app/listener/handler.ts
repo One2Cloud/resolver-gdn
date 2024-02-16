@@ -227,6 +227,9 @@ export class Key {
   public static ACCOUNT_BRIDGE_ACCEPTED_$SET(net: Net, account: string): string {
     return `edns:${net}:account:${account}:bridge:accepted`;
   }
+  public static DEDRIVE_DNS_$SET(net: Net, podName: string): string {
+    return `dedrive:${net}:pod:${podName}`;
+  }
 }
 /**
  * edns:domain:DOMAIN:info => Hash - The info of the domain
@@ -722,15 +725,20 @@ export const main = async (body: IBody): Promise<void> => {
               podName.replace('://','')
             }
 
+
+            let _fqdn = fqdn
+            if(_fqdn.includes("@.")){
+              _fqdn = _fqdn.replace("@.",'')
+            }
             //Save -> {podName} : https://{domain}.meta.edns.link/
             await client
                 .pipeline()
                 .hset(
-                    `edns:${body.net}:pod:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}:name`,
-                    `pod_name:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}`,
-                    `domain_fqdn:${fqdn}`,
-                )
-                .exec()
+                    // `edns:${body.net}:pod:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}:name`,
+                    // `pod_name:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}`,
+                    // `domain_fqdn:${fqdn}`,
+                    Key.DEDRIVE_DNS_$SET(body.net,podName),`url`,`https://${_fqdn}.meta.edns.link/`
+                ).exec()
                 .catch((error) => {
                   console.log(error);
                 });

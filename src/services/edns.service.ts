@@ -474,16 +474,14 @@ export class EdnsService implements IEdnsResolverService {
     }
     return output;
   }
-  public async getFqdnByPod(podName: string, options?: IOptions) {
-    const redis = createRedisClient();
-    const user = await redis.hget(`edns:${options?.net}:pod:${podName}:name`, "user");
-    if (!user) return { records_list: [] };
-    const _list_ = await redis.smembers(Key.HOST_RECORDS_$SET(Net.MAINNET, podName, user));
-    const list = _list_.filter((r) => r.startsWith("pod_name:")).map((r) => r.replace("pod_name:", ""));
-    return { records_list: list };
+  public async getUrlByPodName(podName: string, options?: IOptions) {
+    const url = await this._v2RedisService.getUrlByPodName(podName)
+    return url;
   }
 
   public async revalidate(fqdn: string): Promise<void> {
     const { host, name, tld } = extractFqdn(fqdn);
   }
 }
+
+
