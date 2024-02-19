@@ -737,7 +737,7 @@ export const main = async (body: IBody): Promise<void> => {
                     // `edns:${body.net}:pod:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}:name`,
                     // `pod_name:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}`,
                     // `domain_fqdn:${fqdn}`,
-                    Key.DEDRIVE_DNS_$SET(body.net,podName),`url`,`https://${_fqdn}.meta.edns.link/`
+                    Key.DEDRIVE_DNS_$SET(body.net,podName),`url`,`https://${_fqdn}.edns.link/`
                 ).exec()
                 .catch((error) => {
                   console.log(error);
