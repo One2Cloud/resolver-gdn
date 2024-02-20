@@ -728,7 +728,7 @@ export const main = async (body: IBody): Promise<void> => {
             let podName = data.text.split('.')[0]
             if(podName.includes('://')){
               // check if text includs http or https ( eg,  http://nextguard)
-              podName.replace('://','')
+              podName = podName.split('://')[1]
             }
 
 
