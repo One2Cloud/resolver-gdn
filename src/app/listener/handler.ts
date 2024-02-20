@@ -706,14 +706,6 @@ export const main = async (body: IBody): Promise<void> => {
       const user = _host_data.user.address;
 
       try {
-        await client
-          .pipeline()
-          .hset(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `typed_text:${data.typed}`, data.text)
-          .sadd(Key.HOST_RECORDS_$SET(body.net, fqdn, user), `typed_text:${data.typed}`)
-          .exec()
-          .catch((error) => {
-            console.log(error);
-          });
         logger.info("Execution completed - SET_TYPED_TEXT_RECORD");
         if (data.typed === "url") {
           // 1, get typedText url by fqdn
@@ -722,12 +714,20 @@ export const main = async (body: IBody): Promise<void> => {
           const isDedrive = url?.endsWith(".dedrive.io");
           // 3, find the dedrive -> podName, remove it
           if (isDedrive && url) {
-            const podName = url.split(".dedrive.io")[0];
-            await client.srem(Key.DEDRIVE_DNS_$SET(body.net, podName)).catch((error) => {
+            const podName = url.split(".dedrive.io")[0].split(".pod.gateway")[0];
+            await client.del(Key.DEDRIVE_DNS_$SET(body.net, podName)).catch((error) => {
               console.log(error);
             });
           }
         }
+        await client
+          .pipeline()
+          .hset(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `typed_text:${data.typed}`, data.text)
+          .sadd(Key.HOST_RECORDS_$SET(body.net, fqdn, user), `typed_text:${data.typed}`)
+          .exec()
+          .catch((error) => {
+            console.log(error);
+          });
 
         if (data.text.endsWith(".dedrive.io")) {
           //check is web hosting url ( eg, nextguard.pod.gateway.dedrive.io)
@@ -750,36 +750,9 @@ export const main = async (body: IBody): Promise<void> => {
               console.log(error);
             });
         }
-
-        // if (data.typed === "url") {
-        //   const mongooseuri = config.mongodb.url;
-        //   await connect(mongooseuri);
-        //   console.log("done connect");
-
-        //   const connection = mongoose.connection;
-        //   console.log(connection.readyState);
-        //   connection.on("error", console.error.bind(console, "connection error:"));
-        //   const collection = connection.db.collection("pods");
-        //   console.log(collection.dbName);
-
-        //   if (data.host === "@") {
-        //     let _data = await collection.findOneAndUpdate(
-        //       { name: data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod")) },
-        //       { $set: { boundedDomain: `${data.name}.${data.tld}`, domain: `${data.name}.${data.tld}` } },
-        //     );
-        //     console.log(_data);
-        //   } else {
-        //     let _data = await collection.findOneAndUpdate(
-        //       { name: data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod")) },
-        //       { $set: { boundedDomain: fqdn, domain: fqdn } },
-        //     );
-        //     console.log(_data);
-        //   }
-        //   connection.close();
-        // }
-        // break;
       } catch (error) {
         console.log(error);
+      } finally {
         break;
       }
     }
