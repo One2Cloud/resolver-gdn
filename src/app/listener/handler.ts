@@ -13,7 +13,6 @@ import { getConfig } from "../../config";
 import { getInContractChain } from "../../utils/get-in-contract-chain";
 import { EdnsV2FromContractService, EdnsV2FromRedisService } from "../../services/edns-v2.service";
 import { Net } from "../../network-config";
-import mongoose, { connect } from "mongoose";
 
 const logger = createLogger();
 
@@ -717,36 +716,41 @@ export const main = async (body: IBody): Promise<void> => {
           });
         logger.info("Execution completed - SET_TYPED_TEXT_RECORD");
         if (data.typed === "url") {
-          //TODO remove pod record first.remove it if domain previous record is web hosting url
           // 1, get typedText url by fqdn
+          const url = (await client.hget(Key.HOST_RECORDS_$HASH(body.net, fqdn, user), `typed_text:url`)) || undefined;
           // 2, check if .endsWith('.dedrive.io')
+          const isDedrive = url?.endsWith(".dedrive.io");
           // 3, find the dedrive -> podName, remove it
-
-
-          if (data.text.endsWith('.dedrive.io')) {
-            //check is web hosting url ( eg, nextguard.pod.gateway.dedrive.io)
-            let podName = data.text.split('.')[0]
-            if(podName.includes('://')){
-              // check if text includs http or https ( eg,  http://nextguard)
-              podName = podName.split('://')[1]
-            }
-
-
-            let _fqdn = fqdn
-            if(_fqdn.includes("@.")){
-              _fqdn = _fqdn.replace("@.",'')
-            }
-            //Save -> {podName} : https://{domain}.meta.edns.link/
-            await client
-                .pipeline()
-                .hset(
-                    Key.DEDRIVE_DNS_$SET(body.net,podName),`url`,`https://${_fqdn}.edns.link/`
-                ).exec()
-                .catch((error) => {
-                  console.log(error);
-                });
+          if (isDedrive && url) {
+            const podName = url.split(".dedrive.io")[0];
+            await client.srem(Key.HOST_RECORDS_$SET(body.net, fqdn, user), `pod:${podName}`).catch((error) => {
+              console.log(error);
+            });
           }
         }
+
+        if (data.text.endsWith(".dedrive.io")) {
+          //check is web hosting url ( eg, nextguard.pod.gateway.dedrive.io)
+          let podName = data.text.split(".")[0];
+          if (podName.includes("://")) {
+            // check if text includs http or https ( eg,  http://nextguard)
+            podName = podName.split("://")[1];
+          }
+
+          let _fqdn = fqdn;
+          if (_fqdn.includes("@.")) {
+            _fqdn = _fqdn.replace("@.", "");
+          }
+          //Save -> {podName} : https://{domain}.meta.edns.link/
+          await client
+            .pipeline()
+            .hset(Key.DEDRIVE_DNS_$SET(body.net, podName), `url`, `https://${_fqdn}.edns.link/`)
+            .exec()
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+
         // if (data.typed === "url") {
         //   const mongooseuri = config.mongodb.url;
         //   await connect(mongooseuri);
@@ -773,7 +777,7 @@ export const main = async (body: IBody): Promise<void> => {
         //   }
         //   connection.close();
         // }
-        break;
+        // break;
       } catch (error) {
         console.log(error);
         break;
