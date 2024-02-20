@@ -723,7 +723,7 @@ export const main = async (body: IBody): Promise<void> => {
           // 3, find the dedrive -> podName, remove it
           if (isDedrive && url) {
             const podName = url.split(".dedrive.io")[0];
-            await client.srem(Key.HOST_RECORDS_$SET(body.net, fqdn, user), `pod:${podName}`).catch((error) => {
+            await client.srem(Key.DEDRIVE_DNS_$SET(body.net, podName)).catch((error) => {
               console.log(error);
             });
           }
