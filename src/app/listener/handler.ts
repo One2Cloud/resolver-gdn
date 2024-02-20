@@ -717,6 +717,12 @@ export const main = async (body: IBody): Promise<void> => {
           });
         logger.info("Execution completed - SET_TYPED_TEXT_RECORD");
         if (data.typed === "url") {
+          //TODO remove pod record first.remove it if domain previous record is web hosting url
+          // 1, get typedText url by fqdn
+          // 2, check if .endsWith('.dedrive.io')
+          // 3, find the dedrive -> podName, remove it
+
+
           if (data.text.endsWith('.dedrive.io')) {
             //check is web hosting url ( eg, nextguard.pod.gateway.dedrive.io)
             let podName = data.text.split('.')[0]
@@ -734,17 +740,12 @@ export const main = async (body: IBody): Promise<void> => {
             await client
                 .pipeline()
                 .hset(
-                    // `edns:${body.net}:pod:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}:name`,
-                    // `pod_name:${data.text.substring(data.text.indexOf("/") + 1, data.text.lastIndexOf(".pod"))}`,
-                    // `domain_fqdn:${fqdn}`,
                     Key.DEDRIVE_DNS_$SET(body.net,podName),`url`,`https://${_fqdn}.edns.link/`
                 ).exec()
                 .catch((error) => {
                   console.log(error);
                 });
           }
-
-
         }
         // if (data.typed === "url") {
         //   const mongooseuri = config.mongodb.url;
