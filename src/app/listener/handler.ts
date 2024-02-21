@@ -468,7 +468,7 @@ export const main = async (body: IBody): Promise<void> => {
         });
       }
       await batch
-        .sadd(Key.DOMAIN_HOSTS_$SET(body.net, data.host), data.host)
+        .sadd(Key.DOMAIN_HOSTS_$SET(body.net, domain), data.host)
         .set(Key.HOST_TTL_$KV(body.net, `${data.host}.${domain}`), data.ttl)
         .exec();
       break;
@@ -479,7 +479,7 @@ export const main = async (body: IBody): Promise<void> => {
       await client
         .pipeline()
         .del(Key.HOST_USER_$HASH(body.net, `${data.host}.${domain}`))
-        .srem(Key.DOMAIN_HOSTS_$SET(body.net, data.host), data.host)
+        .srem(Key.DOMAIN_HOSTS_$SET(body.net, domain), data.host)
         .del(Key.HOST_TTL_$KV(body.net, `${data.host}.${domain}`))
         .exec();
       break;
