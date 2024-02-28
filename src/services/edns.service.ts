@@ -1,5 +1,5 @@
 import { EdnsV1FromContractService } from "./edns-v1.service";
-import { EdnsV2FromContractService, EdnsV2FromRedisService } from "./edns-v2.service";
+import { EdnsV2FromContractService, EdnsV2FromRedisService, EdnsV2FromSubgraphService } from "./edns-v2.service";
 import { IOptions } from "../interfaces/IOptions.interface";
 import {
   IEdnsResolverService,
@@ -35,11 +35,13 @@ export class EdnsService implements IEdnsResolverService {
   private readonly _v2RedisService: EdnsV2FromRedisService;
   private readonly _v2ContractService: EdnsV2FromContractService;
   private readonly _v1ContractService: EdnsV1FromContractService;
+  private readonly _v2SubgraphService: EdnsV2FromSubgraphService;
 
   constructor() {
     this._v2RedisService = new EdnsV2FromRedisService();
     this._v2ContractService = new EdnsV2FromContractService();
     this._v1ContractService = new EdnsV1FromContractService();
+    this._v2SubgraphService = new EdnsV2FromSubgraphService();
   }
 
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions): Promise<IGetAllRecordsOutput | undefined> {
@@ -66,7 +68,8 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (!output && options?.onchain) {
       // Return the reverse address from V2 contract if the incoming request specify to V2 and require on chain data
-      return this._v2ContractService.getReverseAddressRecord(input, options);
+      return this._v2SubgraphService.getReverseAddressRecord(input, options);
+      // return this._v2ContractService.getReverseAddressRecord(input, options);
     }
     if (!output && !options?.onchain) {
       // Get the reverse address from Redis by default
@@ -74,7 +77,8 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (!output) {
       // Get the reverse address from V2 contract if cache from Redis is missing
-      output = await this._v2ContractService.getReverseAddressRecord(input, options);
+      output = await this._v2SubgraphService.getReverseAddressRecord(input, options);
+      // output = await this._v2ContractService.getReverseAddressRecord(input, options);
       cache = "miss";
     } else {
       cache = "hit";
@@ -100,13 +104,15 @@ export class EdnsService implements IEdnsResolverService {
       return this._v1ContractService.getAddressRecord(input, options);
     }
     if (!output && options?.onchain) {
-      return this._v2ContractService.getAddressRecord(input, options);
+      return this._v2SubgraphService.getAddressRecord(input, options);
+      // return this._v2ContractService.getAddressRecord(input, options);
     }
     if (!output && !options?.onchain) {
       output = await this._v2RedisService.getAddressRecord(input, options);
     }
     if (!output) {
-      output = await this._v2ContractService.getAddressRecord(input, options);
+      // output = await this._v2ContractService.getAddressRecord(input, options);
+      output = await this._v2SubgraphService.getAddressRecord(input, options);
       cache = "miss";
     } else {
       cache = "hit";
@@ -240,13 +246,15 @@ export class EdnsService implements IEdnsResolverService {
       return this._v1ContractService.getTypedTextRecord(input, options);
     }
     if (!output && options?.onchain) {
-      return this._v2ContractService.getTypedTextRecord(input, options);
+      // return this._v2ContractService.getTypedTextRecord(input, options);
+      return this._v2SubgraphService.getTypedTextRecord(input, options);
     }
     if (!output && !options?.onchain) {
       output = await this._v2RedisService.getTypedTextRecord(input, options);
     }
     if (!output) {
-      output = await this._v2ContractService.getTypedTextRecord(input, options);
+      // output = await this._v2ContractService.getTypedTextRecord(input, options);
+      output = await this._v2SubgraphService.getTypedTextRecord(input, options);
       cache = "miss";
     } else {
       cache = "hit";
@@ -418,6 +426,8 @@ export class EdnsService implements IEdnsResolverService {
       return 3600;
     }
     if (!ttl && options?.onchain) {
+      console.log("going in getTtl onchain");
+
       return this._v2ContractService.getTtl(fqdn, options);
     }
     if (!ttl && !options?.onchain) {
@@ -475,7 +485,7 @@ export class EdnsService implements IEdnsResolverService {
     return output;
   }
   public async getUrlByPodName(podName: string, options?: IOptions) {
-    const url = await this._v2RedisService.getUrlByPodName(podName)
+    const url = await this._v2RedisService.getUrlByPodName(podName);
     return url;
   }
 
@@ -483,5 +493,3 @@ export class EdnsService implements IEdnsResolverService {
     const { host, name, tld } = extractFqdn(fqdn);
   }
 }
-
-

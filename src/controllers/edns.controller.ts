@@ -61,6 +61,8 @@ export default class EdnsController {
       const { address } = req.params;
       const options = extract(req);
       const service = new EdnsService();
+      console.log(options);
+
       const output = await service.getReverseAddressRecord({ address }, options);
       const response: IGeneralResponse<typeof output> = {
         status: 200,
@@ -148,7 +150,8 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getTypedTextRecord({ fqdn, typed }, options), service.getTtl(fqdn, options)]);
+      // const [output, ttl] = await Promise.all([service.getTypedTextRecord({ fqdn, typed }, options), service.getTtl(fqdn, options)]);
+      const output = await service.getTypedTextRecord({ fqdn, typed }, options);
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
@@ -156,7 +159,7 @@ export default class EdnsController {
         onchain: !!options.onchain,
         empty: !output?.text,
       };
-      res.setHeader("Cache-Control", `public, max-age=${ttl || 600}`);
+      res.setHeader("Cache-Control", `public, max-age=${600}`);
       res.status(response.status).json(response);
     } catch (error) {
       next(error);

@@ -16,6 +16,9 @@ export interface IConfig {
       };
     };
   };
+  subgraph: {
+    url: string;
+  };
 }
 
 export const getConfig = (): IConfig => ({
@@ -31,6 +34,9 @@ export const getConfig = (): IConfig => ({
         url: process.env.EVENT_HANDLER_SQS_QUEUE_URL || "UNKNOWN_EVENT_HANDLER_SQS_QUEUE_URL",
       },
     },
+  },
+  subgraph: {
+    url: process.env.SUBGRAPH_URL || "UNKNOWN_SUBGRAPH_URL",
   },
 });
 

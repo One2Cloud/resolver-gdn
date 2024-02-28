@@ -43,9 +43,12 @@ import { getChainId } from "../utils/get-chain-id";
 import { ZERO_ADDRESS } from "../network-config";
 import { Key } from "../app/listener/handler";
 import { url } from "inspector";
+import { createClient, cacheExchange, fetchExchange } from "urql";
+import config from "../config";
 
 const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const NetworkConfig = getNetworkConfig();
+
   const network = NetworkConfig[chainId];
   const contracts = ContractAddress.find((contract) => contract.chainId === network.chainId);
   if (contracts?.addresses["Registrar"] && contracts?.addresses["Registry.Diamond"] && contracts?.addresses["PublicResolver"]) {
@@ -459,11 +462,14 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
     if (!options?.chainId) throw new MissingChainIdError();
-    const contracts = getContracts(options.chainId);
-
-    const fqdn = await contracts.Resolver.getReverseAddress(input.address);
-    if (fqdn) return { fqdn };
-    return undefined;
+    try {
+      const contracts = getContracts(options.chainId);
+      const fqdn = await contracts.Resolver.getReverseAddress(input.address);
+      if (fqdn) return { fqdn };
+      return undefined;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
@@ -686,5 +692,156 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
       return expiry.toNumber();
     }
     return undefined;
+  }
+}
+
+export class EdnsV2FromSubgraphService implements IEdnsResolverService {
+  getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions | undefined): Promise<IGetReverseAddressRecordOutput | undefined> {
+    const tokensQuery = `
+      query Test($id: ID!){
+        reverseAddressRecord (id:$id){
+          domain
+        }
+      }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: input.address })
+      .toPromise()
+      .then((res) => res.data);
+    return data.reverseAddressRecord !== null ? { fqdn: data.reverseAddressRecord.domain } : { fqdn: undefined };
+  }
+  public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions | undefined): Promise<IGetAddressRecordOutput | undefined> {
+    const tokensQuery = `
+      query Test($id: ID!){
+        domain(id: $id) {
+          owner {
+            address
+          }
+        }
+      }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: input.fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    return data.domain !== null ? { address: data.domain.owner.address } : { address: undefined };
+  }
+  public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions | undefined): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
+    const tokensQuery = `
+    query Test($id: ID!){
+      multiCoinAddressRecord(id: $id) {
+        MultiCoinAddress
+        multiCoinId
+      }
+    }
+  `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: input.fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    return data.multiCoinAddressRecord !== null
+      ? { coin: data.multiCoinAddressRecord.multiCoinId, address: data.multiCoinAddressRecord.MultiCoinAddress }
+      : { coin: undefined, address: undefined };
+  }
+  public async getTextRecord(input: IGetTextRecordInput, options?: IOptions | undefined): Promise<IGetTextRecordOutput | undefined> {
+    const tokensQuery = `
+    query Test($id: ID!){
+      textRecord(id:$id) {
+        text
+      }
+    }
+  `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: `${input.fqdn}_text` })
+      .toPromise()
+      .then((res) => res.data);
+    return data.textRecord !== null ? { text: data.textRecord.text } : { text: undefined };
+  }
+  public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions | undefined): Promise<IGetTypedTextRecordOutput | undefined> {
+    const tokensQuery = `
+    query getTypeText($id: ID!){
+      typedTextRecord(id: $id) {
+        text
+        typed
+      }
+    }
+  `;
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+    const data = await client
+      .query(tokensQuery, { id: input.fqdn })
+      .toPromise()
+      .then((res) => res.data);
+
+    return data.typedTextRecord !== null ? { typed: data.typedTextRecord.typed, text: data.typedTextRecord.text } : { typed: undefined, text: undefined };
+  }
+  public async getNftRecord(input: IGetNftRecordInput, options?: IOptions | undefined): Promise<IGetNftRecordOutput | undefined> {
+    const tokensQuery = `
+    query Test($id: ID!){
+      nftrecord(id: $id) {
+        tokenId
+        contract
+        chainId
+      }
+    }
+  `;
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+    const data = await client
+      .query(tokensQuery, { id: input.fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    return data.nftrecord !== null
+      ? { chainId: data.nftrecord.chainId, contractAddress: data.nftrecord.contract, tokenId: data.nftrecord.tokenId }
+      : { chainId: undefined, contractAddress: undefined, tokenId: undefined };
+  }
+  public async getUrlByPodName(podName: string, options?: IOptions | undefined): Promise<string | undefined> {
+    const tokensQuery = `
+    query Test($id: ID!)    {
+      podRecord(id: $id) {
+        url
+      }
+    }
+  `;
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+    const data = await client
+      .query(tokensQuery, { id: podName })
+      .toPromise()
+      .then((res) => res.data);
+    return data.podRecord !== null ? data.podRecord.url : undefined;
   }
 }
