@@ -30,6 +30,7 @@
     "morgan": "^1.10.0",
     "p-limit": "^3.1.0",
     "source-map-support": "^0.5.21",
+    "urql": "^4.0.6",
     "winston": "^3.8.2"
   },
   "devDependencies": {
