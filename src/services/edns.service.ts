@@ -426,8 +426,6 @@ export class EdnsService implements IEdnsResolverService {
       return 3600;
     }
     if (!ttl && options?.onchain) {
-      console.log("going in getTtl onchain");
-
       return this._v2ContractService.getTtl(fqdn, options);
     }
     if (!ttl && !options?.onchain) {
@@ -485,8 +483,25 @@ export class EdnsService implements IEdnsResolverService {
     return output;
   }
   public async getUrlByPodName(podName: string, options?: IOptions) {
-    const url = await this._v2RedisService.getUrlByPodName(podName);
-    return url;
+    let output: string | undefined;
+    let cache: "miss" | "hit" = "miss";
+    if (options?.version === "v1") {
+      throw new Error("Not implemented for v1");
+    }
+    if (!output && options?.onchain) {
+      return this._v2SubgraphService.getUrlByPodName(podName, options);
+    }
+    if (!output && !options?.onchain) {
+      output = await this._v2RedisService.getUrlByPodName(podName);
+    }
+    if (!output) {
+      output = await this._v2SubgraphService.getUrlByPodName(podName, options);
+      cache = "miss";
+    } else {
+      cache = "hit";
+    }
+    // const url = await this._v2RedisService.getUrlByPodName(podName);
+    return output;
   }
 
   public async revalidate(fqdn: string): Promise<void> {
