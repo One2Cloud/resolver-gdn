@@ -68,17 +68,16 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (!output && options?.onchain) {
       // Return the reverse address from V2 contract if the incoming request specify to V2 and require on chain data
-      return this._v2SubgraphService.getReverseAddressRecord(input, options);
-      // return this._v2ContractService.getReverseAddressRecord(input, options);
+      return this._v2ContractService.getReverseAddressRecord(input, options);
     }
     if (!output && !options?.onchain) {
       // Get the reverse address from Redis by default
-      output = await this._v2RedisService.getReverseAddressRecord(input, options);
+      // output = await this._v2RedisService.getReverseAddressRecord(input, options);
+      output = await this._v2SubgraphService.getReverseAddressRecord(input, options);
     }
     if (!output) {
       // Get the reverse address from V2 contract if cache from Redis is missing
-      output = await this._v2SubgraphService.getReverseAddressRecord(input, options);
-      // output = await this._v2ContractService.getReverseAddressRecord(input, options);
+      output = await this._v2ContractService.getReverseAddressRecord(input, options);
       cache = "miss";
     } else {
       cache = "hit";
@@ -104,15 +103,15 @@ export class EdnsService implements IEdnsResolverService {
       return this._v1ContractService.getAddressRecord(input, options);
     }
     if (!output && options?.onchain) {
-      return this._v2SubgraphService.getAddressRecord(input, options);
-      // return this._v2ContractService.getAddressRecord(input, options);
+      return this._v2ContractService.getAddressRecord(input, options);
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getAddressRecord(input, options);
+      output = await this._v2SubgraphService.getAddressRecord(input, options);
+      // output = await this._v2RedisService.getAddressRecord(input, options);
     }
     if (!output) {
-      // output = await this._v2ContractService.getAddressRecord(input, options);
-      output = await this._v2SubgraphService.getAddressRecord(input, options);
+      output = await this._v2ContractService.getAddressRecord(input, options);
+      // output = await this._v2SubgraphService.getAddressRecord(input, options);
       cache = "miss";
     } else {
       cache = "hit";
@@ -150,12 +149,15 @@ export class EdnsService implements IEdnsResolverService {
       return this._v1ContractService.getMultiCoinAddressRecord(input, options);
     }
     if (!output && options?.onchain) {
+      // return this._v2SubgraphService.getMultiCoinAddressRecord(input, options);
       return this._v2ContractService.getMultiCoinAddressRecord(input, options);
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getMultiCoinAddressRecord(input, options);
+      output = await this._v2SubgraphService.getMultiCoinAddressRecord(input, options);
+      // output = await this._v2RedisService.getMultiCoinAddressRecord(input, options);
     }
     if (!output) {
+      // output = await this._v2SubgraphService.getMultiCoinAddressRecord(input, options);
       output = await this._v2ContractService.getMultiCoinAddressRecord(input, options);
       cache = "miss";
     } else {
@@ -201,13 +203,16 @@ export class EdnsService implements IEdnsResolverService {
       return this._v1ContractService.getTextRecord(input, options);
     }
     if (!output && options?.onchain) {
+      // return this._v2SubgraphService.getTextRecord(input, options);
       return this._v2ContractService.getTextRecord(input, options);
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getTextRecord(input, options);
+      output = await this._v2SubgraphService.getTextRecord(input, options);
+      // output = await this._v2RedisService.getTextRecord(input, options);
     }
     if (!output) {
       output = await this._v2ContractService.getTextRecord(input, options);
+      // output = await this._v2SubgraphService.getTextRecord(input, options);
       cache = "miss";
     } else {
       cache = "hit";
@@ -246,15 +251,16 @@ export class EdnsService implements IEdnsResolverService {
       return this._v1ContractService.getTypedTextRecord(input, options);
     }
     if (!output && options?.onchain) {
-      // return this._v2ContractService.getTypedTextRecord(input, options);
-      return this._v2SubgraphService.getTypedTextRecord(input, options);
+      return this._v2ContractService.getTypedTextRecord(input, options);
+      // return this._v2SubgraphService.getTypedTextRecord(input, options);
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getTypedTextRecord(input, options);
+      output = await this._v2SubgraphService.getTypedTextRecord(input, options);
+      // output = await this._v2RedisService.getTypedTextRecord(input, options);
     }
     if (!output) {
-      // output = await this._v2ContractService.getTypedTextRecord(input, options);
-      output = await this._v2SubgraphService.getTypedTextRecord(input, options);
+      output = await this._v2ContractService.getTypedTextRecord(input, options);
+      // output = await this._v2SubgraphService.getTypedTextRecord(input, options);
       cache = "miss";
     } else {
       cache = "hit";
@@ -301,12 +307,15 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (!output && options?.onchain) {
       return this._v2ContractService.getNftRecord(input, options);
+      // return this._v2SubgraphService.getNftRecord(input, options);
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getNftRecord(input, options);
+      // output = await this._v2RedisService.getNftRecord(input, options);
+      output = await this._v2SubgraphService.getNftRecord(input, options);
     }
     if (!output) {
       output = await this._v2ContractService.getNftRecord(input, options);
+      // output = await this._v2SubgraphService.getNftRecord(input, options);
       cache = "miss";
     } else {
       cache = "hit";
@@ -354,7 +363,8 @@ export class EdnsService implements IEdnsResolverService {
       throw new Error("Not available on chain.");
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getDomain(fqdn, options);
+      // output = await this._v2RedisService.getDomain(fqdn, options);
+      output = await this._v2ContractService.getDomain(fqdn, options);
       if (!output) throw new DomainNotFoundError(fqdn);
     }
     return output;
@@ -489,13 +499,15 @@ export class EdnsService implements IEdnsResolverService {
       throw new Error("Not implemented for v1");
     }
     if (!output && options?.onchain) {
-      return this._v2SubgraphService.getUrlByPodName(podName, options);
+      return this._v2ContractService.getUrlByPodName(podName, options);
+      // return this._v2SubgraphService.getUrlByPodName(podName, options);
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getUrlByPodName(podName);
+      output = await this._v2SubgraphService.getUrlByPodName(podName, options);
+      // output = await this._v2RedisService.getUrlByPodName(podName);
     }
     if (!output) {
-      output = await this._v2SubgraphService.getUrlByPodName(podName, options);
+      output = await this._v2ContractService.getUrlByPodName(podName, options);
       cache = "miss";
     } else {
       cache = "hit";
