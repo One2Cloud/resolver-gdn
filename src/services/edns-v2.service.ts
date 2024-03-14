@@ -32,7 +32,7 @@ import {
 } from "../interfaces/IEdnsResolverService.interface";
 import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../contracts/ethereum/edns-v2/typechain";
 import { IOptions } from "../interfaces/IOptions.interface";
-import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
+import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
 import { CantConnectContractError } from "../errors/cant-connect-contract.error";
 import { CantGetDomainNameError } from "../errors/cant-get-domain-name.error";
 import { CantGetChainIdError } from "../errors/cant-get-chain-id.error";
@@ -695,15 +695,334 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   }
 }
 
-export class EdnsV2FromSubgraphService implements IEdnsResolverService {
-  getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
-    throw new Error("Method not implemented.");
+export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsRegistryService {
+  private groupByDomainWithCombinedHosts = (data: any): IGetDomainOutputSubgraph[] => {
+    const groupedData: any = {};
+
+    for (const item of data) {
+      const domain = item.domain.fqdn;
+      const host = item.host;
+
+      groupedData[domain] = groupedData[domain] || {
+        host: [],
+        domain: item.domain, // Copy the entire domain object
+      };
+
+      groupedData[domain].host.push(host);
+    }
+
+    return Object.values(groupedData); // Convert object to array for consistent output
+  };
+
+  public async isExists(fqdn: string, options?: IOptions | undefined, _chainId?: number | undefined): Promise<boolean> {
+    const tokensQuery = `
+    query MyQuery ($id: ID!){
+      host(id: $id) {
+        id
+        ttl
+        host
+        fqdn
+        domain {
+          fqdn
+        }
+      }
+    }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    return data.host !== null;
+  }
+  public async isExpired(fqdn: string, options?: IOptions | undefined, _chainId?: number | undefined): Promise<boolean> {
+    const tokensQuery = `
+    query MyQuery ($id: ID!){
+      domain(id: $id) {
+        expiry
+      }
+    }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    let _date;
+    data.domain.expiry.toString().length === 10 ? (_date = new Date(data.domain.expiry * 1000)) : (_date = new Date(data.domain.expiry));
+    const now = new Date();
+    return now.getTime() > _date.getTime();
+  }
+  public async getDomain(fqdn: string, options?: IOptions | undefined): Promise<IGetDomainOutput | undefined> {
+    const tokensQuery = `
+    query MyQuery ($id: ID!, $_id: String!){
+      hosts(where: {domain: $_id}) {
+        host
+      }
+      domain(id: $id) {
+        expiry
+        fqdn
+        id
+        name
+        operator {
+          address
+        }
+        resolver
+        owner {
+          address
+        }
+        user {
+          address
+          expiry
+        }
+      }
+    }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: fqdn, _id: fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    return data.domain !== null
+      ? {
+          chain: 137,
+          owner: data.domain.owner.address,
+          expiry: data.domain.expiry,
+          resolver: data.domain.resolver,
+          bridging: undefined,
+          operators: data.domain.operator.address,
+          user: {
+            address: data.domain.user.address,
+            expiry: data.domain.expiry,
+          },
+          hosts: data.hosts.map((host: { host: string }) => host.host),
+        }
+      : { chain: undefined, owner: undefined, expiry: undefined, resolver: undefined, bridging: undefined, operators: undefined, user: undefined, hosts: undefined };
+  }
+  public async getDomainsByAccount(account: string, options?: IOptions | undefined): Promise<IGetDomainOutputSubgraph[] | undefined> {
+    const tokensQuery = `
+    query MyQuery ($id: ID!, $_id: String!){
+      hosts(where: {domain: $_id}) {
+        host
+      }
+      domain(id: $id) {
+        expiry
+        fqdn
+        name
+        operator {
+          address
+        }
+        resolver
+        owner {
+          address
+        }
+        user {
+          address
+          expiry
+        }
+      }
+    }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: account })
+      .toPromise()
+      .then((res) => res.data);
+    return data.hosts !== null ? this.groupByDomainWithCombinedHosts(data.hosts) : undefined;
+  }
+  public async getHost(fqdn: string, options?: IOptions | undefined): Promise<IGetHostOutput | undefined> {
+    const tokensQuery = `
+    query MyQuery ($id: ID!){
+      host(id: $id) {
+        operator {
+          address
+        }
+        user {
+          address
+          expiry
+        }
+        records {
+          multiCoinAddressRecord {
+            id
+          }
+          nftRecord {
+            id
+          }
+          podRecord {
+            podName
+          }
+          reverseAddressRecord {
+            id
+          }
+          textRecord {
+            id
+          }
+          typedtextRecord {
+            typed
+          }
+        }
+      }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    let _record: any[] = [];
+
+    for (const [key, record] of Object.entries(data.host.records)) {
+      if (record !== null) {
+        _record.push(key);
+      }
+    }
+    return data.host !== null
+      ? {
+          operators: data.host.operator.address,
+          user: {
+            address: data.host.user.address,
+            expiry: data.host.expiry,
+          },
+          records: _record,
+        }
+      : undefined;
+  }
+  public async getTtl(fqdn: string, options?: IOptions | undefined): Promise<number | undefined> {
+    const tokensQuery = `
+    query MyQuery ($id: ID!){
+      host(id: $id) {
+        ttl
+      }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    return data.host !== null ? data.host.ttl : undefined;
+  }
+  public async getOwner(fqdn: string, options?: IOptions | undefined): Promise<string | undefined> {
+    const tokensQuery = `
+    query MyQuery ($id: ID!){
+      host(id: $id) {
+        owner {
+          address
+        }
+      }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    return data.host !== null ? data.host.owner.address : undefined;
+  }
+  public async getExpiry(fqdn: string, options?: IOptions | undefined): Promise<number | undefined> {
+    const tokensQuery = `
+    query MyQuery ($id: ID!){
+      domain(id: $id) {
+        expiry
+      }
+    }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    let _date;
+    data.domain.expiry.toString().length === 10 ? (_date = new Date(data.domain.expiry * 1000)) : (_date = new Date(data.domain.expiry));
+    return _date.getTime();
+  }
+  public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
+    const tokensQuery = `
+    query Test($id: ID!) {
+      records(id: $id) {
+        multiCoinAddressRecord {
+          id
+        }
+        nftRecord {
+          id
+        }
+        podRecord {
+          id
+        }
+        reverseAddressRecord {
+          id
+        }
+        textRecord {
+          id
+        }
+        typedtextRecord {
+          id
+          typed
+          text
+        }
+      }
+    }
+    `;
+
+    const client = createClient({
+      url: config.subgraph.url,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+
+    const data = await client
+      .query(tokensQuery, { id: input.fqdn })
+      .toPromise()
+      .then((res) => res.data);
+    return data.records;
   }
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions | undefined): Promise<IGetReverseAddressRecordOutput | undefined> {
     const tokensQuery = `
       query Test($id: ID!){
         reverseAddressRecord (id:$id){
-          domain
+          id
+          reverse_address
+          records {
+            host {
+              fqdn
+            }
+          }
         }
       }
     `;
@@ -717,7 +1036,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService {
       .query(tokensQuery, { id: input.address })
       .toPromise()
       .then((res) => res.data);
-    return data.reverseAddressRecord !== null ? { fqdn: data.reverseAddressRecord.domain } : { fqdn: undefined };
+    return data.reverseAddressRecord !== null ? { fqdn: data.reverseAddressRecord.records.host.fqdn } : { fqdn: undefined };
   }
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions | undefined): Promise<IGetAddressRecordOutput | undefined> {
     const tokensQuery = `
@@ -798,7 +1117,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService {
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
-      .query(tokensQuery, { id: input.fqdn })
+      .query(tokensQuery, { id: `${input.fqdn}_${input.typed}` })
       .toPromise()
       .then((res) => res.data);
 

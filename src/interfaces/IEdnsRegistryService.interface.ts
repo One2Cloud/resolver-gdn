@@ -16,6 +16,24 @@ export interface IGetDomainOutput {
   hosts: string[] | undefined;
 }
 
+export interface IGetDomainOutputSubgraph {
+  host: string[];
+  domain: {
+    expiry: string;
+    operator: {
+      address: string;
+    } | null;
+    owner: {
+      address: string;
+    } | null;
+    user: {
+      address: string;
+      expiry: string;
+    } | null;
+    resolver: string | null;
+  };
+}
+
 export interface IGetHostOutput {
   operators: string[] | undefined;
   user:
@@ -31,7 +49,7 @@ export interface IEdnsRegistryService {
   isExists(fqdn: string, options?: IOptions, _chainId?: number): Promise<boolean>;
   isExpired(fqdn: string, options?: IOptions, _chainId?: number): Promise<boolean>;
   getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined>;
-  getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[] | undefined>;
+  getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[] | IGetDomainOutputSubgraph[] | undefined>;
   getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined>;
   getTtl(fqdn: string, options?: IOptions): Promise<number | undefined>;
   getOwner(fqdn: string, options?: IOptions): Promise<string | undefined>;
