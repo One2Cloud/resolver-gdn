@@ -4,9 +4,9 @@ export interface IGetDomainOutput {
   chain: number | undefined;
   owner: string | undefined;
   expiry: luxon.DateTime | undefined;
-  resolver: string | undefined;
+  resolver: string | undefined | null;
   bridging: boolean | undefined;
-  operators: string[] | undefined;
+  operators: string[] | undefined | null;
   user:
     | {
         address: string;

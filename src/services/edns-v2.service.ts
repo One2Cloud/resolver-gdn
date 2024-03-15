@@ -794,24 +794,29 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       exchanges: [cacheExchange, fetchExchange],
     });
 
+    let result;
     const data = await client
       .query(tokensQuery, { id: fqdn, _id: fqdn })
       .toPromise()
       .then((res) => res.data);
+    console.log(data.domain.owner.address);
+
+    result = {
+      chain: 137,
+      owner: data.domain.owner.address,
+      expiry: luxon.DateTime.fromSeconds(Number(data.domain.expiry)),
+      resolver: data.domain.resolver ? data.domain.resolver : null,
+      bridging: undefined,
+      operators: data.domain.operator ? [data.domain.operator.address] : null,
+      user: {
+        address: data.domain.owner.address,
+        expiry: luxon.DateTime.fromSeconds(Number(data.domain.expiry)),
+      },
+      hosts: data.hosts.map((host: { host: string }) => host.host),
+    };
+
     return data.domain !== null
-      ? {
-          chain: 137,
-          owner: data.domain.owner.address,
-          expiry: data.domain.expiry,
-          resolver: data.domain.resolver,
-          bridging: undefined,
-          operators: data.domain.operator.address,
-          user: {
-            address: data.domain.user.address,
-            expiry: data.domain.expiry,
-          },
-          hosts: data.hosts.map((host: { host: string }) => host.host),
-        }
+      ? result
       : { chain: undefined, owner: undefined, expiry: undefined, resolver: undefined, bridging: undefined, operators: undefined, user: undefined, hosts: undefined };
   }
   public async getDomainsByAccount(account: string, options?: IOptions | undefined): Promise<IGetDomainOutputSubgraph[] | undefined> {
@@ -917,6 +922,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       host(id: $id) {
         ttl
       }
+    }
     `;
 
     const client = createClient({
@@ -928,6 +934,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
+
     return data.host !== null ? data.host.ttl : undefined;
   }
   public async getOwner(fqdn: string, options?: IOptions | undefined): Promise<string | undefined> {

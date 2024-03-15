@@ -364,7 +364,7 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (!output && !options?.onchain) {
       // output = await this._v2RedisService.getDomain(fqdn, options);
-      output = await this._v2ContractService.getDomain(fqdn, options);
+      output = await this._v2SubgraphService.getDomain(fqdn, options);
       if (!output) throw new DomainNotFoundError(fqdn);
     }
     return output;
@@ -439,7 +439,7 @@ export class EdnsService implements IEdnsResolverService {
       return this._v2ContractService.getTtl(fqdn, options);
     }
     if (!ttl && !options?.onchain) {
-      ttl = await this._v2RedisService.getTtl(fqdn, options);
+      ttl = await this._v2SubgraphService.getTtl(fqdn, options);
     }
     if (!ttl) {
       ttl = await this._v2ContractService.getTtl(fqdn, options);
