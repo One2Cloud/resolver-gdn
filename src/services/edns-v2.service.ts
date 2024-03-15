@@ -1010,6 +1010,9 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: input.fqdn })
       .toPromise()
       .then((res) => res.data);
+
+    console.log(data);
+
     return data.records;
   }
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions | undefined): Promise<IGetReverseAddressRecordOutput | undefined> {

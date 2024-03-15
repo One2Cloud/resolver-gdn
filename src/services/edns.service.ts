@@ -52,7 +52,7 @@ export class EdnsService implements IEdnsResolverService {
       throw new Error("Not available on chain.");
     }
     // Get the reverse address from Redis by default
-    return await this._v2RedisService.getAllRecords(input, options);
+    return await this._v2SubgraphService.getAllRecords(input, options);
   }
 
   public async getUrlRecord(fqdn: string): Promise<IGetUrlRecordOutput | undefined> {
