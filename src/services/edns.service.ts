@@ -1,5 +1,5 @@
 import { EdnsV1FromContractService } from "./edns-v1.service";
-import { EdnsV2FromContractService, EdnsV2FromRedisService, EdnsV2FromSubgraphService } from "./edns-v2.service";
+import { EdnsV2FromContractService, EdnsV2FromRedisService, EdnsV2FromSubgraphService, EdnsV2FromEnsSubgraphService } from "./edns-v2.service";
 import { IOptions } from "../interfaces/IOptions.interface";
 import {
   IEdnsResolverService,
@@ -36,12 +36,14 @@ export class EdnsService implements IEdnsResolverService {
   private readonly _v2ContractService: EdnsV2FromContractService;
   private readonly _v1ContractService: EdnsV1FromContractService;
   private readonly _v2SubgraphService: EdnsV2FromSubgraphService;
+  private readonly _v2EnsSubgraphService: EdnsV2FromEnsSubgraphService;
 
   constructor() {
     this._v2RedisService = new EdnsV2FromRedisService();
     this._v2ContractService = new EdnsV2FromContractService();
     this._v1ContractService = new EdnsV1FromContractService();
     this._v2SubgraphService = new EdnsV2FromSubgraphService();
+    this._v2EnsSubgraphService = new EdnsV2FromEnsSubgraphService();
   }
 
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions): Promise<IGetAllRecordsOutput | undefined> {
@@ -99,6 +101,10 @@ export class EdnsService implements IEdnsResolverService {
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     let output: IGetAddressRecordOutput | undefined;
     let cache: "miss" | "hit" = "miss";
+    if (options?.ens) {
+      console.log("reached there 4")
+      return this._v2EnsSubgraphService.getAddressRecord(input, options);
+    }
     if (options?.version === "v1") {
       return this._v1ContractService.getAddressRecord(input, options);
     }

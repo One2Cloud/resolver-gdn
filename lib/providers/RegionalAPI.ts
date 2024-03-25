@@ -55,6 +55,10 @@ export class RegionalAPI extends Construct {
               secret,
               "SUBGRAPH_URL"
             ),
+            ENS_SUBGRAPH_URL: apprunner.Secret.fromSecretsManager(
+              secret,
+              "ENS_SUBGRAPH_URL"
+            ),            
           },
           environmentVariables: {
             EVENT_HANDLER_SQS_QUEUE_URL: props.queue.queueUrl,

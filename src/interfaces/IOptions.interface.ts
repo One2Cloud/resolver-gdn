@@ -5,4 +5,5 @@ export interface IOptions {
   net?: Net;
   version?: string;
   onchain?: boolean;
+  ens?: boolean; // TO-DO: no option for ens
 }

@@ -8,6 +8,7 @@ export const extract = (req: Request): IOptions => {
     chain_id,
     version = "v2", // Default value for version
     net = Net.MAINNET, // Default value for net
+    ens = false, // TO-DO: no option for ens
   } = req.query;
 
   // Convert chain_id to a number if it's not undefined
@@ -19,5 +20,6 @@ export const extract = (req: Request): IOptions => {
     net: net as Net,
     version: version as string,
     onchain: onchain === "true",
+    ens: ens === "true", // TO-DO: no option for ens
   };
 };

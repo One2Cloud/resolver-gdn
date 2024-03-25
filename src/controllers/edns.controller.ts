@@ -80,11 +80,14 @@ export default class EdnsController {
 
   public static async getAddressRecord(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      console.log("reached there 1")
       let { fqdn } = req.params;
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
+      console.log("reached there 2")
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getAddressRecord({ fqdn }, options), service.getTtl(fqdn, options)]);
+      console.log("reached there 3")
+      const [output, ttl] = await Promise.all([service.getAddressRecord({ fqdn }, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,

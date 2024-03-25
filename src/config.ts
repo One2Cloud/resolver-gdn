@@ -19,6 +19,9 @@ export interface IConfig {
   subgraph: {
     url: string;
   };
+  ens_subgraph: {
+    url: string;
+  };
 }
 
 export const getConfig = (): IConfig => ({
@@ -37,6 +40,9 @@ export const getConfig = (): IConfig => ({
   },
   subgraph: {
     url: process.env.SUBGRAPH_URL || "UNKNOWN_SUBGRAPH_URL",
+  },
+  ens_subgraph: {
+    url: process.env.ENS_SUBGRAPH_URL || "UNKNOWN_ENS_SUBGRAPH_URL",
   },
 });
 
