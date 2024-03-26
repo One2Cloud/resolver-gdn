@@ -1,7 +1,7 @@
-import { InContractChain } from "./constants/in-contract-chain.constant";
 import * as dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+import { InContractChain } from "./constants/in-contract-chain.constant";
 
 dotenv.config();
 
@@ -15,29 +15,16 @@ interface IGetBlockConfig {
   };
 }
 
-let GetBlockConfig: IGetBlockConfig = { shared: {} };
-
-if (process.env.GETBLOCK_CONFIG) {
-  GetBlockConfig = JSON.parse(process.env.GETBLOCK_CONFIG);
-}
-
-try {
-  GetBlockConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "getblock.config.json"), "utf-8"));
-} catch {
-  console.warn("getblock.config.json not found");
-}
-
-export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 export enum Net {
   MAINNET = "mainnet",
   TESTNET = "testnet",
 }
 
+export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 export enum Network {
   ETHEREUM = 1,
   GOERLI = 5,
-  SEPOLIA = 11155111,
   BNB_CHAIN = 56,
   BNB_CHAIN_TESTNET = 97,
   POLYGON = 137,
@@ -50,10 +37,8 @@ export enum Network {
   FANTOM_TESTNET = 4002,
   OPTIMISM = 10,
   OPTIMISM_GOERLI = 420,
-  OPTIMISM_SEPOLIA = 11155420,
   ARBITRUM = 42161,
   ARBITRUM_GOERLI = 421613,
-  ARBITRUM_SEPOLIA = 421614,
   IOTEX = 4689,
   IOTEX_TESTNET = 4690,
   OKC = 66,
@@ -121,17 +106,19 @@ export const Mainnets = [
   Network.MOONRIVER,
   Network.HARMONY,
   Network.IOTEX,
+  Network.FLARE_COTON_2,
+  Network.FLARE_SONGBIRD,
+  Network._HARDHAT_,
 ];
 
 export const Testnets = [
   Network.GOERLI,
-  Network.SEPOLIA,
   Network.BNB_CHAIN_TESTNET,
   Network.POLYGON_MUMBAI,
   Network.AVALANCHE_FUJI,
   Network.FANTOM_TESTNET,
-  Network.OPTIMISM_SEPOLIA,
-  Network.ARBITRUM_SEPOLIA,
+  // Network.OPTIMISM_GOERLI,
+  // Network.ARBITRUM_GOERLI,
   Network.GNOSIS_CHIADO,
   Network.CELO_ALFAJORES,
   Network.OKC_TESTNET,
@@ -141,12 +128,9 @@ export const Testnets = [
   Network.HARMONY_TESTNET,
   Network.IOTEX_TESTNET,
   Network.LINEA_GOERLI,
-  Network.BASE_SEPOLIA,
+  Network.BASE_GOERLI,
   Network.SCROLL_SEPOLIA,
   Network.CORE_DAO_TESTNET,
-  Network.FLARE_COTON_2,
-  Network.FLARE_SONGBIRD,
-  Network._HARDHAT_,
 ];
 
 export interface INetworkConfig {
@@ -212,6 +196,19 @@ export interface IConfig {
 }
 
 export const getNetworkConfig = (): INetworkConfig => {
+  let GetBlockConfig: IGetBlockConfig = { shared: {} };
+
+  if (process.env.GETBLOCK_CONFIG) {
+    GetBlockConfig = JSON.parse(process.env.GETBLOCK_CONFIG);
+  }
+
+  if (!GetBlockConfig) {
+    try {
+      GetBlockConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "getblock.config.json"), "utf-8"));
+    } catch {
+      console.warn("getblock.config.json not found");
+    }
+  }
   return {
     [Network.ETHEREUM]: {
       chainId: Network.ETHEREUM,
@@ -297,22 +294,6 @@ export const getNetworkConfig = (): INetworkConfig => {
         },
       },
     },
-    [Network.SEPOLIA]: {
-      chainId: Network.SEPOLIA,
-      chain: InContractChain.ETHEREUM,
-      name: "Ethereum Sepolia",
-      symbol: "SepETH",
-      url: `https://go.getblock.io/${GetBlockConfig.shared.eth.sepolia.jsonRpc[0]}`,
-      slip44: {
-        coinId: 60,
-      },
-      layerzero: {
-        chainId: 10161,
-        endpoint: {
-          address: "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1",
-        },
-      },
-    },
     [Network.BNB_CHAIN]: {
       chainId: Network.BNB_CHAIN,
       chain: InContractChain.BNB,
@@ -382,7 +363,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chain: InContractChain.AVALANCHE,
       name: "Avalanche C-Chain",
       symbol: "AVAX",
-      url: `https://go.getblock.io/${GetBlockConfig.shared.avax.mainnet.jsonRpc[0]}/ext/bc/C/rpc`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.avax.mainnet.jsonRpc[0]}`,
       slip44: {
         coinId: 9005,
       },
@@ -414,7 +395,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chain: InContractChain.AVALANCHE,
       name: "Avalanche Fuji",
       symbol: "AVAX",
-      url: `https://go.getblock.io/${GetBlockConfig.shared.avax.testnet.jsonRpc[0]}/ext/bc/C/rpc`,
+      url: `https://go.getblock.io/${GetBlockConfig.shared.avax.testnet.jsonRpc[0]}`,
       slip44: {
         coinId: 9005,
       },
@@ -545,22 +526,6 @@ export const getNetworkConfig = (): INetworkConfig => {
         },
       },
     },
-    [Network.ARBITRUM_SEPOLIA]: {
-      chainId: Network.ARBITRUM_SEPOLIA,
-      chain: InContractChain.ARBITRUM,
-      name: "Arbitrum Sepolia",
-      symbol: "ETH",
-      url: `https://sepolia-rollup.arbitrum.io/rpc`,
-      slip44: {
-        coinId: 9001,
-      },
-      layerzero: {
-        chainId: 10231,
-        endpoint: {
-          address: "0x6098e96a28E02f27B1e6BD381f870F1C8Bd169d3",
-        },
-      },
-    },
     [Network.OPTIMISM]: {
       chainId: Network.OPTIMISM,
       chain: InContractChain.OPTIMISM,
@@ -614,22 +579,6 @@ export const getNetworkConfig = (): INetworkConfig => {
           symbol: "LINK",
           decimals: 18,
           address: "0x4911b761993b9c8c0d14Ba2d86902AF6B0074F5B",
-        },
-      },
-    },
-    [Network.OPTIMISM_SEPOLIA]: {
-      chainId: Network.OPTIMISM_SEPOLIA,
-      chain: InContractChain.OPTIMISM,
-      name: "Optimism Sepolia",
-      symbol: "ETH",
-      url: `https://sepolia.optimism.io`,
-      slip44: {
-        coinId: 614,
-      },
-      layerzero: {
-        chainId: 10232,
-        endpoint: {
-          address: "0x55370E0fBB5f5b8dAeD978BA1c075a499eB107B8",
         },
       },
     },
@@ -848,7 +797,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chainId: Network.MOONBASE_ALPHA,
       name: "Moonbase Alphanet",
       symbol: "DEV",
-      url: `https://moonbase-alpha.public.blastapi.io`,
+      url: `https://moonbeam-alpha.api.onfinality.io/public`,
       layerzero: {
         chainId: 10126,
         endpoint: {
@@ -1040,7 +989,7 @@ export const getNetworkConfig = (): INetworkConfig => {
     [Network.BASE]: {
       chain: InContractChain.BASE,
       chainId: Network.BASE,
-      name: "Base Mainnet",
+      name: "BASE",
       symbol: "ETH",
       url: `https://go.getblock.io/${GetBlockConfig.shared.base.mainnet.jsonRpc[0]}`,
       slip44: {
@@ -1146,30 +1095,30 @@ export const getNetworkConfig = (): INetworkConfig => {
         },
       },
     },
-    [Network.FLARE]: {
-      chain: InContractChain.FLARE,
-      chainId: Network.FLARE,
-      name: "Flare Mainnet",
-      symbol: "FLR",
-      url: `https://flare-api.flare.network/ext/C/rpc`,
-    },
-    [Network.FLARE_COTON_2]: {
-      chain: InContractChain.FLARE,
-      chainId: Network.FLARE_COTON_2,
-      name: "Flare Coton 2 Testnet",
-      symbol: "C2FLR",
-      url: `https://coston2-api.flare.network/ext/C/rpc`,
-    },
-    [Network.FLARE_SONGBIRD]: {
-      chain: InContractChain.FLARE,
-      chainId: Network.FLARE_SONGBIRD,
-      name: "Flare Songbird Canary Network",
-      symbol: "SGB",
-      url: `https://songbird-api.flare.network/ext/C/rpc	`,
-    },
+    // [Network.FLARE]: {
+    //   chain: InContractChain.FLARE,
+    //   chainId: Network.FLARE,
+    //   name: "Flare Mainnet",
+    //   symbol: "FLR",
+    //   url: `https://flare-api.flare.network/ext/C/rpc`,
+    // },
+    // [Network.FLARE_COTON_2]: {
+    //   chain: InContractChain.FLARE,
+    //   chainId: Network.FLARE_COTON_2,
+    //   name: "Flare Coton 2 Testnet",
+    //   symbol: "C2FLR",
+    //   url: `https://coston2-api.flare.network/ext/C/rpc`,
+    // },
+    // [Network.FLARE_SONGBIRD]: {
+    //   chain: InContractChain.FLARE,
+    //   chainId: Network.FLARE_SONGBIRD,
+    //   name: "Flare Songbird Canary Network",
+    //   symbol: "SGB",
+    //   url: `https://songbird-api.flare.network/ext/C/rpc	`,
+    // },
   };
 };
 
-const config: INetworkConfig = getNetworkConfig();
+// const config: INetworkConfig = getNetworkConfig();
 
-export default config;
+// export default config;
