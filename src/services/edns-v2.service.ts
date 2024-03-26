@@ -764,7 +764,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     return now.getTime() > _date.getTime();
   }
   public async getDomain(fqdn: string, options?: IOptions | undefined): Promise<IGetDomainOutput | undefined> {
-    const { chainId } = options;
+    const { chainId = 137 } = options || {};
     const tokensQuery = `
     query MyQuery ($id: ID!, $_id: String!){
       hosts(where: {domain: $_id}) {
