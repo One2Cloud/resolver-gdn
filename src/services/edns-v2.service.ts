@@ -764,6 +764,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     return now.getTime() > _date.getTime();
   }
   public async getDomain(fqdn: string, options?: IOptions | undefined): Promise<IGetDomainOutput | undefined> {
+    const { chainId } = options;
     const tokensQuery = `
     query MyQuery ($id: ID!, $_id: String!){
       hosts(where: {domain: $_id}) {
@@ -802,7 +803,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     console.log(data.domain.owner.address);
 
     result = {
-      chain: 137,
+      chain: chainId,
       owner: data.domain.owner.address,
       expiry: luxon.DateTime.fromSeconds(Number(data.domain.expiry)),
       resolver: data.domain.resolver ? data.domain.resolver : null,
