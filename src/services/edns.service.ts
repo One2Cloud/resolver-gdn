@@ -379,7 +379,7 @@ export class EdnsService implements IEdnsResolverService {
       return this._v2ContractService.getOwner(fqdn, options);
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getOwner(fqdn, options);
+      output = await this._v2SubgraphService.getOwner(fqdn, options);
     }
     return output;
   }
@@ -393,7 +393,7 @@ export class EdnsService implements IEdnsResolverService {
       return this._v2ContractService.getExpiry(fqdn, options);
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getExpiry(fqdn, options);
+      output = await this._v2SubgraphService.getExpiry(fqdn, options);
     }
     if (!output) {
       output = await this._v2ContractService.getExpiry(fqdn, options);
@@ -410,7 +410,7 @@ export class EdnsService implements IEdnsResolverService {
       throw new Error("Not available on chain.");
     }
     if (output.length === 0 && !options?.onchain) {
-      output = await this._v2RedisService.getDomainsByAccount(account, options);
+      output = await this._v2SubgraphService.getDomainsByAccount(account, options);
     }
     return output;
   }
