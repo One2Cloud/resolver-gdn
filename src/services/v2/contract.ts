@@ -1,7 +1,4 @@
-import ContractAddress from "../../static/edns-contracts-address.json";
-import { getNetworkConfig, Net } from "../../network-config";
-import * as luxon from "luxon";
-import { getProvider } from "../../utils/get-provider";
+import { Net } from "../../network-config";
 import { createRedisClient } from "../../utils/create-redis-client";
 import { isValidFqdn } from "../../utils/is-valid-fqdn";
 import { extractFqdn } from "../../utils/extract-fqdn";
@@ -17,34 +14,24 @@ import {
   IGetAddressRecordOutput,
   IEdnsResolverService,
   IGetAddressRecordInput,
-  IGetMultiCoinAddressListOutput,
   IGetMultiCoinAddressRecordInput,
   IGetTypedTextRecordInput,
   IGetNftRecordInput,
   IGetTextRecordInput,
   IGetReverseAddressRecordInput,
   IGetReverseAddressRecordOutput,
-  IGetBridgedEventInput,
-  IGetTypedTextListOutput,
   IGetAllRecordsInput,
   IGetAllRecordsOutput,
-  IGetUrlRecordOutput,
 } from "../../interfaces/IEdnsResolverService.interface";
-import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../../contracts/ethereum/edns-v2/typechain";
 import { IOptions } from "../../interfaces/IOptions.interface";
-import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
-import { CantConnectContractError } from "../../errors/cant-connect-contract.error";
+import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
 import { CantGetDomainNameError } from "../../errors/cant-get-domain-name.error";
 import { CantGetChainIdError } from "../../errors/cant-get-chain-id.error";
 import { MissingChainIdError } from "../../errors/missing-chain-id.error";
 import { timeIsPassed } from "../../utils/time-is-passed";
 import { DomainExpiredError } from "../../errors/domain-expired.error";
 import { getChainId } from "../../utils/get-chain-id";
-import { ZERO_ADDRESS } from "../../network-config";
 import { Key } from "../../app/listener/handler";
-import { url } from "inspector";
-import { createClient, cacheExchange, fetchExchange } from "urql";
-import config from "../../config";
 import { EdnsV2FromRedisService, getContracts } from ".";
 
 export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsRegistryService {

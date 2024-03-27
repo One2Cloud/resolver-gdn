@@ -1,14 +1,10 @@
-import ContractAddress from "../../static/edns-contracts-address.json";
-import { getNetworkConfig, Net } from "../../network-config";
+import { Net } from "../../network-config";
 import * as luxon from "luxon";
-import { getProvider } from "../../utils/get-provider";
 import { createRedisClient } from "../../utils/create-redis-client";
 import { isValidFqdn } from "../../utils/is-valid-fqdn";
 import { extractFqdn } from "../../utils/extract-fqdn";
 import _ from "lodash";
-import { BigNumber, ethers } from "ethers";
 import { InvalidFqdnError } from "../../errors/invalid-fqdn.error";
-import { DomainNotFoundError } from "../../errors/domain-not-found.error";
 import {
   IGetMultiCoinAddressRecordOutput,
   IGetTextRecordOutput,
@@ -30,21 +26,14 @@ import {
   IGetAllRecordsOutput,
   IGetUrlRecordOutput,
 } from "../../interfaces/IEdnsResolverService.interface";
-import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../../contracts/ethereum/edns-v2/typechain";
 import { IOptions } from "../../interfaces/IOptions.interface";
-import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
-import { CantConnectContractError } from "../../errors/cant-connect-contract.error";
+import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
 import { CantGetDomainNameError } from "../../errors/cant-get-domain-name.error";
-import { CantGetChainIdError } from "../../errors/cant-get-chain-id.error";
-import { MissingChainIdError } from "../../errors/missing-chain-id.error";
 import { timeIsPassed } from "../../utils/time-is-passed";
 import { DomainExpiredError } from "../../errors/domain-expired.error";
 import { getChainId } from "../../utils/get-chain-id";
 import { ZERO_ADDRESS } from "../../network-config";
 import { Key } from "../../app/listener/handler";
-import { url } from "inspector";
-import { createClient, cacheExchange, fetchExchange } from "urql";
-import config from "../../config";
 
 export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegistryService {
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
