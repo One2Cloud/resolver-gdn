@@ -19,4 +19,5 @@ export enum InContractChain {
   BASE,
   SCROLL,
   CORE_DAO,
+  FLARE,
 }
