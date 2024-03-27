@@ -90,6 +90,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     const now = new Date();
     return now.getTime() > _date.getTime();
   }
+
   public async getDomain(fqdn: string, options?: IOptions | undefined): Promise<IGetDomainOutput | undefined> {
     const { chainId = 137 } = options || {};
     const tokensQuery = `
@@ -344,9 +345,10 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     const data = await client
       .query(tokensQuery, { id: input.fqdn })
       .toPromise()
-      .then((res) => res.data);
-
-    console.log(data);
+      .then((res) => {
+        return { ...res.data, records: _.omitBy(res.data.records, _.isEmpty) };
+      });
+    console.log(data.records);
 
     return data.records;
   }
