@@ -8,10 +8,10 @@ export interface IGetAllRecordsInput extends IGenericInput {}
 
 export interface IGetAllRecordsOutput {
   fqdn: string;
-  address: string;
+  address?: string;
   text?: string;
-  typedTexts: { [key: string]: string };
-  typedAddresses: { [key: string]: string };
+  typedTexts?: { [key: string]: string };
+  typedAddresses?: { [key: string]: string };
 }
 
 export interface IGetUrlRecordOutput {
