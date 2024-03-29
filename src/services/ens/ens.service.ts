@@ -44,6 +44,6 @@ export class EdnsV2FromEnsSubgraphService implements IEnsSubgraphService {
         .toPromise()
         .then((res) => res.data);
       console.log(data)
-      return data.domain !== null ? { address: data.domains[0].resolver.address } : { address: undefined };
+      return data.domains.length > 0 ? { address: data.domains[0].resolver.address } : { address: undefined };
     }
   }
