@@ -1,11 +1,11 @@
-import { Net } from "../../network-config";
-import { createRedisClient } from "../../utils/create-redis-client";
-import { isValidFqdn } from "../../utils/is-valid-fqdn";
-import { extractFqdn } from "../../utils/extract-fqdn";
+import { Net } from "../../../network-config";
+import { createRedisClient } from "../../../utils/create-redis-client";
+import { isValidFqdn } from "../../../utils/is-valid-fqdn";
+import { extractFqdn } from "../../../utils/extract-fqdn";
 import _ from "lodash";
 import { BigNumber, ethers } from "ethers";
-import { InvalidFqdnError } from "../../errors/invalid-fqdn.error";
-import { DomainNotFoundError } from "../../errors/domain-not-found.error";
+import { InvalidFqdnError } from "../../../errors/invalid-fqdn.error";
+import { DomainNotFoundError } from "../../../errors/domain-not-found.error";
 import {
   IGetMultiCoinAddressRecordOutput,
   IGetTextRecordOutput,
@@ -22,16 +22,16 @@ import {
   IGetReverseAddressRecordOutput,
   IGetAllRecordsInput,
   IGetAllRecordsOutput,
-} from "../../interfaces/IEdnsResolverService.interface";
-import { IOptions } from "../../interfaces/IOptions.interface";
-import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
-import { CantGetDomainNameError } from "../../errors/cant-get-domain-name.error";
-import { CantGetChainIdError } from "../../errors/cant-get-chain-id.error";
-import { MissingChainIdError } from "../../errors/missing-chain-id.error";
-import { timeIsPassed } from "../../utils/time-is-passed";
-import { DomainExpiredError } from "../../errors/domain-expired.error";
-import { getChainId } from "../../utils/get-chain-id";
-import { Key } from "../../app/listener/handler";
+} from "../../../interfaces/IEdnsResolverService.interface";
+import { IOptions } from "../../../interfaces/IOptions.interface";
+import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../../../interfaces/IEdnsRegistryService.interface";
+import { CantGetDomainNameError } from "../../../errors/cant-get-domain-name.error";
+import { CantGetChainIdError } from "../../../errors/cant-get-chain-id.error";
+import { MissingChainIdError } from "../../../errors/missing-chain-id.error";
+import { timeIsPassed } from "../../../utils/time-is-passed";
+import { DomainExpiredError } from "../../../errors/domain-expired.error";
+import { getChainId } from "../../../utils/get-chain-id";
+import { Key } from "../../../app/listener/handler";
 import { EdnsV2FromRedisService, getContracts } from ".";
 
 export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsRegistryService {

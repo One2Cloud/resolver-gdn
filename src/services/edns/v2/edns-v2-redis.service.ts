@@ -1,10 +1,10 @@
-import { Net } from "../../network-config";
+import { Net } from "../../../network-config";
 import * as luxon from "luxon";
-import { createRedisClient } from "../../utils/create-redis-client";
-import { isValidFqdn } from "../../utils/is-valid-fqdn";
-import { extractFqdn } from "../../utils/extract-fqdn";
+import { createRedisClient } from "../../../utils/create-redis-client";
+import { isValidFqdn } from "../../../utils/is-valid-fqdn";
+import { extractFqdn } from "../../../utils/extract-fqdn";
 import _ from "lodash";
-import { InvalidFqdnError } from "../../errors/invalid-fqdn.error";
+import { InvalidFqdnError } from "../../../errors/invalid-fqdn.error";
 import {
   IGetMultiCoinAddressRecordOutput,
   IGetTextRecordOutput,
@@ -25,15 +25,15 @@ import {
   IGetAllRecordsInput,
   IGetAllRecordsOutput,
   IGetUrlRecordOutput,
-} from "../../interfaces/IEdnsResolverService.interface";
-import { IOptions } from "../../interfaces/IOptions.interface";
-import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
-import { CantGetDomainNameError } from "../../errors/cant-get-domain-name.error";
-import { timeIsPassed } from "../../utils/time-is-passed";
-import { DomainExpiredError } from "../../errors/domain-expired.error";
-import { getChainId } from "../../utils/get-chain-id";
-import { ZERO_ADDRESS } from "../../network-config";
-import { Key } from "../../app/listener/handler";
+} from "../../../interfaces/IEdnsResolverService.interface";
+import { IOptions } from "../../../interfaces/IOptions.interface";
+import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../../../interfaces/IEdnsRegistryService.interface";
+import { CantGetDomainNameError } from "../../../errors/cant-get-domain-name.error";
+import { timeIsPassed } from "../../../utils/time-is-passed";
+import { DomainExpiredError } from "../../../errors/domain-expired.error";
+import { getChainId } from "../../../utils/get-chain-id";
+import { ZERO_ADDRESS } from "../../../network-config";
+import { Key } from "../../../app/listener/handler";
 
 export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegistryService {
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {

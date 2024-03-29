@@ -16,11 +16,11 @@ import {
   IGetReverseAddressRecordOutput,
   IGetAllRecordsInput,
   IGetAllRecordsOutput,
-} from "../../interfaces/IEdnsResolverService.interface";
-import { IOptions } from "../../interfaces/IOptions.interface";
-import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
+} from "../../../interfaces/IEdnsResolverService.interface";
+import { IOptions } from "../../../interfaces/IOptions.interface";
+import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../../../interfaces/IEdnsRegistryService.interface";
 import { createClient, cacheExchange, fetchExchange } from "urql";
-import config from "../../config";
+import config from "../../../config";
 
 export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsRegistryService {
   private groupByDomainWithCombinedHosts = (data: any): IGetDomainOutputSubgraph[] => {

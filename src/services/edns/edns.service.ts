@@ -1,7 +1,7 @@
-import { EdnsV1FromContractService } from "./v1/edns-v1.service";
+import { EdnsV1FromContractService } from "./v1/edns-v1-contract.service";
 import { EdnsV2FromContractService, EdnsV2FromRedisService, EdnsV2FromSubgraphService } from "./v2";
-import { EdnsV2FromEnsSubgraphService } from "./ens/ens.service"
-import { IOptions } from "../interfaces/IOptions.interface";
+import { EdnsV2FromEnsSubgraphService } from "../ens/ens.service"
+import { IOptions } from "../../interfaces/IOptions.interface";
 import {
   IEdnsResolverService,
   IGetAddressRecordInput,
@@ -21,16 +21,16 @@ import {
   IGetTypedTextRecordInput,
   IGetTypedTextRecordOutput,
   IGetUrlRecordOutput,
-} from "../interfaces/IEdnsResolverService.interface";
-import { putSqsMessage } from "../utils/put-sqs-message";
-import { DomainProvider } from "../constants/domain-provider.constant";
-import { EdnsEventType } from "../constants/event-type.constant";
-import { extractFqdn } from "../utils/extract-fqdn";
-import { Mainnets as EdnsMainnets, Net } from "../network-config";
-import { IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
-import { DomainNotFoundError } from "../errors/domain-not-found.error";
-import { createRedisClient } from "../utils/create-redis-client";
-import { Key } from "../app/listener/handler";
+} from "../../interfaces/IEdnsResolverService.interface";
+import { putSqsMessage } from "../../utils/put-sqs-message";
+import { DomainProvider } from "../../constants/domain-provider.constant";
+import { EdnsEventType } from "../../constants/event-type.constant";
+import { extractFqdn } from "../../utils/extract-fqdn";
+import { Mainnets as EdnsMainnets, Net } from "../../network-config";
+import { IGetDomainOutput, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
+import { DomainNotFoundError } from "../../errors/domain-not-found.error";
+import { createRedisClient } from "../../utils/create-redis-client";
+import { Key } from "../../app/listener/handler";
 
 export class EdnsService implements IEdnsResolverService {
   private readonly _v2RedisService: EdnsV2FromRedisService;

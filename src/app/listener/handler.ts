@@ -11,7 +11,7 @@ import EdnsContractsAddress from "../../static/edns-contracts-address.json";
 import { Bridge__factory } from "../../contracts/ethereum/edns-v2/typechain/factories/Bridge__factory";
 import { getConfig } from "../../config";
 import { getInContractChain } from "../../utils/get-in-contract-chain";
-import { EdnsV2FromContractService, EdnsV2FromRedisService } from "../../services/v2";
+import { EdnsV2FromContractService, EdnsV2FromRedisService } from "../../services/edns/v2";
 import { Net } from "../../network-config";
 
 const logger = createLogger();

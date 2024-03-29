@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { EdnsService } from "../services/edns.service";
+import { EdnsService } from "../services/edns/edns.service";
 import { extract } from "../utils/extract-options-from-request";
 import { IGeneralResponse } from "../interfaces/IGeneralOutput.interface";
 import { extractFqdn } from "../utils/extract-fqdn";

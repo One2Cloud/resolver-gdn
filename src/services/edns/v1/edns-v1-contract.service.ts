@@ -1,9 +1,9 @@
-import { getProvider } from "../../utils/get-provider";
-import { Net, Network } from "../../network-config";
+import { getProvider } from "../../../utils/get-provider";
+import { Net, Network } from "../../../network-config";
 import { BigNumber, ethers } from "ethers";
-import { DomainNotFoundError } from "../../errors/domain-not-found.error";
-import { IOptions } from "../../interfaces/IOptions.interface";
-import { namehash } from "../../utils/namehash";
+import { DomainNotFoundError } from "../../../errors/domain-not-found.error";
+import { IOptions } from "../../../interfaces/IOptions.interface";
+import { namehash } from "../../../utils/namehash";
 import {
   IEdnsResolverService,
   IGetAddressRecordInput,
@@ -20,14 +20,14 @@ import {
   IGetTextRecordOutput,
   IGetTypedTextRecordInput,
   IGetTypedTextRecordOutput,
-} from "../../interfaces/IEdnsResolverService.interface";
-import { PublicResolver__factory } from "../../contracts/ethereum/edns-v1/typechain/factories/PublicResolver__factory";
-import { EDNSRegistry__factory } from "../../contracts/ethereum/edns-v1/typechain/factories/EDNSRegistry__factory";
-import { PublicResolver } from "../../contracts/ethereum/edns-v1/typechain/PublicResolver";
-import { EDNSRegistry } from "../../contracts/ethereum/edns-v1/typechain/EDNSRegistry";
-import { ReverseRegistrar__factory } from "../../contracts/ethereum/edns-v1/typechain/factories/ReverseRegistrar__factory";
-import { ReverseRegistrar } from "../../contracts/ethereum/edns-v1/typechain/ReverseRegistrar";
-import { MissingChainIdError } from "../../errors/missing-chain-id.error";
+} from "../../../interfaces/IEdnsResolverService.interface";
+import { PublicResolver__factory } from "../../../contracts/ethereum/edns-v1/typechain/factories/PublicResolver__factory";
+import { EDNSRegistry__factory } from "../../../contracts/ethereum/edns-v1/typechain/factories/EDNSRegistry__factory";
+import { PublicResolver } from "../../../contracts/ethereum/edns-v1/typechain/PublicResolver";
+import { EDNSRegistry } from "../../../contracts/ethereum/edns-v1/typechain/EDNSRegistry";
+import { ReverseRegistrar__factory } from "../../../contracts/ethereum/edns-v1/typechain/factories/ReverseRegistrar__factory";
+import { ReverseRegistrar } from "../../../contracts/ethereum/edns-v1/typechain/ReverseRegistrar";
+import { MissingChainIdError } from "../../../errors/missing-chain-id.error";
 
 export class EdnsV1FromContractService implements IEdnsResolverService {
   getUrlByPodName(podName: string, options?: IOptions): Promise<string | undefined> {

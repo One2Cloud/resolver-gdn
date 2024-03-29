@@ -1,9 +1,9 @@
-import ContractAddress from "../../static/edns-contracts-address.json";
-import { getNetworkConfig } from "../../network-config";
-import { getProvider } from "../../utils/get-provider";
+import ContractAddress from "../../../static/edns-contracts-address.json";
+import { getNetworkConfig } from "../../../network-config";
+import { getProvider } from "../../../utils/get-provider";
 import _ from "lodash";
-import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../../contracts/ethereum/edns-v2/typechain";
-import { CantConnectContractError } from "../../errors/cant-connect-contract.error";
+import { Registrar, IRegistry, PublicResolver, Registrar__factory, IRegistry__factory, PublicResolver__factory } from "../../../contracts/ethereum/edns-v2/typechain";
+import { CantConnectContractError } from "../../../errors/cant-connect-contract.error";
 
 export const getContracts = (chainId: number): { Registrar: Registrar; Registry: IRegistry; Resolver: PublicResolver } => {
   const NetworkConfig = getNetworkConfig();
