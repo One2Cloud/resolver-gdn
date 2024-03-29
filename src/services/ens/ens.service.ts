@@ -6,7 +6,7 @@ import {
   IGetTypedTextRecordOutput,
   IGetNftRecordOutput,
   IGetAddressRecordOutput,
-  IEdnsResolverService,
+  IEnsSubgraphService,
   IGetAddressRecordInput,
   IGetMultiCoinAddressRecordInput,
   IGetTypedTextRecordInput,
@@ -16,13 +16,13 @@ import {
   IGetReverseAddressRecordOutput,
   IGetAllRecordsInput,
   IGetAllRecordsOutput,
-} from "../../interfaces/IEdnsResolverService.interface";
+} from "../../interfaces/IEnsSubgraphService.interface";
 import { IOptions } from "../../interfaces/IOptions.interface";
 import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
 import { createClient, cacheExchange, fetchExchange } from "urql";
 import config from "../../config";
 
-export class EdnsV2FromEnsSubgraphService { // implements IEdnsResolverService, IEdnsRegistryService {
+export class EdnsV2FromEnsSubgraphService implements IEnsSubgraphService {
     public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions | undefined): Promise<IGetAddressRecordOutput | undefined> {
       const tokensQuery = `
         query getENSName($fqdn: String!) {
