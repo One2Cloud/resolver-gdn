@@ -108,12 +108,14 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getMultiCoinAddressRecord({ fqdn, coin }, options), service.getTtl(fqdn, options)]);
+      console.log("reach here 9")
+      const [output, ttl] = await Promise.all([service.getMultiCoinAddressRecord({ fqdn, coin }, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
+      console.log("reach here 8: ", output)
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
         data: {
-          coin,
+          coin, // TO-DO: ?
           address: output?.address || ZERO_ADDRESS,
         },
         onchain: !!options.onchain,

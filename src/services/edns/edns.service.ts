@@ -102,10 +102,12 @@ export class EdnsService implements IEdnsResolverService {
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     let output: IGetAddressRecordOutput | undefined;
     let cache: "miss" | "hit" = "miss";
+    /////////////////////////////
     if (options?.ens) {
       console.log("reached there 4")
       return this._v2EnsSubgraphService.getAddressRecord(input, options);
     }
+    /////////////////////////////
     if (options?.version === "v1") {
       return this._v1ContractService.getAddressRecord(input, options);
     }
@@ -152,6 +154,12 @@ export class EdnsService implements IEdnsResolverService {
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
     let output: IGetMultiCoinAddressRecordOutput | undefined;
     let cache: "miss" | "hit" = "miss";
+    /////////////////////////////
+    if (options?.ens) {
+      console.log("reached there 5")
+      return this._v2EnsSubgraphService.getMultiCoinAddressRecord(input, options);
+    }
+    /////////////////////////////
     if (options?.version === "v1") {
       return this._v1ContractService.getMultiCoinAddressRecord(input, options);
     }
