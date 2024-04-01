@@ -29,7 +29,9 @@ export class EdnsV2FromEnsSubgraphService implements IEnsSubgraphService {
         query getENSName($fqdn: String!) {
           domains(where: {name: $fqdn}) {
             resolver {
-              address
+              addr {
+                id
+              }
             }
           }
         }
@@ -43,8 +45,8 @@ export class EdnsV2FromEnsSubgraphService implements IEnsSubgraphService {
         .query(tokensQuery, { fqdn: input.fqdn })
         .toPromise()
         .then((res) => res.data);
-      console.log(data)
-      return data.domains.length > 0 ? { address: data.domains[0].resolver.address } : { address: undefined };
+      console.log(data.domains[0].resolver.addr.id)
+      return data.domains.length > 0 ? { address: data.domains[0].resolver.addr.id } : { address: undefined };
     }
     public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions | undefined): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
         const tokensQuery =
@@ -53,7 +55,9 @@ export class EdnsV2FromEnsSubgraphService implements IEnsSubgraphService {
             domains(where: {name: $fqdn}) {
               resolver {
                 coinTypes
-                address
+                addr {
+                  id
+                }
               }
             }
           }
@@ -75,7 +79,7 @@ export class EdnsV2FromEnsSubgraphService implements IEnsSubgraphService {
         //   ? { coin: data.domains[0].resolver.coinTypes[0], address: data.domains[0].resolver.address }
         //   : { coin: undefined, address: undefined };
         return targetCoinDomain.resolver.coinTypes.length > 0 // TO-DO: List of result?
-        ? { coin: targetCoinDomain.resolver.coinTypes[0], address: targetCoinDomain.resolver.address }
+        ? { coin: targetCoinDomain.resolver.coinTypes[0], address: targetCoinDomain.resolver.addr.id }
         : { coin: undefined, address: undefined };
       }
   }
