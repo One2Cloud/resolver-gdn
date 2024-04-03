@@ -453,13 +453,15 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: config.subgraph.url,
+      url: options?.chainId == 137 ? config.subgraph.url : "http://54.164.116.17:9000/subgraphs/name/edns-114",
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
       .query(tokensQuery, { id: `${input.fqdn}_${input.typed}` })
       .toPromise()
       .then((res) => res.data);
+
+    console.log(data);
 
     return data.typedTextRecord !== null ? { typed: data.typedTextRecord.typed, text: data.typedTextRecord.text } : { typed: undefined, text: undefined };
   }

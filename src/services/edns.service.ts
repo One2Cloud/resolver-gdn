@@ -26,7 +26,7 @@ import { DomainProvider } from "../constants/domain-provider.constant";
 import { EdnsEventType } from "../constants/event-type.constant";
 import { extractFqdn } from "../utils/extract-fqdn";
 import { Mainnets as EdnsMainnets, Net } from "../network-config";
-import { IGetDomainOutput, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
+import { IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
 import { DomainNotFoundError } from "../errors/domain-not-found.error";
 import { createRedisClient } from "../utils/create-redis-client";
 import { Key } from "../app/listener/handler";
@@ -401,8 +401,8 @@ export class EdnsService implements IEdnsResolverService {
     return output;
   }
 
-  public async getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[]> {
-    let output: IGetDomainOutput[] = [];
+  public async getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[] | IGetDomainOutputSubgraph[] | undefined> {
+    let output: IGetDomainOutput[] | IGetDomainOutputSubgraph[] | undefined = [];
     if (options?.version === "v1") {
       throw new Error("Not implemented for v1");
     }
