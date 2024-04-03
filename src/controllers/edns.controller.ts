@@ -262,7 +262,7 @@ export default class EdnsController {
         success: true,
         data: output,
         onchain: !!options.onchain,
-        empty: output.length === 0,
+        empty: output == undefined || output.length === 0 || ,
       };
       res.setHeader("Cache-Control", `public, max-age=${600}`);
       res.status(response.status).json(response);
