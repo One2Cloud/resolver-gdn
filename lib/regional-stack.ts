@@ -2,7 +2,10 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
-
+import * as ecs from "aws-cdk-lib/aws-ecs";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
+import { TheGraphQueryNode } from "./providers/TheGraphQueryNode";
 import { RegionalAPI } from "./providers/RegionalAPI";
 import { ResolverGdnStack } from "./resolver-gdn-stack";
 
@@ -24,6 +27,24 @@ export class RegionalStack extends cdk.Stack {
 			validation: acm.CertificateValidation.fromDns(hostedzone),
 		});
 
-		const api = new RegionalAPI(this, "API", { queue: props.root.queue, secret: props.root.secret });
+		const vpc = new ec2.Vpc(this, "Vpc");
+		const cluster = new ecs.Cluster(this, "Cluster", { containerInsights: true, enableFargateCapacityProviders: true, vpc });
+		const namespace = cluster.addDefaultCloudMapNamespace({
+			name: `${cdk.Stack.of(this).region}.resolver-gdn.local`,
+		});
+
+		const secret = secretsmanager.Secret.fromSecretCompleteArn(
+			this,
+			"Secret",
+			`arn:aws:secretsmanager:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:secret:resolver-gdn-secret-ROby3i`
+		);
+
+		const api = new RegionalAPI(this, "API", { queue: props.root.queue, secret });
+
+		// const graph = new TheGraphQueryNode(this, "TheGraphQueryNode", {
+		// 	cluster,
+		// 	namespace,
+		// 	secret,
+		// });
 	}
 }
