@@ -134,7 +134,7 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getTextRecord({ fqdn }, options), service.getTtl(fqdn, options)]);
+      const [output, ttl] = await Promise.all([service.getTextRecord({ fqdn }, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
@@ -177,7 +177,7 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getNftRecord({ fqdn, chainId }, options), service.getTtl(fqdn, options)]);
+      const [output, ttl] = await Promise.all([service.getNftRecord({ fqdn, chainId }, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
@@ -198,7 +198,7 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getDomain(fqdn, options), service.getTtl(fqdn, options)]);
+      const [output, ttl] = await Promise.all([service.getDomain(fqdn, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
 
       const response: IGeneralResponse<typeof output> = {
         status: 200,
@@ -220,7 +220,7 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getOwner(fqdn, options), service.getTtl(fqdn, options)]);
+      const [output, ttl] = await Promise.all([service.getOwner(fqdn, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
@@ -241,7 +241,7 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getExpiry(fqdn, options), service.getTtl(fqdn, options)]);
+      const [output, ttl] = await Promise.all([service.getExpiry(fqdn, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
@@ -282,7 +282,7 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getHost(fqdn, options), service.getTtl(fqdn, options)]);
+      const [output, ttl] = await Promise.all([service.getHost(fqdn, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
@@ -303,7 +303,7 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getMultiCoinAddressList(fqdn, options), service.getTtl(fqdn, options)]);
+      const [output, ttl] = await Promise.all([service.getMultiCoinAddressList(fqdn, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
@@ -324,7 +324,7 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      const [output, ttl] = await Promise.all([service.getTypedTextList(fqdn, options), service.getTtl(fqdn, options)]);
+      const [output, ttl] = await Promise.all([service.getTypedTextList(fqdn, options), 1000]); // TO-DO: replace `1000` with `service.getTtl(fqdn, options)`
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,

@@ -102,12 +102,12 @@ export class EdnsService implements IEdnsResolverService {
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
     let output: IGetAddressRecordOutput | undefined;
     let cache: "miss" | "hit" = "miss";
-    /////////////////////////////
+    ///////////////////////////// TO-DO
     if (options?.ens) {
       console.log("reached there 4")
       return this._v2EnsSubgraphService.getAddressRecord(input, options);
     }
-    /////////////////////////////
+    ///////////////////////////// TO-DO
     if (options?.version === "v1") {
       return this._v1ContractService.getAddressRecord(input, options);
     }
@@ -154,12 +154,12 @@ export class EdnsService implements IEdnsResolverService {
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
     let output: IGetMultiCoinAddressRecordOutput | undefined;
     let cache: "miss" | "hit" = "miss";
-    /////////////////////////////
+    ///////////////////////////// TO-DO
     if (options?.ens) {
       console.log("reached there 5")
       return this._v2EnsSubgraphService.getMultiCoinAddressRecord(input, options);
     }
-    /////////////////////////////
+    ///////////////////////////// TO-DO
     if (options?.version === "v1") {
       return this._v1ContractService.getMultiCoinAddressRecord(input, options);
     }
@@ -481,6 +481,11 @@ export class EdnsService implements IEdnsResolverService {
 
   public async getMultiCoinAddressList(fqdn: string, options?: IOptions): Promise<IGetMultiCoinAddressListOutput | undefined> {
     let output: IGetMultiCoinAddressListOutput | undefined;
+    ///////////////////////////// TO-DO
+    if (options?.ens) {
+      return this._v2EnsSubgraphService.getMultiCoinAddressList(fqdn, options);
+    }
+    ///////////////////////////// TO-DO
     if (options?.version === "v1") {
       throw new Error("Not implemented for v1");
     }
@@ -495,6 +500,12 @@ export class EdnsService implements IEdnsResolverService {
 
   public async getTypedTextList(fqdn: string, options?: IOptions): Promise<IGetTypedTextListOutput | undefined> {
     let output: IGetTypedTextListOutput | undefined;
+    ///////////////////////////// TO-DO
+    if (options?.ens) {
+      console.log("reached there a1")
+      return this._v2EnsSubgraphService.getTypedTextList(fqdn, options);
+    }
+    ///////////////////////////// TO-DO
     if (options?.version === "v1") {
       throw new Error("Not implemented for v1");
     }
