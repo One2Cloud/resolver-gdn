@@ -7,6 +7,7 @@ import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import path from "path";
 
 interface IConstructProps {
+	_placeholder_secret: secretsmanager.ISecret;
 	secret: secretsmanager.ISecret;
 	queue: sqs.Queue;
 }

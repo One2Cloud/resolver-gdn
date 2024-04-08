@@ -39,7 +39,7 @@ export class RegionalStack extends cdk.Stack {
 			`arn:aws:secretsmanager:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:secret:resolver-gdn-secret-ROby3i`
 		);
 
-		const api = new RegionalAPI(this, "API", { queue: props.root.queue, secret });
+		const api = new RegionalAPI(this, "API", { _placeholder_secret: props.root.secret, queue: props.root.queue, secret });
 
 		// const graph = new TheGraphQueryNode(this, "TheGraphQueryNode", {
 		// 	cluster,
