@@ -35,24 +35,6 @@ export class ResolverGdnStack extends cdk.Stack {
 			replicaRegions: [...props.availableRegions.map((region) => ({ region }))],
 		});
 
-		this.queue = new sqs.Queue(this, "EventHandlerQueue", { queueName: "event-handler-queue", visibilityTimeout: cdk.Duration.minutes(3) });
-
-		const vpc = new ec2.Vpc(this, "VPC", {
-			natGateways: 3,
-			natGatewayProvider: ec2.NatProvider.instance({ instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3A, ec2.InstanceSize.NANO) }),
-		});
-
-		const cluster = new ecs.Cluster(this, "EcsCluster", {
-			vpc,
-			containerInsights: true,
-		});
-
-		const edns = new EDNS(this, "EDNS", {
-			secret: this.secret,
-			queue: this.queue,
-			cluster,
-		});
-
 		const oac = new cloudfront.CfnOriginAccessControl(this, "AOC", {
 			originAccessControlConfig: {
 				name: "Degital Cloud - EDNS Omni - Origin Access Control",
@@ -99,11 +81,5 @@ export class ResolverGdnStack extends cdk.Stack {
 			domainNames: ["static.resolver.gdn"],
 			certificate,
 		});
-
-		// new route53.ARecord(this, "ServiceEndpoint", {
-		// 	zone: this.hostedzone,
-		// 	target: route53.RecordTarget.fromAlias(new route53_targets.CloudFrontTarget(distribution)),
-		// 	recordName: "static",
-		// });
 	}
 }

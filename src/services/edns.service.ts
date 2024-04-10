@@ -85,13 +85,13 @@ export class EdnsService implements IEdnsResolverService {
     if (output && cache === "miss") {
       // Put a SQS message in the queue to update the reverse address in Redis
       const { host, name, tld } = extractFqdn(output.fqdn);
-      await putSqsMessage({
-        eventType: EdnsEventType.SET_REVERSE_ADDRESS_RECORD,
-        provider: DomainProvider.EDNS,
-        fqdn: output.fqdn,
-        hash: "FROM_EDGE_API",
-        data: { host: host || "@", name, tld, address: input.address },
-      });
+      // await putSqsMessage({
+      //   eventType: EdnsEventType.SET_REVERSE_ADDRESS_RECORD,
+      //   provider: DomainProvider.EDNS,
+      //   fqdn: output.fqdn,
+      //   hash: "FROM_EDGE_API",
+      //   data: { host: host || "@", name, tld, address: input.address },
+      // });
     }
     return output;
   }
@@ -121,23 +121,23 @@ export class EdnsService implements IEdnsResolverService {
       if (options?.chainId) {
         const isExists = await this._v2ContractService.isExists(input.fqdn, options);
         if (isExists) {
-          await putSqsMessage({
-            eventType: EdnsEventType.REVALIDATE,
-            provider: DomainProvider.EDNS,
-            chainId: options.chainId,
-            fqdn: input.fqdn,
-            data: { host: host || "@", name, tld, chainId: options.chainId },
-            net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
-          });
+          // await putSqsMessage({
+          //   eventType: EdnsEventType.REVALIDATE,
+          //   provider: DomainProvider.EDNS,
+          //   chainId: options.chainId,
+          //   fqdn: input.fqdn,
+          //   data: { host: host || "@", name, tld, chainId: options.chainId },
+          //   net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+          // });
         }
       }
-      await putSqsMessage({
-        eventType: EdnsEventType.SET_ADDRESS_RECORD,
-        provider: DomainProvider.EDNS,
-        fqdn: input.fqdn,
-        data: { host: host || "@", name, tld, address: output.address },
-        net: options?.net,
-      });
+      // await putSqsMessage({
+      //   eventType: EdnsEventType.SET_ADDRESS_RECORD,
+      //   provider: DomainProvider.EDNS,
+      //   fqdn: input.fqdn,
+      //   data: { host: host || "@", name, tld, address: output.address },
+      //   net: options?.net,
+      // });
     }
     return output;
   }
@@ -168,30 +168,30 @@ export class EdnsService implements IEdnsResolverService {
       if (options?.chainId) {
         const isExists = await this._v2ContractService.isExists(input.fqdn, options);
         if (isExists) {
-          await putSqsMessage({
-            eventType: EdnsEventType.REVALIDATE,
-            provider: DomainProvider.EDNS,
-            chainId: options.chainId,
-            fqdn: input.fqdn,
-            data: { host: host || "@", name, tld, chainId: options.chainId },
-            net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
-          });
+          // await putSqsMessage({
+          //   eventType: EdnsEventType.REVALIDATE,
+          //   provider: DomainProvider.EDNS,
+          //   chainId: options.chainId,
+          //   fqdn: input.fqdn,
+          //   data: { host: host || "@", name, tld, chainId: options.chainId },
+          //   net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+          // });
         }
       }
-      await putSqsMessage({
-        eventType: EdnsEventType.SET_MULTI_COIN_ADDRESS_RECORD,
-        provider: DomainProvider.EDNS,
-        fqdn: input.fqdn,
-        hash: "FROM_EDGE_API",
-        data: {
-          host: host || "@",
-          name,
-          tld,
-          address: output.address,
-          coin: output.coin,
-        },
-        net: options?.net,
-      });
+      // await putSqsMessage({
+      //   eventType: EdnsEventType.SET_MULTI_COIN_ADDRESS_RECORD,
+      //   provider: DomainProvider.EDNS,
+      //   fqdn: input.fqdn,
+      //   hash: "FROM_EDGE_API",
+      //   data: {
+      //     host: host || "@",
+      //     name,
+      //     tld,
+      //     address: output.address,
+      //     coin: output.coin,
+      //   },
+      //   net: options?.net,
+      // });
     }
     return output;
   }
@@ -222,24 +222,24 @@ export class EdnsService implements IEdnsResolverService {
       if (options?.chainId) {
         const isExists = await this._v2ContractService.isExists(input.fqdn, options);
         if (isExists) {
-          await putSqsMessage({
-            eventType: EdnsEventType.REVALIDATE,
-            provider: DomainProvider.EDNS,
-            chainId: options.chainId,
-            fqdn: input.fqdn,
-            data: { host: host || "@", name, tld, chainId: options.chainId },
-            net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
-          });
+          // await putSqsMessage({
+          //   eventType: EdnsEventType.REVALIDATE,
+          //   provider: DomainProvider.EDNS,
+          //   chainId: options.chainId,
+          //   fqdn: input.fqdn,
+          //   data: { host: host || "@", name, tld, chainId: options.chainId },
+          //   net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+          // });
         }
       }
-      await putSqsMessage({
-        eventType: EdnsEventType.SET_TEXT_RECORD,
-        provider: DomainProvider.EDNS,
-        fqdn: input.fqdn,
-        hash: "FROM_EDGE_API",
-        data: { host: host || "@", name, tld, text: output.text },
-        net: options?.net,
-      });
+      // await putSqsMessage({
+      //   eventType: EdnsEventType.SET_TEXT_RECORD,
+      //   provider: DomainProvider.EDNS,
+      //   fqdn: input.fqdn,
+      //   hash: "FROM_EDGE_API",
+      //   data: { host: host || "@", name, tld, text: output.text },
+      //   net: options?.net,
+      // });
     }
     return output;
   }
@@ -270,31 +270,31 @@ export class EdnsService implements IEdnsResolverService {
       if (options?.chainId) {
         const isExists = await this._v2ContractService.isExists(input.fqdn, options);
         if (isExists) {
-          await putSqsMessage({
-            eventType: EdnsEventType.REVALIDATE,
-            provider: DomainProvider.EDNS,
-            chainId: options.chainId,
-            fqdn: input.fqdn,
-            data: { host: host || "@", name, tld, chainId: options.chainId },
-            net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
-          });
+          // await putSqsMessage({
+          //   eventType: EdnsEventType.REVALIDATE,
+          //   provider: DomainProvider.EDNS,
+          //   chainId: options.chainId,
+          //   fqdn: input.fqdn,
+          //   data: { host: host || "@", name, tld, chainId: options.chainId },
+          //   net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+          // });
         }
       }
-      await putSqsMessage({
-        chainId: options?.chainId,
-        eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
-        provider: DomainProvider.EDNS,
-        fqdn: input.fqdn,
-        hash: "FROM_EDGE_API",
-        data: {
-          host: host || "@",
-          name,
-          tld,
-          text: output.text,
-          typed: output.typed,
-        },
-        net: options?.net,
-      });
+      // await putSqsMessage({
+      //   chainId: options?.chainId,
+      //   eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
+      //   provider: DomainProvider.EDNS,
+      //   fqdn: input.fqdn,
+      //   hash: "FROM_EDGE_API",
+      //   data: {
+      //     host: host || "@",
+      //     name,
+      //     tld,
+      //     text: output.text,
+      //     typed: output.typed,
+      //   },
+      //   net: options?.net,
+      // });
     }
     return output;
   }
@@ -325,31 +325,31 @@ export class EdnsService implements IEdnsResolverService {
       if (options?.chainId) {
         const isExists = await this._v2ContractService.isExists(input.fqdn, options);
         if (isExists) {
-          await putSqsMessage({
-            eventType: EdnsEventType.REVALIDATE,
-            provider: DomainProvider.EDNS,
-            chainId: options.chainId,
-            fqdn: input.fqdn,
-            data: { host: host || "@", name, tld, chainId: options.chainId },
-            net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
-          });
+          // await putSqsMessage({
+          //   eventType: EdnsEventType.REVALIDATE,
+          //   provider: DomainProvider.EDNS,
+          //   chainId: options.chainId,
+          //   fqdn: input.fqdn,
+          //   data: { host: host || "@", name, tld, chainId: options.chainId },
+          //   net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
+          // });
         }
       }
-      await putSqsMessage({
-        eventType: EdnsEventType.SET_NFT_RECORD,
-        provider: DomainProvider.EDNS,
-        fqdn: input.fqdn,
-        hash: "FROM_EDGE_API",
-        data: {
-          host: host || "@",
-          name,
-          tld,
-          chainId: output.chainId,
-          contractAddress: output.contractAddress,
-          tokenId: output.tokenId,
-        },
-        net: options?.net,
-      });
+      // await putSqsMessage({
+      //   eventType: EdnsEventType.SET_NFT_RECORD,
+      //   provider: DomainProvider.EDNS,
+      //   fqdn: input.fqdn,
+      //   hash: "FROM_EDGE_API",
+      //   data: {
+      //     host: host || "@",
+      //     name,
+      //     tld,
+      //     chainId: output.chainId,
+      //     contractAddress: output.contractAddress,
+      //     tokenId: output.tokenId,
+      //   },
+      //   net: options?.net,
+      // });
     }
     return output;
   }
@@ -449,12 +449,12 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (ttl && cache === "miss") {
       const { host, name, tld } = extractFqdn(fqdn);
-      await putSqsMessage({
-        eventType: EdnsEventType.NEW_HOST,
-        provider: DomainProvider.EDNS,
-        fqdn: fqdn,
-        data: { host, name, tld, ttl },
-      });
+      // await putSqsMessage({
+      //   eventType: EdnsEventType.NEW_HOST,
+      //   provider: DomainProvider.EDNS,
+      //   fqdn: fqdn,
+      //   data: { host, name, tld, ttl },
+      // });
     }
     return ttl;
   }

@@ -1,8 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as ecra from "aws-cdk-lib/aws-ecr-assets";
-import * as apprunner from "@aws-cdk/aws-apprunner-alpha";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import path from "path";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
@@ -11,6 +9,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as apigw2_integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import * as route53targets from "aws-cdk-lib/aws-route53-targets";
 
 interface IConstructProps {
 	vpc: ec2.IVpc;
@@ -20,6 +19,7 @@ interface IConstructProps {
 
 export class RegionalAPI extends Construct {
 	public readonly lambdaFunction: lambda.Function;
+	public readonly apigw: apigwv2.HttpApi;
 
 	constructor(scope: Construct, id: string, props: IConstructProps) {
 		super(scope, id);
@@ -39,7 +39,7 @@ export class RegionalAPI extends Construct {
 			functionName: "Resolver-GDN-Regional-API",
 			code: lambda.Code.fromEcrImage(image.repository, {
 				tagOrDigest: image.imageTag,
-				cmd: ["app/api/lambda.index"],
+				cmd: ["handler.index"],
 			}),
 			handler: lambda.Handler.FROM_IMAGE,
 			runtime: lambda.Runtime.FROM_IMAGE,
@@ -48,8 +48,8 @@ export class RegionalAPI extends Construct {
 			environment: {
 				THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
 				THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
-				THE_GRAPH_QUERY_WEBSOCKET_API_TESTNET_ENDPOINT: `http://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
-				THE_GRAPH_QUERY_WEBSOCKET_API_MAINNET_ENDPOINT: `http://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
+				THE_GRAPH_QUERY_WEBSOCKET_API_TESTNET_ENDPOINT: `ws://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
+				THE_GRAPH_QUERY_WEBSOCKET_API_MAINNET_ENDPOINT: `ws://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
 				GLOBAL_SECRET_ARN: props.secret.secretArn,
 			},
 			vpc: props.vpc,
@@ -66,16 +66,26 @@ export class RegionalAPI extends Construct {
 			utilizationTarget: 0.5,
 		});
 
+		const dn = new apigwv2.DomainName(this, "DomainName", {
+			domainName: "api.resolver.gdn",
+			certificate: props.certificate,
+		});
 		const api = new apigwv2.HttpApi(this, "HttpApi", {
 			apiName: "Resolver-GDN-Regional-API",
 			defaultIntegration: new apigw2_integrations.HttpLambdaIntegration("LambdaIntegration", lambdaFunction),
 			disableExecuteApiEndpoint: false,
 			defaultDomainMapping: {
-				domainName: new apigwv2.DomainName(this, "DomainName", {
-					domainName: "api.resolver.gdn",
-					certificate: props.certificate,
-				}),
+				domainName: dn,
 			},
 		});
+		this.apigw = api;
+
+		// new route53.ARecord(this, "ARecord", {
+		// 	zone: route53.PublicHostedZone.fromLookup(this, "HostedZone", {
+		// 		domainName: "resolver.gdn",
+		// 	}),
+		// 	target: route53.RecordTarget.fromAlias(new route53targets.ApiGatewayv2DomainProperties(dn.regionalDomainName, dn.regionalHostedZoneId)),
+		// 	region: cdk.Stack.of(this).region,
+		// });
 	}
 }

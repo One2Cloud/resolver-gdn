@@ -37,7 +37,7 @@ import { Key } from "../../app/listener/handler";
 
 export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegistryService {
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) return undefined;
     if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
@@ -73,7 +73,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getUrlRecord(fqdn: string, options?: IOptions | undefined): Promise<IGetUrlRecordOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
 
     const { host = "@", name, tld } = extractFqdn(fqdn);
@@ -91,7 +91,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getBridgedEvent(input: IGetBridgedEventInput, options?: IOptions): Promise<string | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) undefined;
     if (!(await this.isExists(input.fqdn, options))) return undefined;
@@ -108,7 +108,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
 
     const fqdn = await redis.get(Key.ACCOUNT_BRIDGE_REQUESTED_$SET(options?.net || Net.MAINNET, input.address));
     if (!fqdn) return undefined;
@@ -116,7 +116,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) return undefined;
     if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
@@ -133,7 +133,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) return undefined;
     if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
@@ -150,7 +150,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getTextRecord(input: IGetTextRecordInput, options?: IOptions): Promise<IGetTextRecordOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) return undefined;
     if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
@@ -167,7 +167,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) return undefined;
     if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
@@ -185,7 +185,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     if (!(await this.isExists(input.fqdn, options))) return undefined;
     if (await this.isExpired(input.fqdn, options)) throw new DomainExpiredError(input.fqdn);
@@ -209,7 +209,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async isExists(fqdn: string, options?: IOptions): Promise<boolean> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
 
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
 
@@ -225,7 +225,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async isExpired(fqdn: string, options?: IOptions): Promise<boolean> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     let time;
     const { host, name, tld } = extractFqdn(fqdn);
     if (name && tld) {
@@ -237,7 +237,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
 
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     if (!(await this.isExists(fqdn, options))) return undefined;
@@ -277,7 +277,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getOwner(fqdn: string, options?: IOptions): Promise<string | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     if (!(await this.isExists(fqdn, options))) return undefined;
     const { name, tld } = extractFqdn(fqdn);
@@ -289,7 +289,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getExpiry(fqdn: string, options?: IOptions): Promise<number | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     if (!(await this.isExists(fqdn, options))) return undefined;
     const { name, tld } = extractFqdn(fqdn);
@@ -301,14 +301,14 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[]> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     const _domains_ = await redis.smembers(Key.ACCOUNT_DOMAINS_$SET(options?.net || Net.MAINNET, account));
     const domains = await Promise.all(_domains_.map((d) => this.getDomain(d, options)));
     return domains.filter((d) => !!d) as IGetDomainOutput[]; //TO-DO: empty result is {} instead of undefined
   }
 
   public async getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     if (!(await this.isExists(fqdn, options))) undefined;
     let { host = "@", name, tld } = extractFqdn(fqdn);
@@ -339,7 +339,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getTtl(fqdn: string, options?: IOptions): Promise<number | undefined> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     if (!(await this.isExists(fqdn, options))) undefined;
     const { host, name, tld } = extractFqdn(fqdn);
@@ -349,7 +349,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getMultiCoinAddressList(fqdn: string, options?: IOptions): Promise<IGetMultiCoinAddressListOutput> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     if (!(await this.isExists(fqdn, options))) [];
     if (await this.isExpired(fqdn, options)) throw new DomainExpiredError(fqdn);
@@ -363,7 +363,7 @@ export class EdnsV2FromRedisService implements IEdnsResolverService, IEdnsRegist
   }
 
   public async getTypedTextList(fqdn: string, options?: IOptions): Promise<IGetTypedTextListOutput> {
-    const redis = createRedisClient();
+    const redis = await createRedisClient();
     if (!isValidFqdn(fqdn)) throw new InvalidFqdnError(fqdn);
     if (!(await this.isExists(fqdn, options))) [];
     if (await this.isExpired(fqdn, options)) throw new DomainExpiredError(fqdn);

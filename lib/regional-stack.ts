@@ -5,10 +5,10 @@ import * as route53 from "aws-cdk-lib/aws-route53";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as FckNat from "cdk-fck-nat";
 import { TheGraphQueryNode } from "./providers/TheGraphQueryNode";
 import { RegionalAPI } from "./providers/RegionalAPI";
 import { ResolverGdnStack } from "./resolver-gdn-stack";
-import { VpcConnector } from "@aws-cdk/aws-apprunner-alpha";
 
 interface StackProps extends cdk.StackProps {
 	country: string;
@@ -28,10 +28,13 @@ export class RegionalStack extends cdk.Stack {
 			validation: acm.CertificateValidation.fromDns(hostedzone),
 		});
 
+		const fckNatProvider = new FckNat.FckNatInstanceProvider({
+			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
+		});
 		const vpc = new ec2.Vpc(this, "Vpc", {
 			maxAzs: 3,
 			natGateways: 3,
-			natGatewayProvider: ec2.NatProvider.instanceV2({ instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3A, ec2.InstanceSize.NANO) }),
+			natGatewayProvider: fckNatProvider,
 			subnetConfiguration: [
 				{
 					name: "Public",
@@ -45,6 +48,8 @@ export class RegionalStack extends cdk.Stack {
 				},
 			],
 		});
+		fckNatProvider.securityGroup.addIngressRule(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.allTraffic());
+
 		const cluster = new ecs.Cluster(this, "Cluster", { containerInsights: true, enableFargateCapacityProviders: true, vpc });
 		const namespace = cluster.addDefaultCloudMapNamespace({
 			name: `${cdk.Stack.of(this).region}.resolver.gdn.local`,
@@ -59,6 +64,7 @@ export class RegionalStack extends cdk.Stack {
 		const api = new RegionalAPI(this, "API", { vpc, secret, certificate });
 
 		const graph = new TheGraphQueryNode(this, "TheGraphQueryNode", {
+			vpc,
 			cluster,
 			namespace,
 			secret,
@@ -66,5 +72,6 @@ export class RegionalStack extends cdk.Stack {
 				lambdaFunction: api.lambdaFunction,
 			},
 		});
+
 	}
 }

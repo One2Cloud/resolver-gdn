@@ -38,9 +38,9 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
       },
       empty: true,
     };
-    console.log(err);
     ttl = 1;
   }
   res.setHeader("Cache-Control", `max-age=${ttl}`);
+  console.error(err);
   return res.status(response.status).json(response);
 }

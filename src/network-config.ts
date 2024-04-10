@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 import { InContractChain } from "./constants/in-contract-chain.constant";
-import { getSecretInLambda } from "./utils/get-secret";
+import { getSecret, getSecretInLambda } from "./utils/get-secret";
 
 dotenv.config();
 

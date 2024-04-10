@@ -6,18 +6,23 @@ export interface IConfig {
   redis: {
     url: string;
   };
-  mongodb: {
-    url: string;
-  };
-  edns: {
-    sqs: {
-      queue: {
-        url: string;
+  subgraph: {
+    mainnet: {
+      http: {
+        endpoint: string;
+      };
+      websocket: {
+        endpoint: string;
       };
     };
-  };
-  subgraph: {
-    url: string;
+    testnet: {
+      http: {
+        endpoint: string;
+      };
+      websocket: {
+        endpoint: string;
+      };
+    };
   };
 }
 
@@ -25,18 +30,23 @@ export const getConfig = (): IConfig => ({
   redis: {
     url: process.env.REDIS_URL || "localhost:6379",
   },
-  mongodb: {
-    url: process.env.MONGODB_URL || "mongodb://localhost:27017",
-  },
-  edns: {
-    sqs: {
-      queue: {
-        url: process.env.EVENT_HANDLER_SQS_QUEUE_URL || "UNKNOWN_EVENT_HANDLER_SQS_QUEUE_URL",
+  subgraph: {
+    mainnet: {
+      http: {
+        endpoint: process.env.THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT || "http://localhost:8080",
+      },
+      websocket: {
+        endpoint: process.env.THE_GRAPH_QUERY_WEBSOCKET_API_MAINNET_ENDPOINT || "ws://localhost:8081",
       },
     },
-  },
-  subgraph: {
-    url: process.env.SUBGRAPH_URL || "UNKNOWN_SUBGRAPH_URL",
+    testnet: {
+      http: {
+        endpoint: process.env.THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT || "http://localhost:8080",
+      },
+      websocket: {
+        endpoint: process.env.THE_GRAPH_QUERY_WEBSOCKET_API_TESTNET_ENDPOINT || "ws://localhost:8081",
+      },
+    },
   },
 });
 

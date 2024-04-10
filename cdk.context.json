@@ -51,5 +51,9 @@
   ],
   "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=amzn-ami-vpc-nat-*:filters.state.0=available:owners.0=amazon:region=ap-southeast-1": "ami-064d5c679aa52ac78",
   "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=amzn-ami-vpc-nat-*:filters.state.0=available:owners.0=amazon:region=ap-northeast-1": "ami-0edcd7bf6bbaf21f1",
-  "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=amzn-ami-vpc-nat-*:filters.state.0=available:owners.0=amazon:region=eu-central-1": "ami-06c6120a9105ccff3"
+  "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=amzn-ami-vpc-nat-*:filters.state.0=available:owners.0=amazon:region=eu-central-1": "ami-06c6120a9105ccff3",
+  "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=fck-nat-amzn2-*-arm64-ebs:filters.state.0=available:owners.0=568608671756:region=us-west-2": "ami-0459a7db3b4f571bc",
+  "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=fck-nat-amzn2-*-arm64-ebs:filters.state.0=available:owners.0=568608671756:region=ap-southeast-1": "ami-0e079c5d5a438021e",
+  "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=fck-nat-amzn2-*-arm64-ebs:filters.state.0=available:owners.0=568608671756:region=ap-northeast-1": "ami-02b8e2c2067fd714e",
+  "ami:account=578721297310:filters.image-type.0=machine:filters.name.0=fck-nat-amzn2-*-arm64-ebs:filters.state.0=available:owners.0=568608671756:region=eu-central-1": "ami-0591f971d15aec0ab"
 }
