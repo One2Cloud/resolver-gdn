@@ -25,7 +25,7 @@ interface Input {
 
 export const index: Handler<Input> = async (input) => {
 	await setEnvironmentVariable();
-	const NetworkConfig = getNetworkConfig();
+	const NetworkConfig = await getNetworkConfig();
 	const networkConfig = NetworkConfig[input.chainId];
 	if (!networkConfig) throw new Error("NetworkCOnfig is missing");
 	let provider: JsonRpcProvider | WebSocketProvider | undefined;

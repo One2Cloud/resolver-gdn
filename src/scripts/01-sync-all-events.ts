@@ -25,7 +25,7 @@ const BATCH = 200;
 async function main() {
   await setEnvironmentVariable();
 
-  const NetworkConfig = getNetworkConfig();
+  const NetworkConfig = await getNetworkConfig();
 
   const client = new Lambda({ region: "us-east-1" });
 

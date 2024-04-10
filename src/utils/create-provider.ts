@@ -1,9 +1,9 @@
 import { JsonRpcProvider, WebSocketProvider } from "@ethersproject/providers";
 import { getNetworkConfig } from "../network-config";
-export const createProvider = (chainId: number): JsonRpcProvider | WebSocketProvider => {
-  const NetworkConfig = getNetworkConfig();
+export const createProvider = async (chainId: number): Promise<JsonRpcProvider | WebSocketProvider> => {
+  const NetworkConfig = await getNetworkConfig();
   let provider: JsonRpcProvider | WebSocketProvider | undefined = undefined;
-  const network = NetworkConfig[chainId];
+  const network =  NetworkConfig[chainId];
   if (network.url.startsWith("http")) {
     provider = new JsonRpcProvider(network.url, {
       name: network.name,

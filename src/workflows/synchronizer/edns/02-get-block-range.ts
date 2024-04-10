@@ -28,7 +28,7 @@ export const index: Handler<Input, Output> = async (event) => {
       },
     },
   });
-  const provider = createProvider(event.chainId);
+  const provider = await createProvider(event.chainId);
   if (response.Item?.from.N && response.Item?.to.N) {
     const from = parseInt(response.Item.to.N);
     const to = await provider.getBlockNumber();

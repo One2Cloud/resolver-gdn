@@ -42,7 +42,7 @@ const getBlockRange = async (chainId: number) => {
       },
     },
   });
-  const provider = createProvider(chainId);
+  const provider = await createProvider(chainId);
   if (response.Item?.from.N && response.Item?.to.N) {
     const from = parseInt(response.Item.to.N);
     const to = from + 300;
@@ -60,7 +60,7 @@ const getBlockRange = async (chainId: number) => {
 
 export const sync = async (input: ISyncInput) => {
   try {
-    const NetworkConfig = getNetworkConfig();
+    const NetworkConfig = await getNetworkConfig();
     const networkConfig = NetworkConfig[input.chainId];
     if (!networkConfig) throw new Error("NetworkCOnfig is missing");
     let provider: JsonRpcProvider | WebSocketProvider | undefined;
@@ -735,7 +735,7 @@ export const sync = async (input: ISyncInput) => {
 };
 
 async function main() {
-  const NetworkConfig = getNetworkConfig();
+  const NetworkConfig = await getNetworkConfig();
   // Mainnets
   setInterval(async () => {
     const chain_limit = pLimit(5);

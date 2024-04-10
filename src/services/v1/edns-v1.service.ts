@@ -33,7 +33,7 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
   getUrlByPodName(podName: string, options?: IOptions): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  private _getProvider(fqdn: string, net: Net): ethers.providers.JsonRpcProvider {
+  private async _getProvider(fqdn: string, net: Net): Promise<ethers.providers.JsonRpcProvider> {
     if (fqdn.endsWith("iotex")) {
       if (net === Net.MAINNET) {
         return getProvider(Network.IOTEX);
@@ -87,7 +87,7 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
   }
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
     if (!options?.chainId) throw new MissingChainIdError();
-    const provider = getProvider(options.chainId);
+    const provider = await getProvider(options.chainId);
     const { reverse_registrar, resolver } = this._getContract(provider);
     const node = await reverse_registrar.node(input.address);
     const fqdn = await resolver.name(node);
@@ -96,7 +96,7 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
   }
 
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions): Promise<IGetAddressRecordOutput | undefined> {
-    const provider = this._getProvider(input.fqdn, options?.net || Net.MAINNET);
+    const provider = await this._getProvider(input.fqdn, options?.net || Net.MAINNET);
     const { resolver, registry } = this._getContract(provider);
     const hash = namehash(input.fqdn);
     if (!(await registry.recordExists(hash))) throw new DomainNotFoundError(input.fqdn);
@@ -104,7 +104,7 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
   }
 
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
-    const provider = this._getProvider(input.fqdn, options?.net || Net.MAINNET);
+    const provider = await this._getProvider(input.fqdn, options?.net || Net.MAINNET);
     const { resolver, registry } = this._getContract(provider);
     const hash = namehash(input.fqdn);
     if (!(await registry.recordExists(hash))) throw new DomainNotFoundError(input.fqdn);
@@ -119,7 +119,7 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
   }
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
-    const provider = this._getProvider(input.fqdn, options?.net || Net.MAINNET);
+    const provider = await this._getProvider(input.fqdn, options?.net || Net.MAINNET);
     const { resolver, registry } = this._getContract(provider);
     const hash = namehash(input.fqdn);
     if (!(await registry.recordExists(hash))) throw new DomainNotFoundError(input.fqdn);
@@ -127,7 +127,7 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
   }
 
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
-    const provider = this._getProvider(input.fqdn, options?.net || Net.MAINNET);
+    const provider = await this._getProvider(input.fqdn, options?.net || Net.MAINNET);
     const { resolver, registry } = this._getContract(provider);
     const hash = namehash(input.fqdn);
     if (!(await registry.recordExists(hash))) throw new DomainNotFoundError(input.fqdn);
@@ -140,7 +140,7 @@ export class EdnsV1FromContractService implements IEdnsResolverService {
   }
 
   public async isExists(fqdn: string, options?: IOptions): Promise<boolean> {
-    const provider = this._getProvider(fqdn, options?.net || Net.MAINNET);
+    const provider = await this._getProvider(fqdn, options?.net || Net.MAINNET);
     const { registry } = this._getContract(provider);
     const hash = namehash(fqdn);
     return registry.recordExists(hash);
