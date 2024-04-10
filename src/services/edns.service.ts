@@ -1,5 +1,5 @@
-import { EdnsV1FromContractService } from "./v1/edns-v1.service";
-import { EdnsV2FromContractService, EdnsV2FromRedisService, EdnsV2FromSubgraphService } from "./v2";
+import { EdnsV1FromContractService } from "./edns-v1/edns-v1.service";
+import { EdnsV2FromContractService, EdnsV2FromRedisService, EdnsV2FromSubgraphService } from "./edns-v2";
 import { IOptions } from "../interfaces/IOptions.interface";
 import {
   IEdnsResolverService,

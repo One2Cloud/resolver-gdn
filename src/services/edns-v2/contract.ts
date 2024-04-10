@@ -65,8 +65,8 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const ethNameByte = ethers.utils.toUtf8Bytes(name);
     const ethTldByte = ethers.utils.toUtf8Bytes(tld);
 
-    const address: string = await contracts.Resolver.getAddress(ethHostByte, ethNameByte, ethTldByte);
-    const text: string = await contracts.Resolver.getText(ethHostByte, ethNameByte, ethTldByte);
+    const address: string = await (await contracts).Resolver.getAddress(ethHostByte, ethNameByte, ethTldByte);
+    const text: string = await (await contracts).Resolver.getText(ethHostByte, ethNameByte, ethTldByte);
 
     throw new Error("Method not implemented.");
   }
@@ -75,7 +75,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     if (!options?.chainId) throw new MissingChainIdError();
     try {
       const contracts = getContracts(options.chainId);
-      const fqdn = await contracts.Resolver.getReverseAddress(input.address);
+      const fqdn = await (await contracts).Resolver.getReverseAddress(input.address);
       if (fqdn) return { fqdn };
       return undefined;
     } catch (error) {
@@ -95,7 +95,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     let result: IGetAddressRecordOutput | undefined = undefined;
     if (host && name && tld) {
       result = {
-        address: await contracts.Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
+        address: await (await contracts).Resolver.getAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
       };
     }
 
@@ -116,12 +116,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     if (host && name && tld) {
       result = {
         coin: input.coin,
-        address: await contracts.Resolver.getMultiCoinAddress(
-          ethers.utils.toUtf8Bytes(host),
-          ethers.utils.toUtf8Bytes(name),
-          ethers.utils.toUtf8Bytes(tld),
-          BigNumber.from(input.coin),
-        ),
+        address: await (
+          await contracts
+        ).Resolver.getMultiCoinAddress(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), BigNumber.from(input.coin)),
       };
     }
     if (!result || result.address === "0x") {
@@ -141,7 +138,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const { host = "@", name, tld } = extractFqdn(input.fqdn);
     if (host && name && tld) {
       result = {
-        text: await contracts.Resolver.getText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
+        text: await (await contracts).Resolver.getText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld)),
       };
     }
     if (!result || result.text === "") {
@@ -167,7 +164,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     if (host && name && tld) {
       result = {
         typed: input.typed,
-        text: await contracts.Resolver.getTypedText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
+        text: await (await contracts).Resolver.getTypedText(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), _typed),
       };
     }
     if (!result || result.text === "") {
@@ -188,12 +185,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const { host = "@", name, tld } = extractFqdn(input.fqdn);
     let result;
     if (host && name && tld) {
-      const [contractAddress, tokenId] = await contracts.Resolver.getNFT(
-        ethers.utils.toUtf8Bytes(host),
-        ethers.utils.toUtf8Bytes(name),
-        ethers.utils.toUtf8Bytes(tld),
-        input.chainId,
-      );
+      const [contractAddress, tokenId] = await (
+        await contracts
+      ).Resolver.getNFT(ethers.utils.toUtf8Bytes(host), ethers.utils.toUtf8Bytes(name), ethers.utils.toUtf8Bytes(tld), input.chainId);
       result = {
         chainId: input.chainId,
         contractAddress,
@@ -217,15 +211,17 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
 
     const { host, name, tld } = extractFqdn(fqdn);
     if (host && name && tld) {
-      return await contracts.Registry["isExists(bytes32,bytes32,bytes32)"](
+      return await (
+        await contracts
+      ).Registry["isExists(bytes32,bytes32,bytes32)"](
         ethers.utils.solidityKeccak256(["string"], [host]),
         ethers.utils.solidityKeccak256(["string"], [name]),
         ethers.utils.solidityKeccak256(["string"], [tld]),
       );
     } else if (name && tld) {
-      return await contracts.Registry["isExists(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
+      return await (await contracts).Registry["isExists(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
     } else {
-      return await contracts.Registry["isExists(bytes32)"](ethers.utils.keccak256(tld));
+      return await (await contracts).Registry["isExists(bytes32)"](ethers.utils.keccak256(tld));
     }
   }
 
@@ -240,9 +236,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     let time;
     const { host, name, tld } = extractFqdn(fqdn);
     if (name && tld) {
-      time = await contracts.Registry["getExpiry(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
+      time = await (await contracts).Registry["getExpiry(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
     } else {
-      time = await contracts.Registry["getExpiry(bytes32)"](ethers.utils.keccak256(tld));
+      time = await (await contracts).Registry["getExpiry(bytes32)"](ethers.utils.keccak256(tld));
     }
     return timeIsPassed(time.toNumber());
   }
@@ -267,11 +263,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const contracts = getContracts(_chainId);
     const { host, name, tld } = extractFqdn(fqdn);
     if (host && name && tld) {
-      const ttl = await contracts.Registry.getTtl(
-        ethers.utils.solidityKeccak256(["string"], [host]),
-        ethers.utils.solidityKeccak256(["string"], [name]),
-        ethers.utils.solidityKeccak256(["string"], [tld]),
-      );
+      const ttl = await (
+        await contracts
+      ).Registry.getTtl(ethers.utils.solidityKeccak256(["string"], [host]), ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
       return ttl;
     }
     return undefined;
@@ -285,7 +279,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const contracts = getContracts(_chainId);
     const { host, name, tld } = extractFqdn(fqdn);
     if (name && tld) {
-      const owner = await contracts.Registry["getOwner(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
+      const owner = await (
+        await contracts
+      ).Registry["getOwner(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
       return owner;
     }
     return undefined;
@@ -299,7 +295,9 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     const contracts = getContracts(_chainId);
     const { host, name, tld } = extractFqdn(fqdn);
     if (name && tld) {
-      const expiry = await contracts.Registry["getExpiry(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
+      const expiry = await (
+        await contracts
+      ).Registry["getExpiry(bytes32,bytes32)"](ethers.utils.solidityKeccak256(["string"], [name]), ethers.utils.solidityKeccak256(["string"], [tld]));
       return expiry.toNumber();
     }
     return undefined;

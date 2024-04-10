@@ -11,7 +11,7 @@ import EdnsContractsAddress from "../../static/edns-contracts-address.json";
 import { Bridge__factory } from "../../contracts/ethereum/edns-v2/typechain/factories/Bridge__factory";
 import { getConfig } from "../../config";
 import { getInContractChain } from "../../utils/get-in-contract-chain";
-import { EdnsV2FromContractService, EdnsV2FromRedisService } from "../../services/v2";
+import { EdnsV2FromContractService, EdnsV2FromRedisService } from "../../services/edns-v2";
 import { Net } from "../../network-config";
 
 const logger = createLogger();
@@ -786,7 +786,7 @@ export const main = async (body: IBody): Promise<void> => {
       const provider = createProvider(data.chainId);
       const contracts = EdnsContractsAddress.find((contract) => contract.chainId === data.chainId);
       if (contracts?.addresses["Bridge"]) {
-        const bridge = Bridge__factory.connect(contracts?.addresses["Bridge"], provider);
+        const bridge = Bridge__factory.connect(contracts?.addresses["Bridge"], await provider);
         const req = await bridge.getBridgedRequest(data.ref);
         if (req) {
           const domain = `${req.name}.${req.tld}`;
@@ -843,7 +843,7 @@ export const main = async (body: IBody): Promise<void> => {
       const provider = createProvider(data.chainId);
       const contracts = EdnsContractsAddress.find((contract) => contract.chainId === data.chainId);
       if (contracts?.addresses["Bridge"]) {
-        const bridge = Bridge__factory.connect(contracts?.addresses["Bridge"], provider);
+        const bridge = Bridge__factory.connect(contracts?.addresses["Bridge"], await provider);
         const req = await bridge.getAcceptedRequest(data.ref);
         if (req) {
           const domain = `${req.name}.${req.tld}`;
