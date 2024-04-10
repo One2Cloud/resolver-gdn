@@ -16,5 +16,7 @@ export async function getSecretInLambda(secretArn: string): Promise<string> {
       "X-Aws-Parameters-Secrets-Token": `${process.env.AWS_SESSION_TOKEN}`,
     },
   });
-  return response.data;
+  const data = JSON.parse(response.data);
+  if (!data.SecretString) throw new Error("Secret value is empty");
+  return data.SecretString;
 }

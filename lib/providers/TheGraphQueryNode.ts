@@ -4,11 +4,14 @@ import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as servicediscovery from "aws-cdk-lib/aws-servicediscovery";
-
+import * as lambda from "aws-cdk-lib/aws-lambda";
 interface IConstructProps {
 	secret: secretsmanager.ISecret;
 	cluster: ecs.Cluster;
 	namespace: servicediscovery.INamespace;
+	api: {
+		lambdaFunction: lambda.Function;
+	};
 }
 
 export class TheGraphQueryNode extends Construct {
@@ -21,7 +24,7 @@ export class TheGraphQueryNode extends Construct {
 			memoryLimitMiB: 1024,
 		});
 
-		const container = testnetTaskDefinition.addContainer("node", {
+		const testnetContainer = testnetTaskDefinition.addContainer("node", {
 			image: ecs.ContainerImage.fromRegistry("graphprotocol/graph-node:v0.34.1"),
 			environment: {
 				GRAPH_GRAPHQL_QUERY_TIMEOUT: "10",
@@ -43,11 +46,11 @@ export class TheGraphQueryNode extends Construct {
 			},
 			logging: ecs.LogDriver.awsLogs({ streamPrefix: "The_Graph_Query_Node" }),
 		});
-		container.addPortMappings({
+		testnetContainer.addPortMappings({
 			name: "http",
 			containerPort: 8080,
 		});
-		container.addPortMappings({
+		testnetContainer.addPortMappings({
 			name: "ws",
 			containerPort: 8081,
 		});
@@ -55,16 +58,18 @@ export class TheGraphQueryNode extends Construct {
 			props.secret.grantRead(testnetTaskDefinition.executionRole);
 		}
 
-		const testnet = new ecs.FargateService(this, "TestnetService", {
-			serviceName: "The_Graph_Query_Node-Testnet",
-			taskDefinition: testnetTaskDefinition,
-			cluster: props.cluster,
-			desiredCount: 1,
-			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-			cloudMapOptions: {
-				name: "testnet.graph-query-node",
-				cloudMapNamespace: props.namespace,
-			},
-		});
+		// const testnet = new ecs.FargateService(this, "TestnetService", {
+		// 	serviceName: "The_Graph_Query_Node-Testnet",
+		// 	taskDefinition: testnetTaskDefinition,
+		// 	cluster: props.cluster,
+		// 	desiredCount: 1,
+		// 	vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+		// 	cloudMapOptions: {
+		// 		name: "testnet.graph-query-node",
+		// 		cloudMapNamespace: props.namespace,
+		// 	},
+		// });
+		// testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8080));
+		// testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8081));
 	}
 }

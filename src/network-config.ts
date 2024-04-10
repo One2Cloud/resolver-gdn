@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
-import fs from "fs";
-import path from "path";
 import { InContractChain } from "./constants/in-contract-chain.constant";
+import { getSecretInLambda } from "./utils/get-secret";
 
 dotenv.config();
 
@@ -195,20 +194,13 @@ export interface IConfig {
   network: INetworkConfig;
 }
 
-export const getNetworkConfig = (): INetworkConfig => {
+export const getNetworkConfig = async (): Promise<INetworkConfig> => {
   let GetBlockConfig: IGetBlockConfig = { shared: {} };
 
-  if (process.env.GETBLOCK_CONFIG) {
-    GetBlockConfig = JSON.parse(process.env.GETBLOCK_CONFIG);
-  }
+  const { GETBLOCK_CONFIG, GROVE_CITY_APP_ID } = JSON.parse(await getSecretInLambda(process.env.GLOBAL_SECRET_ARN!));
 
-  if (!GetBlockConfig) {
-    try {
-      GetBlockConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "getblock.config.json"), "utf-8"));
-    } catch {
-      console.warn("getblock.config.json not found");
-    }
-  }
+  GetBlockConfig = JSON.parse(GETBLOCK_CONFIG);
+
   return {
     [Network.ETHEREUM]: {
       chainId: Network.ETHEREUM,
@@ -651,7 +643,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chain: InContractChain.IOTEX,
       name: "IoTeX Mainnet",
       symbol: "IOTX",
-      url: `https://iotex-mainnet.rpc.grove.city/v1/${process.env.GROVE_CITY_APP_ID}`,
+      url: `https://iotex-mainnet.rpc.grove.city/v1/${GROVE_CITY_APP_ID}`,
       slip44: {
         coinId: 304,
       },
@@ -695,7 +687,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chain: InContractChain.OKC,
       name: "OKC Mainnet",
       symbol: "OKT",
-      url: `https://oKc-mainnet.rpc.grove.city/v1/${process.env.GROVE_CITY_APP_ID}`,
+      url: `https://oKc-mainnet.rpc.grove.city/v1/${GROVE_CITY_APP_ID}`,
       slip44: {
         coinId: 996,
       },
@@ -781,7 +773,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chainId: Network.MOONBEAM,
       name: "Moonbeam",
       symbol: "GLMR",
-      url: `https://moonbeam-mainnet.rpc.grove.city/v1/${process.env.GROVE_CITY_APP_ID}`,
+      url: `https://moonbeam-mainnet.rpc.grove.city/v1/${GROVE_CITY_APP_ID}`,
       slip44: {
         coinId: 1284,
       },
@@ -810,7 +802,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chainId: Network.MOONRIVER,
       name: "Moonriver",
       symbol: "MOVR",
-      url: `https://moonriver-mainnet.rpc.grove.city/v1/${process.env.GROVE_CITY_APP_ID}`,
+      url: `https://moonriver-mainnet.rpc.grove.city/v1/${GROVE_CITY_APP_ID}`,
       slip44: {
         coinId: 1285,
       },
@@ -834,7 +826,7 @@ export const getNetworkConfig = (): INetworkConfig => {
       chainId: Network.CELO,
       name: "Celo Mainnet",
       symbol: "CELO",
-      url: `https://celo-mainnet.rpc.grove.city/v1/${process.env.GROVE_CITY_APP_ID}`,
+      url: `https://celo-mainnet.rpc.grove.city/v1/${GROVE_CITY_APP_ID}`,
       slip44: {
         coinId: 52751,
       },
