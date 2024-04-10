@@ -57,7 +57,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -77,7 +77,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -119,7 +119,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -174,7 +174,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -219,7 +219,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -255,7 +255,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -277,7 +277,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -297,7 +297,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -338,7 +338,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -368,7 +368,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -390,7 +390,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -411,7 +411,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -433,7 +433,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   `;
 
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -453,7 +453,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: options?.chainId == 137 ? config.subgraph.url : "http://54.164.116.17:9000/subgraphs/name/edns-114",
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
@@ -476,7 +476,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
@@ -496,7 +496,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: config.subgraph.url,
+      url: `https://${options?.net}${config.subgraph.url}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
