@@ -24,7 +24,8 @@ export const putSqsMessage = async (input: IPutSqsMessageInput) => {
   console.debug(`MessageDeduplication: ${`${input.provider}:${input.fqdn}:${input.eventType}`}`);
   let queueUrl: string | undefined = undefined;
   if (input.provider === DomainProvider.EDNS) {
-    queueUrl = config.edns.sqs.queue.url;
+    // queueUrl = config.edns.sqs.queue.url;
+    queueUrl = "";
   } else {
     throw new Error(`Unsupported domain provider: ${input.provider}`);
   }

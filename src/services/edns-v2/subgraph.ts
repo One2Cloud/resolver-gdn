@@ -465,9 +465,9 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .toPromise()
       .then((res) => res.data);
 
-    console.log(data);
+    console.log(data !== undefined && data.typedTextRecord !== null);
 
-    return data.typedTextRecord !== null ? { typed: data.typedTextRecord.typed, text: data.typedTextRecord.text } : { typed: undefined, text: undefined };
+    return data !== undefined && data.typedTextRecord !== null ? { typed: data.typedTextRecord.typed, text: data.typedTextRecord.text } : { typed: undefined, text: undefined };
   }
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions | undefined): Promise<IGetNftRecordOutput | undefined> {
     const tokensQuery = `

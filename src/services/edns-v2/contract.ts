@@ -38,7 +38,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   private async _getDomainChainId(domain: string, options?: IOptions): Promise<number> {
     const redis = createRedisClient();
     const { host, name, tld } = extractFqdn(domain);
-    const inContractChain = await redis.hget(Key.DOMAIN_INFO_$HASH(options?.net || Net.MAINNET, `${name}.${tld}`), "chain");
+    const inContractChain = await (await redis).hget(Key.DOMAIN_INFO_$HASH(options?.net || Net.MAINNET, `${name}.${tld}`), "chain");
     if (!inContractChain) throw new CantGetChainIdError(domain);
     return await getChainId(options?.net || Net.MAINNET, parseInt(inContractChain));
   }
