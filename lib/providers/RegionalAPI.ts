@@ -47,14 +47,16 @@ export class RegionalAPI extends Construct {
 			timeout: cdk.Duration.seconds(30),
 			memorySize: 512,
 			environment: {
-				THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
-				THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
-				THE_GRAPH_QUERY_WEBSOCKET_API_TESTNET_ENDPOINT: `ws://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
-				THE_GRAPH_QUERY_WEBSOCKET_API_MAINNET_ENDPOINT: `ws://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
+				THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://34.239.95.30:8000`,
+				THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://52.22.51.79:8000`,
+				// THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
+				// THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
+				// THE_GRAPH_QUERY_WEBSOCKET_API_TESTNET_ENDPOINT: `ws://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
+				// THE_GRAPH_QUERY_WEBSOCKET_API_MAINNET_ENDPOINT: `ws://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
 				GLOBAL_SECRET_ARN: props.secret.secretArn,
 			},
-			vpc: props.vpc,
-			vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+			// vpc: props.vpc,
+			// vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
 		});
 		props.secret.grantRead(lambdaFunction);
 		this.lambdaFunction = lambdaFunction;
