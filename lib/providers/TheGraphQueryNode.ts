@@ -97,6 +97,8 @@ export class TheGraphQueryNode extends Construct {
 				node_id: `query-node-testnet-${cdk.Stack.of(this).region}`,
 				node_role: "query-node",
 				ipfs: `ipfs.${cdk.Stack.of(this).region}.resolver.gdn.local:5001`,
+				DISABLE_BLOCK_INGESTOR: "true",
+				GRAPH_LOG: "DEBUG",
 			},
 			secrets: {
 				postgres_user: ecs.Secret.fromSecretsManager(props.secret, "GRAPH_NODE_TESTNET_POSTGRES_USER"),
@@ -125,12 +127,14 @@ export class TheGraphQueryNode extends Construct {
 			taskDefinition: testnetTaskDefinition,
 			cluster: props.cluster,
 			desiredCount: 1,
-			vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+			assignPublicIp: true,
 			cloudMapOptions: {
 				name: "testnet.graph-query-node",
 				cloudMapNamespace: props.namespace,
 			},
 		});
+		testnet.connections.allowFrom(ec2.Peer.anyIpv4(), ec2.Port.tcp(8080));
 		testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8080));
 		testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8081));
 		ipfs.connections.allowFrom(testnet.connections, ec2.Port.tcp(5001));
