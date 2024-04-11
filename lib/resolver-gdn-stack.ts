@@ -4,7 +4,6 @@ import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as ecra from "aws-cdk-lib/aws-ecr-assets";
 import path = require("path");
-import { EDNS } from "./providers/EDNS";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53_targets from "aws-cdk-lib/aws-route53-targets";
@@ -33,6 +32,18 @@ export class ResolverGdnStack extends cdk.Stack {
 		this.secret = new secretsmanager.Secret(this, "Secret", {
 			secretName: "resolver-gdn-secret",
 			replicaRegions: [...props.availableRegions.map((region) => ({ region }))],
+		});
+
+		const vpc = new ec2.Vpc(this, "VPC", {
+			maxAzs: 3,
+			natGateways: 0,
+			subnetConfiguration: [
+				{
+					name: "Public",
+					cidrMask: 22,
+					subnetType: ec2.SubnetType.PUBLIC,
+				},
+			],
 		});
 
 		const oac = new cloudfront.CfnOriginAccessControl(this, "AOC", {

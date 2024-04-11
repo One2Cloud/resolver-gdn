@@ -6,6 +6,7 @@ import path from "path";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as apigw2_integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
@@ -61,9 +62,9 @@ export class RegionalAPI extends Construct {
 			aliasName: "app",
 			version: lambdaFunction.currentVersion,
 		});
-		const as = alias.addAutoScaling({ minCapacity: 1, maxCapacity: 10 });
+		const as = alias.addAutoScaling({ minCapacity: 1, maxCapacity: 1 });
 		as.scaleOnUtilization({
-			utilizationTarget: 0.5,
+			utilizationTarget: 0.8,
 		});
 
 		const dn = new apigwv2.DomainName(this, "DomainName", {
@@ -72,7 +73,7 @@ export class RegionalAPI extends Construct {
 		});
 		const api = new apigwv2.HttpApi(this, "HttpApi", {
 			apiName: "Resolver-GDN-Regional-API",
-			defaultIntegration: new apigw2_integrations.HttpLambdaIntegration("LambdaIntegration", lambdaFunction),
+			defaultIntegration: new apigw2_integrations.HttpLambdaIntegration("LambdaIntegration", alias),
 			disableExecuteApiEndpoint: false,
 			defaultDomainMapping: {
 				domainName: dn,
@@ -80,12 +81,13 @@ export class RegionalAPI extends Construct {
 		});
 		this.apigw = api;
 
-		// new route53.ARecord(this, "ARecord", {
-		// 	zone: route53.PublicHostedZone.fromLookup(this, "HostedZone", {
-		// 		domainName: "resolver.gdn",
-		// 	}),
-		// 	target: route53.RecordTarget.fromAlias(new route53targets.ApiGatewayv2DomainProperties(dn.regionalDomainName, dn.regionalHostedZoneId)),
-		// 	region: cdk.Stack.of(this).region,
-		// });
+		new route53.ARecord(this, "ARecord", {
+			recordName: "api",
+			zone: route53.PublicHostedZone.fromLookup(this, "HostedZone", {
+				domainName: "resolver.gdn",
+			}),
+			target: route53.RecordTarget.fromAlias(new route53targets.ApiGatewayv2DomainProperties(dn.regionalDomainName, dn.regionalHostedZoneId)),
+			region: cdk.Stack.of(this).region,
+		});
 	}
 }

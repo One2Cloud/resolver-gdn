@@ -98,7 +98,6 @@ export class TheGraphQueryNode extends Construct {
 				node_role: "query-node",
 				ipfs: `ipfs.${cdk.Stack.of(this).region}.resolver.gdn.local:5001`,
 				DISABLE_BLOCK_INGESTOR: "true",
-				GRAPH_LOG: "DEBUG",
 			},
 			secrets: {
 				postgres_user: ecs.Secret.fromSecretsManager(props.secret, "GRAPH_NODE_TESTNET_POSTGRES_USER"),
@@ -127,17 +126,29 @@ export class TheGraphQueryNode extends Construct {
 			taskDefinition: testnetTaskDefinition,
 			cluster: props.cluster,
 			desiredCount: 1,
-			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-			assignPublicIp: true,
+			vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
 			cloudMapOptions: {
 				name: "testnet.graph-query-node",
 				cloudMapNamespace: props.namespace,
 			},
+			capacityProviderStrategies: [
+				{
+					capacityProvider: "FARGATE",
+					weight: 1,
+				},
+				{
+					capacityProvider: "FARGATE_SPOT",
+					weight: 2,
+				},
+			],
 		});
-		testnet.connections.allowFrom(ec2.Peer.anyIpv4(), ec2.Port.tcp(8080));
 		testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8080));
 		testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8081));
 		ipfs.connections.allowFrom(testnet.connections, ec2.Port.tcp(5001));
+
+		const testnetScale = testnet.autoScaleTaskCount({ minCapacity: 1, maxCapacity: 4 });
+		testnetScale.scaleOnCpuUtilization("cpu", { targetUtilizationPercent: 60 });
+		testnetScale.scaleOnMemoryUtilization("memory", { targetUtilizationPercent: 80 });
 
 		// === MAINNET == ///
 		const mainnetTaskDefinition = new ecs.FargateTaskDefinition(this, "MainnetTaskDefinition", {
@@ -158,6 +169,7 @@ export class TheGraphQueryNode extends Construct {
 				node_id: `query-node-mainnet-${cdk.Stack.of(this).region}`,
 				node_role: "query-node",
 				ipfs: `ipfs.${cdk.Stack.of(this).region}.resolver.gdn.local:5001`,
+				DISABLE_BLOCK_INGESTOR: "true",
 			},
 			secrets: {
 				postgres_user: ecs.Secret.fromSecretsManager(props.secret, "GRAPH_NODE_MAINNET_POSTGRES_USER"),
@@ -183,7 +195,7 @@ export class TheGraphQueryNode extends Construct {
 
 		const mainnet = new ecs.FargateService(this, "MainnetService", {
 			serviceName: "The_Graph_Query_Node-Mainnet",
-			taskDefinition: testnetTaskDefinition,
+			taskDefinition: mainnetTaskDefinition,
 			cluster: props.cluster,
 			desiredCount: 2,
 			vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
@@ -205,5 +217,9 @@ export class TheGraphQueryNode extends Construct {
 		mainnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8080));
 		mainnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8081));
 		ipfs.connections.allowFrom(mainnet.connections, ec2.Port.tcp(5001));
+
+		const mainnetScale = mainnet.autoScaleTaskCount({ minCapacity: 2, maxCapacity: 12 });
+		mainnetScale.scaleOnCpuUtilization("cpu", { targetUtilizationPercent: 60 });
+		mainnetScale.scaleOnMemoryUtilization("memory", { targetUtilizationPercent: 80 });
 	}
 }
