@@ -1,3 +1,5 @@
+require("source-map-support/register");
+
 import * as dotenv from "dotenv";
 import app from "./app";
 

@@ -45,7 +45,7 @@
     "@types/lodash": "^4.14.191",
     "@types/luxon": "^3.3.0",
     "@types/morgan": "^1.9.4",
-    "@types/node": "^20.4.2",
+    "@types/node": "^20.12.7",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",
@@ -58,7 +58,9 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "eslint-plugin-unused-imports": "^2.0.0",
-    "ts-node-dev": "^2.0.0"
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5"
   },
   "description": ""
 }
