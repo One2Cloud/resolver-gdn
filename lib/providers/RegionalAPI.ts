@@ -45,7 +45,7 @@ export class RegionalAPI extends Construct {
 			handler: lambda.Handler.FROM_IMAGE,
 			runtime: lambda.Runtime.FROM_IMAGE,
 			timeout: cdk.Duration.seconds(30),
-			memorySize: 256,
+			memorySize: 512,
 			environment: {
 				THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
 				THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,

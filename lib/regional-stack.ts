@@ -29,7 +29,7 @@ export class RegionalStack extends cdk.Stack {
 		});
 
 		const fckNatProvider = new FckNat.FckNatInstanceProvider({
-			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
+			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.MICRO),
 		});
 		const vpc = new ec2.Vpc(this, "Vpc", {
 			maxAzs: 3,
@@ -72,6 +72,5 @@ export class RegionalStack extends cdk.Stack {
 				lambdaFunction: api.lambdaFunction,
 			},
 		});
-
 	}
 }
