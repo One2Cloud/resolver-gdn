@@ -256,8 +256,6 @@ export class EdnsService implements IEdnsResolverService {
     }
     if (!output && !options?.onchain) {
       output = await this._v2SubgraphService.getTypedTextRecord(input, options);
-      console.log(output);
-
       // output = await this._v2RedisService.getTypedTextRecord(input, options);
     }
     if (!output) {

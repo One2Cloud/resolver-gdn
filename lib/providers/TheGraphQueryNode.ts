@@ -153,8 +153,8 @@ export class TheGraphQueryNode extends Construct {
 		// === MAINNET == ///
 		const mainnetTaskDefinition = new ecs.FargateTaskDefinition(this, "MainnetTaskDefinition", {
 			family: "The_Graph_Query_Node-Mainnet",
-			cpu: 512,
-			memoryLimitMiB: 1024,
+			cpu: 256,
+			memoryLimitMiB: 512,
 		});
 
 		const mainnetContainer = mainnetTaskDefinition.addContainer("node", {
@@ -197,7 +197,7 @@ export class TheGraphQueryNode extends Construct {
 			serviceName: "The_Graph_Query_Node-Mainnet",
 			taskDefinition: mainnetTaskDefinition,
 			cluster: props.cluster,
-			desiredCount: 2,
+			desiredCount: 1,
 			vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
 			cloudMapOptions: {
 				name: "mainnet.graph-query-node",
