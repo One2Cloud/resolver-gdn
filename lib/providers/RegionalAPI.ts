@@ -11,11 +11,13 @@ import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as apigw2_integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53targets from "aws-cdk-lib/aws-route53-targets";
+// import { TheGraphQueryNode } from "./TheGraphQueryNode";
 
 interface IConstructProps {
 	vpc: ec2.IVpc;
 	secret: secretsmanager.ISecret;
 	certificate: acm.Certificate;
+	// graph: TheGraphQueryNode;
 }
 
 export class RegionalAPI extends Construct {
@@ -45,7 +47,7 @@ export class RegionalAPI extends Construct {
 			handler: lambda.Handler.FROM_IMAGE,
 			runtime: lambda.Runtime.FROM_IMAGE,
 			timeout: cdk.Duration.seconds(30),
-			memorySize: 512,
+			memorySize: 256,
 			environment: {
 				THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://34.239.95.30:8000`,
 				THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://52.22.51.79:8000`,

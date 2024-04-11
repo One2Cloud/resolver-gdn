@@ -61,16 +61,13 @@ export class RegionalStack extends cdk.Stack {
 			`arn:aws:secretsmanager:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:secret:resolver-gdn-secret-ROby3i`
 		);
 
-		const api = new RegionalAPI(this, "API", { vpc, secret, certificate });
+		// const graph = new TheGraphQueryNode(this, "TheGraphQueryNode", {
+		// 	vpc,
+		// 	cluster,
+		// 	namespace,
+		// 	secret,
+		// });
 
-		const graph = new TheGraphQueryNode(this, "TheGraphQueryNode", {
-			vpc,
-			cluster,
-			namespace,
-			secret,
-			api: {
-				lambdaFunction: api.lambdaFunction,
-			},
-		});
+		const api = new RegionalAPI(this, "API", { vpc, secret, certificate });
 	}
 }

@@ -6,18 +6,20 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as servicediscovery from "aws-cdk-lib/aws-servicediscovery";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as efs from "aws-cdk-lib/aws-efs";
+import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
+import * as apigw2_integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 
 interface IConstructProps {
 	vpc: ec2.IVpc;
 	secret: secretsmanager.ISecret;
 	cluster: ecs.Cluster;
 	namespace: servicediscovery.INamespace;
-	api: {
-		lambdaFunction: lambda.Function;
-	};
 }
 
 export class TheGraphQueryNode extends Construct {
+	public readonly mainnetEndpoint: apigwv2.HttpApi;
+	public readonly testnetEndpoint: apigwv2.HttpApi;
+
 	constructor(scope: Construct, id: string, props: IConstructProps) {
 		super(scope, id);
 
@@ -89,7 +91,7 @@ export class TheGraphQueryNode extends Construct {
 			image: ecs.ContainerImage.fromRegistry("graphprotocol/graph-node:v0.34.1"),
 			environment: {
 				GRAPH_GRAPHQL_QUERY_TIMEOUT: "10",
-				GRAPH_GRAPHQL_HTTP_PORT: "8080",
+				GRAPH_GRAPHQL_HTTP_PORT: "80",
 				GRAPH_GRAPHQL_WS_PORT: "8081",
 				GRAPH_CACHED_SUBGRAPH_IDS: "*",
 				GRAPH_QUERY_CACHE_BLOCKS: "100",
@@ -111,7 +113,7 @@ export class TheGraphQueryNode extends Construct {
 		});
 		testnetContainer.addPortMappings({
 			name: "http",
-			containerPort: 8080,
+			containerPort: 80,
 		});
 		testnetContainer.addPortMappings({
 			name: "ws",
@@ -142,8 +144,8 @@ export class TheGraphQueryNode extends Construct {
 				},
 			],
 		});
-		testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8080));
-		testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8081));
+		// testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8080));
+		// testnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8081));
 		ipfs.connections.allowFrom(testnet.connections, ec2.Port.tcp(5001));
 
 		const testnetScale = testnet.autoScaleTaskCount({ minCapacity: 1, maxCapacity: 4 });
@@ -161,7 +163,7 @@ export class TheGraphQueryNode extends Construct {
 			image: ecs.ContainerImage.fromRegistry("graphprotocol/graph-node:v0.34.1"),
 			environment: {
 				GRAPH_GRAPHQL_QUERY_TIMEOUT: "10",
-				GRAPH_GRAPHQL_HTTP_PORT: "8080",
+				GRAPH_GRAPHQL_HTTP_PORT: "80",
 				GRAPH_GRAPHQL_WS_PORT: "8081",
 				GRAPH_CACHED_SUBGRAPH_IDS: "*",
 				GRAPH_QUERY_CACHE_BLOCKS: "100",
@@ -183,7 +185,7 @@ export class TheGraphQueryNode extends Construct {
 		});
 		mainnetContainer.addPortMappings({
 			name: "http",
-			containerPort: 8080,
+			containerPort: 80,
 		});
 		mainnetContainer.addPortMappings({
 			name: "ws",
@@ -214,12 +216,32 @@ export class TheGraphQueryNode extends Construct {
 				},
 			],
 		});
-		mainnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8080));
-		mainnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8081));
+		// mainnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8080));
+		// mainnet.connections.allowFrom(props.api.lambdaFunction, ec2.Port.tcp(8081));
 		ipfs.connections.allowFrom(mainnet.connections, ec2.Port.tcp(5001));
 
 		const mainnetScale = mainnet.autoScaleTaskCount({ minCapacity: 2, maxCapacity: 12 });
 		mainnetScale.scaleOnCpuUtilization("cpu", { targetUtilizationPercent: 60 });
 		mainnetScale.scaleOnMemoryUtilization("memory", { targetUtilizationPercent: 80 });
+
+		const vpcLinkSecurityGroup = new ec2.SecurityGroup(this, "VPCLinkSecurityGroup", { vpc: props.vpc });
+		const vpcLink = new apigwv2.VpcLink(this, "VPCLink", { vpc: props.vpc });
+		vpcLink.addSecurityGroups(vpcLinkSecurityGroup);
+		mainnet.connections.allowFrom(vpcLinkSecurityGroup, ec2.Port.tcp(80));
+		testnet.connections.allowFrom(vpcLinkSecurityGroup, ec2.Port.tcp(80));
+
+		if (testnet.cloudMapService) {
+			this.testnetEndpoint = new apigwv2.HttpApi(this, "TestnetHttpApi", {
+				defaultIntegration: new apigw2_integrations.HttpServiceDiscoveryIntegration("DefaultHttpIntegration", testnet.cloudMapService, { vpcLink }),
+			});
+			new cdk.CfnOutput(this, "TestnetEndpoint", { value: this.testnetEndpoint.apiEndpoint });
+		}
+
+		if (mainnet.cloudMapService) {
+			this.mainnetEndpoint = new apigwv2.HttpApi(this, "MainnetHttpApi", {
+				defaultIntegration: new apigw2_integrations.HttpServiceDiscoveryIntegration("DefaultHttpIntegration", mainnet.cloudMapService, { vpcLink }),
+			});
+			new cdk.CfnOutput(this, "MainnetEndpoint", { value: this.mainnetEndpoint.apiEndpoint });
+		}
 	}
 }
