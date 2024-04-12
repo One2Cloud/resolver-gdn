@@ -14,84 +14,92 @@ import * as route53targets from "aws-cdk-lib/aws-route53-targets";
 // import { TheGraphQueryNode } from "./TheGraphQueryNode";
 
 interface IConstructProps {
-	vpc: ec2.IVpc;
-	secret: secretsmanager.ISecret;
-	certificate: acm.Certificate;
-	// graph: TheGraphQueryNode;
+  vpc: ec2.IVpc;
+  secret: secretsmanager.ISecret;
+  certificate: acm.Certificate;
+  // graph: TheGraphQueryNode;
 }
 
 export class RegionalAPI extends Construct {
-	public readonly lambdaFunction: lambda.Function;
-	public readonly apigw: apigwv2.HttpApi;
+  public readonly lambdaFunction: lambda.Function;
+  public readonly apigw: apigwv2.HttpApi;
 
-	constructor(scope: Construct, id: string, props: IConstructProps) {
-		super(scope, id);
+  constructor(scope: Construct, id: string, props: IConstructProps) {
+    super(scope, id);
 
-		const image = new ecra.DockerImageAsset(this, "Image", {
-			directory: path.join(process.cwd(), "src"),
-			file: "docker/Dockerfile.lambda",
-			platform: ecra.Platform.LINUX_AMD64,
-			buildArgs: {
-				AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
-				AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
-				AWS_SESSION_TOKEN: process.env.AWS_SESSION_TOKEN!,
-			},
-		});
+    const image = new ecra.DockerImageAsset(this, "Image", {
+      directory: path.join(process.cwd(), "src"),
+      file: "docker/Dockerfile.lambda",
+      platform: ecra.Platform.LINUX_AMD64,
+      buildArgs: {
+        AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
+        AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
+        AWS_SESSION_TOKEN: process.env.AWS_SESSION_TOKEN!,
+      },
+    });
 
-		const lambdaFunction = new lambda.Function(this, "LambdaFunction", {
-			functionName: "Resolver-GDN-Regional-API",
-			code: lambda.Code.fromEcrImage(image.repository, {
-				tagOrDigest: image.imageTag,
-				cmd: ["handler.index"],
-			}),
-			handler: lambda.Handler.FROM_IMAGE,
-			runtime: lambda.Runtime.FROM_IMAGE,
-			timeout: cdk.Duration.seconds(30),
-			memorySize: 256,
-			environment: {
-				THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://34.239.95.30:8000`,
-				THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://52.22.51.79:8000`,
-				// THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
-				// THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
-				// THE_GRAPH_QUERY_WEBSOCKET_API_TESTNET_ENDPOINT: `ws://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
-				// THE_GRAPH_QUERY_WEBSOCKET_API_MAINNET_ENDPOINT: `ws://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
-				GLOBAL_SECRET_ARN: props.secret.secretArn,
-			},
-			// vpc: props.vpc,
-			// vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-		});
-		props.secret.grantRead(lambdaFunction);
-		this.lambdaFunction = lambdaFunction;
-		const alias = new lambda.Alias(this, "Alias", {
-			aliasName: "app",
-			version: lambdaFunction.currentVersion,
-		});
-		const as = alias.addAutoScaling({ minCapacity: 1, maxCapacity: 1 });
-		as.scaleOnUtilization({
-			utilizationTarget: 0.8,
-		});
+    const lambdaFunction = new lambda.Function(this, "LambdaFunction", {
+      functionName: "Resolver-GDN-Regional-API",
+      code: lambda.Code.fromEcrImage(image.repository, {
+        tagOrDigest: image.imageTag,
+        cmd: ["handler.index"],
+      }),
+      handler: lambda.Handler.FROM_IMAGE,
+      runtime: lambda.Runtime.FROM_IMAGE,
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      environment: {
+        THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://34.239.95.30:8000`,
+        THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `https://mainnet.graph.query.node.resolver.gdn`,
+        // THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT: `http://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
+        // THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT: `http://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8080`,
+        // THE_GRAPH_QUERY_WEBSOCKET_API_TESTNET_ENDPOINT: `ws://testnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
+        // THE_GRAPH_QUERY_WEBSOCKET_API_MAINNET_ENDPOINT: `ws://mainnet.graph-query-node.${cdk.Stack.of(this).region}.resolver.gdn.local:8081`,
+        GLOBAL_SECRET_ARN: props.secret.secretArn,
+      },
+      // vpc: props.vpc,
+      // vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+    });
+    props.secret.grantRead(lambdaFunction);
+    this.lambdaFunction = lambdaFunction;
+    const alias = new lambda.Alias(this, "Alias", {
+      aliasName: "app",
+      version: lambdaFunction.currentVersion,
+    });
+    const as = alias.addAutoScaling({ minCapacity: 1, maxCapacity: 1 });
+    as.scaleOnUtilization({
+      utilizationTarget: 0.8,
+    });
 
-		const dn = new apigwv2.DomainName(this, "DomainName", {
-			domainName: "api.resolver.gdn",
-			certificate: props.certificate,
-		});
-		const api = new apigwv2.HttpApi(this, "HttpApi", {
-			apiName: "Resolver-GDN-Regional-API",
-			defaultIntegration: new apigw2_integrations.HttpLambdaIntegration("LambdaIntegration", alias),
-			disableExecuteApiEndpoint: false,
-			defaultDomainMapping: {
-				domainName: dn,
-			},
-		});
-		this.apigw = api;
+    const dn = new apigwv2.DomainName(this, "DomainName", {
+      domainName: "api.resolver.gdn",
+      certificate: props.certificate,
+    });
+    const api = new apigwv2.HttpApi(this, "HttpApi", {
+      apiName: "Resolver-GDN-Regional-API",
+      defaultIntegration: new apigw2_integrations.HttpLambdaIntegration(
+        "LambdaIntegration",
+        alias
+      ),
+      disableExecuteApiEndpoint: false,
+      defaultDomainMapping: {
+        domainName: dn,
+      },
+    });
+    this.apigw = api;
 
-		new route53.ARecord(this, "ARecord", {
-			recordName: "api",
-			zone: route53.PublicHostedZone.fromLookup(this, "HostedZone", {
-				domainName: "resolver.gdn",
-			}),
-			target: route53.RecordTarget.fromAlias(new route53targets.ApiGatewayv2DomainProperties(dn.regionalDomainName, dn.regionalHostedZoneId)),
-			region: cdk.Stack.of(this).region,
-		});
-	}
+    new route53.ARecord(this, "ARecord", {
+      recordName: "api",
+      zone: route53.PublicHostedZone.fromLookup(this, "HostedZone", {
+        domainName: "resolver.gdn",
+      }),
+      target: route53.RecordTarget.fromAlias(
+        new route53targets.ApiGatewayv2DomainProperties(
+          dn.regionalDomainName,
+          dn.regionalHostedZoneId
+        )
+      ),
+      region: cdk.Stack.of(this).region,
+    });
+  }
 }
