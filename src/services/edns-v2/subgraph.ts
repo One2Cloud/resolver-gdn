@@ -442,7 +442,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     });
 
     const data = await client
-      .query(tokensQuery, { id: `${input.fqdn}_text` })
+      .query(tokensQuery, { id: `${input.fqdn}` })
       .toPromise()
       .then((res) => res.data);
     return data.textRecord !== null ? { text: data.textRecord.text } : { text: undefined };
