@@ -328,6 +328,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
         }
         textRecord {
           id
+          text
         }
         typedtextRecord {
           id
