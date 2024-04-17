@@ -246,57 +246,14 @@ export class EdnsService implements IEdnsResolverService {
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
     let output: IGetTypedTextRecordOutput | undefined;
-    let cache: "miss" | "hit" = "miss";
     if (options?.version === "v1") {
       return this._v1ContractService.getTypedTextRecord(input, options);
     }
-    if (!output && options?.onchain) {
+    if (options?.onchain) {
       return this._v2ContractService.getTypedTextRecord(input, options);
-      // return this._v2SubgraphService.getTypedTextRecord(input, options);
-    }
-    if (!output && !options?.onchain) {
-      output = await this._v2SubgraphService.getTypedTextRecord(input, options);
-      // output = await this._v2RedisService.getTypedTextRecord(input, options);
-    }
-    if (!output) {
-      output = await this._v2ContractService.getTypedTextRecord(input, options);
-      // output = await this._v2SubgraphService.getTypedTextRecord(input, options);
-      cache = "miss";
     } else {
-      cache = "hit";
+      return this._v2SubgraphService.getTypedTextRecord(input, options);
     }
-    if (output && cache === "miss") {
-      const { host, name, tld } = extractFqdn(input.fqdn);
-      if (options?.chainId) {
-        const isExists = await this._v2ContractService.isExists(input.fqdn, options);
-        if (isExists) {
-          // await putSqsMessage({
-          //   eventType: EdnsEventType.REVALIDATE,
-          //   provider: DomainProvider.EDNS,
-          //   chainId: options.chainId,
-          //   fqdn: input.fqdn,
-          //   data: { host: host || "@", name, tld, chainId: options.chainId },
-          //   net: EdnsMainnets.includes(options.chainId) ? Net.MAINNET : Net.TESTNET,
-          // });
-        }
-      }
-      // await putSqsMessage({
-      //   chainId: options?.chainId,
-      //   eventType: EdnsEventType.SET_TYPED_TEXT_RECORD,
-      //   provider: DomainProvider.EDNS,
-      //   fqdn: input.fqdn,
-      //   hash: "FROM_EDGE_API",
-      //   data: {
-      //     host: host || "@",
-      //     name,
-      //     tld,
-      //     text: output.text,
-      //     typed: output.typed,
-      //   },
-      //   net: options?.net,
-      // });
-    }
-    return output;
   }
 
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined> {
