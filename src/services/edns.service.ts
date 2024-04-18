@@ -318,7 +318,6 @@ export class EdnsService implements IEdnsResolverService {
       throw new Error("Not available on chain.");
     }
     if (!output && !options?.onchain) {
-      // output = await this._v2RedisService.getDomain(fqdn, options);
       output = await this._v2SubgraphService.getDomain(fqdn, options);
       if (!output) throw new DomainNotFoundError(fqdn);
     }

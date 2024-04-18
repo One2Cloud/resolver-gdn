@@ -140,7 +140,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn, _id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    console.log(data.domain.owner.address);
 
     result = {
       chain: chainId,
@@ -255,7 +254,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
           operators: data.host.operator.address,
           user: {
             address: data.host.user.address,
-            expiry: data.host.expiry,
+            expiry: data?.host.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.host.expiry)) : luxon.DateTime.fromMillis(Number(data.host.expiry)),
           },
           records: _record,
         }
