@@ -33,17 +33,12 @@ export class RegionalStack extends cdk.Stack {
 		});
 		const vpc = new ec2.Vpc(this, "Vpc", {
 			maxAzs: 3,
-			natGateways: 3,
+			natGateways: 0,
 			natGatewayProvider: fckNatProvider,
 			subnetConfiguration: [
 				{
 					name: "Public",
 					subnetType: ec2.SubnetType.PUBLIC,
-					cidrMask: 21,
-				},
-				{
-					name: "Private",
-					subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
 					cidrMask: 21,
 				},
 			],
