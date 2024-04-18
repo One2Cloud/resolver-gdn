@@ -231,6 +231,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
           }
         }
       }
+    }
     `;
 
     const client = createClient({
@@ -249,11 +250,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
         _record.push(key);
       }
     }
+
     return !!data?.host
       ? {
-          operators: data.host.operator.address,
+          operators: data.host.operator?.address,
           user: {
-            address: data.host.user.address,
+            address: data.host.user?.address,
             expiry: data?.host.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.host.expiry)) : luxon.DateTime.fromMillis(Number(data.host.expiry)),
           },
           records: _record,
