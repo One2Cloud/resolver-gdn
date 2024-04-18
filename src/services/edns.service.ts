@@ -28,8 +28,6 @@ import { extractFqdn } from "../utils/extract-fqdn";
 import { Mainnets as EdnsMainnets, Net } from "../network-config";
 import { IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../interfaces/IEdnsRegistryService.interface";
 import { DomainNotFoundError } from "../errors/domain-not-found.error";
-import { createRedisClient } from "../utils/create-redis-client";
-import { Key } from "../app/listener/handler";
 
 export class EdnsService implements IEdnsResolverService {
   private readonly _v2RedisService: EdnsV2FromRedisService;
@@ -56,7 +54,8 @@ export class EdnsService implements IEdnsResolverService {
   }
 
   public async getUrlRecord(fqdn: string): Promise<IGetUrlRecordOutput | undefined> {
-    return await this._v2RedisService.getUrlRecord(fqdn);
+    // return await this._v2SubgraphService.getUrlRecord(fqdn);
+    return undefined;
   }
 
   public async getReverseAddressRecord(input: IGetReverseAddressRecordInput, options?: IOptions): Promise<IGetReverseAddressRecordOutput | undefined> {
@@ -245,7 +244,6 @@ export class EdnsService implements IEdnsResolverService {
   }
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
-    let output: IGetTypedTextRecordOutput | undefined;
     if (options?.version === "v1") {
       return this._v1ContractService.getTypedTextRecord(input, options);
     }
@@ -381,39 +379,20 @@ export class EdnsService implements IEdnsResolverService {
       throw new Error("Not available on chain.");
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getHost(fqdn, options);
+      output = await this._v2SubgraphService.getHost(fqdn, options);
     }
     return output;
   }
 
   public async getTtl(fqdn: string, options?: IOptions): Promise<number | undefined> {
-    let ttl: number | undefined;
-    let cache: "miss" | "hit" = "miss";
     if (options?.version === "v1") {
       return 3600;
     }
-    if (!ttl && options?.onchain) {
+    if (options?.onchain) {
       return this._v2ContractService.getTtl(fqdn, options);
-    }
-    if (!ttl && !options?.onchain) {
-      ttl = await this._v2SubgraphService.getTtl(fqdn, options);
-    }
-    if (!ttl) {
-      ttl = await this._v2ContractService.getTtl(fqdn, options);
-      cache = "miss";
     } else {
-      cache = "hit";
+      return this._v2SubgraphService.getTtl(fqdn, options);
     }
-    if (ttl && cache === "miss") {
-      const { host, name, tld } = extractFqdn(fqdn);
-      // await putSqsMessage({
-      //   eventType: EdnsEventType.NEW_HOST,
-      //   provider: DomainProvider.EDNS,
-      //   fqdn: fqdn,
-      //   data: { host, name, tld, ttl },
-      // });
-    }
-    return ttl;
   }
 
   // public async getBridgeEvents(input: IGetBridgedEventInput, options?: IOptions): Promise<string | undefined> {
@@ -430,7 +409,8 @@ export class EdnsService implements IEdnsResolverService {
       throw new Error("Not available on chain.");
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getMultiCoinAddressList(fqdn, options);
+      // output = await this._v2SubgraphService.getMultiCoinAddressList(fqdn, options);
+      return undefined;
     }
     return output;
   }
@@ -445,7 +425,8 @@ export class EdnsService implements IEdnsResolverService {
       throw new Error("Not available on chain.");
     }
     if (!output && !options?.onchain) {
-      output = await this._v2RedisService.getTypedTextList(fqdn, options);
+      // output = await this._v2SubgraphService.getTypedTextList(fqdn, options);
+      return undefined;
     }
     return output;
   }

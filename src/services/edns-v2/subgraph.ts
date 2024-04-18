@@ -16,14 +16,26 @@ import {
   IGetReverseAddressRecordOutput,
   IGetAllRecordsInput,
   IGetAllRecordsOutput,
+  IGenericInput,
 } from "../../interfaces/IEdnsResolverService.interface";
 import { IOptions } from "../../interfaces/IOptions.interface";
 import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
 import { createClient, cacheExchange, fetchExchange } from "urql";
 import config from "../../config";
 import { Net } from "../../network-config";
+import { DomainNotFoundError } from "../../errors/domain-not-found.error";
+import { DomainExpiredError } from "../../errors/domain-expired.error";
+import { EdnsV2FromRedisService } from "./redis";
+import { extractFqdn } from "../../utils/extract-fqdn";
 
 export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsRegistryService {
+  private async _queryPreCheck(chainId: number, input: IGenericInput, options?: IOptions): Promise<void> {
+    const isExists = await EdnsV2FromRedisService.isExists(input.fqdn, { ...options, chainId }, chainId);
+    if (!isExists) throw new DomainNotFoundError(input.fqdn);
+    const isExpired = await EdnsV2FromRedisService.isExpired(input.fqdn, { ...options, chainId }, chainId);
+    if (isExpired) throw new DomainExpiredError(input.fqdn);
+  }
+
   private groupByDomainWithCombinedHosts = (data: any): IGetDomainOutputSubgraph[] => {
     const groupedData: any = {};
 
@@ -43,22 +55,17 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   };
 
   public async isExists(fqdn: string, options?: IOptions | undefined, _chainId?: number | undefined): Promise<boolean> {
+    const chainId = options?.chainId || _chainId || (await EdnsV2FromRedisService.getDomainChainId(fqdn, options));
     const tokensQuery = `
     query MyQuery ($id: ID!){
       host(id: $id) {
         id
-        ttl
-        host
-        fqdn
-        domain {
-          fqdn
-        }
       }
     }
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -66,9 +73,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    return data.host !== null;
+    return !!data?.host;
   }
+
   public async isExpired(fqdn: string, options?: IOptions | undefined, _chainId?: number | undefined): Promise<boolean> {
+    const chainId = options?.chainId || _chainId || (await EdnsV2FromRedisService.getDomainChainId(fqdn, options));
+
     const tokensQuery = `
     query MyQuery ($id: ID!){
       domain(id: $id) {
@@ -78,22 +88,23 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
+    const { name, tld } = extractFqdn(fqdn);
     const data = await client
-      .query(tokensQuery, { id: fqdn })
+      .query(tokensQuery, { id: `${name}.${tld}` })
       .toPromise()
       .then((res) => res.data);
-    let _date;
-    data.domain.expiry.toString().length === 10 ? (_date = new Date(data.domain.expiry * 1000)) : (_date = new Date(data.domain.expiry));
-    const now = new Date();
-    return now.getTime() > _date.getTime();
+    const expiry = data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry));
+    return luxon.DateTime.now() > expiry;
   }
 
   public async getDomain(fqdn: string, options?: IOptions | undefined): Promise<IGetDomainOutput | undefined> {
-    const { chainId = 137 } = options || {};
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(fqdn, options);
+    await this._queryPreCheck(chainId, { fqdn }, options);
+
     const tokensQuery = `
     query MyQuery ($id: ID!, $_id: String!){
       hosts(where: {domain: $_id}) {
@@ -120,7 +131,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -134,18 +145,18 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     result = {
       chain: chainId,
       owner: data.domain.owner.address,
-      expiry: luxon.DateTime.fromSeconds(Number(data.domain.expiry)),
+      expiry: data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry)),
       resolver: data.domain.resolver ? data.domain.resolver : null,
       bridging: undefined,
       operators: data.domain.operator ? [data.domain.operator.address] : null,
       user: {
         address: data.domain.owner.address,
-        expiry: luxon.DateTime.fromSeconds(Number(data.domain.expiry)),
+        expiry: data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry)),
       },
       hosts: data.hosts.map((host: { host: string }) => host.host),
     };
 
-    return data.domain !== null
+    return !!data.domain
       ? result
       : { chain: undefined, owner: undefined, expiry: undefined, resolver: undefined, bridging: undefined, operators: undefined, user: undefined, hosts: undefined };
   }
@@ -183,9 +194,13 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: account })
       .toPromise()
       .then((res) => res.data);
-    return data.hosts !== null ? this.groupByDomainWithCombinedHosts(data.hosts) : undefined;
+    return !!data.hosts ? this.groupByDomainWithCombinedHosts(data.hosts) : undefined;
   }
+
   public async getHost(fqdn: string, options?: IOptions | undefined): Promise<IGetHostOutput | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(fqdn, options);
+    await this._queryPreCheck(chainId, { fqdn }, options);
+
     const tokensQuery = `
     query MyQuery ($id: ID!){
       host(id: $id) {
@@ -220,7 +235,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -235,7 +250,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
         _record.push(key);
       }
     }
-    return data.host !== null
+    return !!data?.host
       ? {
           operators: data.host.operator.address,
           user: {
@@ -247,6 +262,9 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       : undefined;
   }
   public async getTtl(fqdn: string, options?: IOptions | undefined): Promise<number | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(fqdn, options);
+    await this._queryPreCheck(chainId, { fqdn }, options);
+
     const tokensQuery = `
     query MyQuery ($id: ID!){
       host(id: $id) {
@@ -256,7 +274,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -265,9 +283,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .toPromise()
       .then((res) => res.data);
 
-    return data.host !== null ? data.host.ttl : undefined;
+    return data?.host?.ttl;
   }
   public async getOwner(fqdn: string, options?: IOptions | undefined): Promise<string | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(fqdn, options);
+    await this._queryPreCheck(chainId, { fqdn }, options);
+
     const tokensQuery = `
     query MyQuery ($id: ID!){
       host(id: $id) {
@@ -278,7 +299,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -286,9 +307,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    return data.host !== null ? data.host.owner.address : undefined;
+    return data?.host?.owner?.address;
   }
   public async getExpiry(fqdn: string, options?: IOptions | undefined): Promise<number | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(fqdn, options);
+    await this._queryPreCheck(chainId, { fqdn }, options);
+
     const tokensQuery = `
     query MyQuery ($id: ID!){
       domain(id: $id) {
@@ -298,7 +322,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -306,11 +330,14 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    let _date;
-    data.domain.expiry.toString().length === 10 ? (_date = new Date(data.domain.expiry * 1000)) : (_date = new Date(data.domain.expiry));
-    return _date.getTime();
+    return data?.domain.expiry.toString().length === 10
+      ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)).toMillis()
+      : luxon.DateTime.fromMillis(Number(data.domain.expiry)).toMillis();
   }
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
+    await this._queryPreCheck(chainId, input, options);
+
     const tokensQuery = `
     query Test($id: ID!) {
       records(id: $id) {
@@ -340,7 +367,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -350,7 +377,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .then((res) => {
         return { ...res.data, records: _.omitBy(res.data.records, _.isEmpty) };
       });
-    console.log(data.records);
 
     return data.records;
   }
@@ -378,9 +404,11 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: input.address })
       .toPromise()
       .then((res) => res.data);
-    return data.reverseAddressRecord !== null ? { fqdn: data.reverseAddressRecord.records.host.fqdn } : { fqdn: undefined };
+    return { fqdn: data?.reverseAddressRecord?.records?.host?.fqdn };
   }
   public async getAddressRecord(input: IGetAddressRecordInput, options?: IOptions | undefined): Promise<IGetAddressRecordOutput | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
+
     const tokensQuery = `
       query Test($id: ID!){
         domain(id: $id) {
@@ -392,7 +420,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -401,11 +429,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .toPromise()
       .then((res) => res.data);
 
-    console.log({ data });
-
-    return data.domain !== null ? { address: data.domain.owner.address } : { address: undefined };
+    return { address: data?.domain?.owner?.address };
   }
   public async getMultiCoinAddressRecord(input: IGetMultiCoinAddressRecordInput, options?: IOptions | undefined): Promise<IGetMultiCoinAddressRecordOutput | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
+    await this._queryPreCheck(chainId, input, options);
+
     const tokensQuery = `
     query Test($id: ID!){
       multiCoinAddressRecord(id: $id) {
@@ -416,7 +445,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -424,11 +453,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: input.fqdn })
       .toPromise()
       .then((res) => res.data);
-    return data.multiCoinAddressRecord !== null
-      ? { coin: data.multiCoinAddressRecord.multiCoinId, address: data.multiCoinAddressRecord.MultiCoinAddress }
-      : { coin: undefined, address: undefined };
+    return { coin: data?.multiCoinAddressRecord?.multiCoinId, address: data?.multiCoinAddressRecord?.MultiCoinAddress };
   }
   public async getTextRecord(input: IGetTextRecordInput, options?: IOptions | undefined): Promise<IGetTextRecordOutput | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
+    await this._queryPreCheck(chainId, input, options);
+
     const tokensQuery = `
     query Test($id: ID!){
       textRecord(id:$id) {
@@ -438,7 +468,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -446,9 +476,11 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: `${input.fqdn}` })
       .toPromise()
       .then((res) => res.data);
-    return data.textRecord !== null ? { text: data.textRecord.text } : { text: undefined };
+    return { text: data?.textRecord?.text };
   }
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions | undefined): Promise<IGetTypedTextRecordOutput | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
+    await this._queryPreCheck(chainId, input, { ...options, chainId });
     const tokensQuery = `
     query getTypeText($id: ID!){
       typedTextRecord(id: $id) {
@@ -458,7 +490,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
@@ -466,9 +498,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .toPromise()
       .then((res) => res.data);
 
-    return { typed: input.typed, text: data?.typedTextRecord?.text };
+    return { typed: input.typed, text: data?.typedTextRecord?.text || "" };
   }
   public async getNftRecord(input: IGetNftRecordInput, options?: IOptions | undefined): Promise<IGetNftRecordOutput | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
+    await this._queryPreCheck(chainId, input, options);
+
     const tokensQuery = `
     query Test($id: ID!){
       nftrecord(id: $id) {
@@ -479,7 +514,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
@@ -506,6 +541,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: podName })
       .toPromise()
       .then((res) => res.data);
-    return data.podRecord !== null ? data.podRecord.url : undefined;
+    return !!data?.podRecord?.url ? data.podRecord.url : undefined;
   }
 }

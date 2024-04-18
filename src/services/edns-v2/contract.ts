@@ -24,34 +24,24 @@ import {
   IGetAllRecordsOutput,
 } from "../../interfaces/IEdnsResolverService.interface";
 import { IOptions } from "../../interfaces/IOptions.interface";
-import { IEdnsRegistryService, IGetDomainOutput, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
+import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
 import { CantGetDomainNameError } from "../../errors/cant-get-domain-name.error";
 import { CantGetChainIdError } from "../../errors/cant-get-chain-id.error";
 import { MissingChainIdError } from "../../errors/missing-chain-id.error";
 import { timeIsPassed } from "../../utils/time-is-passed";
 import { DomainExpiredError } from "../../errors/domain-expired.error";
 import { getChainId } from "../../utils/get-chain-id";
-import { Key } from "../../app/listener/handler";
-import { EdnsV2FromRedisService, getContracts } from ".";
+import { EdnsV2FromRedisService, EdnsV2FromSubgraphService, getContracts } from ".";
 
 export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsRegistryService {
   private async _getDomainChainId(domain: string, options?: IOptions): Promise<number> {
-    const redis = createRedisClient();
-    const { host, name, tld } = extractFqdn(domain);
-    const inContractChain = await (await redis).hget(Key.DOMAIN_INFO_$HASH(options?.net || Net.MAINNET, `${name}.${tld}`), "chain");
-    if (!inContractChain) throw new CantGetChainIdError(domain);
-    return await getChainId(options?.net || Net.MAINNET, parseInt(inContractChain));
+    return EdnsV2FromRedisService.getDomainChainId(domain, options);
   }
 
-  public async getUrlByPodName(podName: string, options?: IOptions): Promise<string> {
-    const redis = await createRedisClient();
-    const net = options?.net || Net.MAINNET;
-    const url = await redis.hget(Key.DEDRIVE_DNS_$SET(net, podName), "url");
-    if (!url) {
-      throw new Error(" Url Record Not Found ");
-    }
-    return url;
+  public async getUrlByPodName(podName: string, options?: IOptions): Promise<string | undefined> {
+    return new EdnsV2FromSubgraphService().getUrlByPodName(podName, options);
   }
+
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
     if (!isValidFqdn(input.fqdn)) throw new InvalidFqdnError(input.fqdn);
     const _chainId = options?.chainId || (await this._getDomainChainId(input.fqdn, options));
@@ -244,15 +234,15 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
   }
 
   public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
-    return new EdnsV2FromRedisService().getDomain(fqdn, options);
+    return new EdnsV2FromSubgraphService().getDomain(fqdn, options);
   }
 
-  public async getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutput[]> {
-    return new EdnsV2FromRedisService().getDomainsByAccount(account, options);
+  public async getDomainsByAccount(account: string, options?: IOptions): Promise<IGetDomainOutputSubgraph[] | undefined> {
+    return new EdnsV2FromSubgraphService().getDomainsByAccount(account, options);
   }
 
   public async getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined> {
-    return new EdnsV2FromRedisService().getHost(fqdn, options);
+    return new EdnsV2FromSubgraphService().getHost(fqdn, options);
   }
 
   public async getTtl(fqdn: string, options?: IOptions): Promise<number | undefined> {

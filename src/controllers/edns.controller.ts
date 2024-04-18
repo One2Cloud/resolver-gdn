@@ -150,7 +150,6 @@ export default class EdnsController {
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
       const service = new EdnsService();
-      // const [output, ttl] = await Promise.all([service.getTypedTextRecord({ fqdn, typed }, options), service.getTtl(fqdn, options)]);
       const output = await service.getTypedTextRecord({ fqdn, typed }, options);
       const response: IGeneralResponse<typeof output> = {
         status: 200,
