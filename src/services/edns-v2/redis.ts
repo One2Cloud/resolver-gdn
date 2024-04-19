@@ -51,4 +51,16 @@ export class EdnsV2FromRedisService {
     if (chainId === -1) throw new DomainNotFoundError(fqdn);
     return chainId;
   }
+
+  public static async getDomainByPodName(podName: string, options?: IOptions) {
+    const redis = await createRedisClient();
+    const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
+    const subgraph = new EdnsV2FromSubgraphService();
+    const responses = await Promise.all(networks.map((_chainId) => subgraph.getUrlByPodName(podName, { net: options?.net || Net.MAINNET, chainId: _chainId })));
+    const index = responses.findIndex((r: any) => r.podname !== null);
+    const chainId = index === -1 ? -1 : networks[index];
+    await redis.set(`${podName}::chain_id`, chainId, { ex: 180 });
+    if (chainId === -1) throw new Error("Pod not found");
+    return chainId;
+  }
 }

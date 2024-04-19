@@ -526,6 +526,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       : { chainId: undefined, contractAddress: undefined, tokenId: undefined };
   }
   public async getUrlByPodName(podName: string, options?: IOptions | undefined): Promise<string | undefined> {
+    const chainId = await EdnsV2FromRedisService.getDomainByPodName(podName, options);
     const tokensQuery = `
     query Test($id: ID!)    {
       podRecord(id: $id) {
@@ -534,7 +535,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
