@@ -26,7 +26,6 @@ export default class EdnsController {
         onchain: !!options.onchain,
         empty: false,
       };
-      res.setHeader("Cache-Control", `public, max-age=600`);
       res.status(response.status).json(response);
     } catch (error) {
       next(error);
@@ -50,7 +49,6 @@ export default class EdnsController {
         empty: false,
       };
 
-      res.setHeader("Cache-Control", `public, max-age=600`);
       res.status(response.status).json(response);
     } catch (error) {
       next(error);
@@ -72,7 +70,7 @@ export default class EdnsController {
         onchain: !!options.onchain,
         empty: !output?.fqdn,
       };
-      res.setHeader("Cache-Control", `public, max-age=600`);
+
       res.status(response.status).json(response);
     } catch (error) {
       next(error);
