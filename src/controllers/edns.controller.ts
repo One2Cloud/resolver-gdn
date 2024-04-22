@@ -8,6 +8,7 @@ import { putSqsMessage } from "../utils/put-sqs-message";
 import { EdnsEventType } from "../constants/event-type.constant";
 import { DomainProvider } from "../constants/domain-provider.constant";
 import { Mainnets as EdnsMainnets, Net } from "../network-config";
+import {IDomainDetailsOutput, IGetWalletInfoOutput} from "../services/edns-v2/subgraph.interface";
 
 const FQDN_REGEX = /\.$/;
 
@@ -371,6 +372,44 @@ export default class EdnsController {
         status: 200,
         success: true,
         onchain: false,
+        empty: false,
+      };
+      res.status(response.status).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getWalletInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      let { address } = req.params;
+      const service = new EdnsService()
+
+      const output = await service.getWalletInfo(address)
+      const response: IGeneralResponse<IGetWalletInfoOutput> = {
+        status: 200,
+        success: true,
+        onchain: false,
+        data:output,
+        empty: false,
+      };
+      res.status(response.status).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getDomainDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      let { fqdn } = req.params;
+      const service = new EdnsService()
+
+      const output = await service.getDomainDetails(fqdn)
+      const response: IGeneralResponse<IDomainDetailsOutput> = {
+        status: 200,
+        success: true,
+        onchain: false,
+        data:output,
         empty: false,
       };
       res.status(response.status).json(response);
