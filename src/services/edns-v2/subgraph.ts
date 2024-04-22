@@ -27,6 +27,7 @@ import { DomainNotFoundError } from "../../errors/domain-not-found.error";
 import { DomainExpiredError } from "../../errors/domain-expired.error";
 import { EdnsV2FromRedisService } from "./redis";
 import { extractFqdn } from "../../utils/extract-fqdn";
+import {IDomainDetailsOutput, IDomainType, IGetWalletInfoOutput} from "./subgraph.interface";
 
 export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsRegistryService {
   private async _queryPreCheck(chainId: number, input: IGenericInput, options?: IOptions): Promise<void> {
@@ -552,5 +553,42 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .toPromise()
       .then((res) => res.data);
     return !!data?.podRecord?.url ? data.podRecord.url : undefined;
+  }
+
+
+  public async getWalletInfo(address:string):Promise<IGetWalletInfoOutput>{
+    //TODO for edns-v3
+    return {
+      address:"0x",
+      resversedDomain:null,
+      domains:{
+        fqdn:"xxx.meta",
+        chainId:136,
+        type:IDomainType.UNIVERSAL,
+        tokenId:'',
+        expiryDate:(new Date()).valueOf(),
+      }
+    }
+  }
+
+  public async getDomainDetails(address:string):Promise<IDomainDetailsOutput>{
+    //TODO for edns-v3
+    return {
+        chainId: 136,
+        type: IDomainType.UNIVERSAL,
+        owner: "string",
+        tokenId: "string",
+        expiryDate: (new Date()).valueOf(),
+        records:{
+            text:'',
+            address:'',
+            typedText:{
+                Email:""
+            },
+            typedAddress:{
+                BTC:"0xabxxx...."
+            }
+        }
+    }
   }
 }

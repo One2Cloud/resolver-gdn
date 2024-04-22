@@ -245,4 +245,11 @@ export class EdnsService implements IEdnsResolverService {
       return this._v2SubgraphService.getUrlByPodName(podName, options);
     }
   }
+  public async getWalletInfo(address:string){
+    return await this._v2SubgraphService.getWalletInfo(address)
+  }
+
+  public async getDomainDetails(fqdn:string){
+    return await this._v2SubgraphService.getDomainDetails(fqdn)
+  }
 }
