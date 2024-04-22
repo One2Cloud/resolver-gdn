@@ -43,7 +43,7 @@ export class RegionalStack extends cdk.Stack {
 				},
 			],
 		});
-		fckNatProvider.securityGroup.addIngressRule(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.allTraffic());
+		// fckNatProvider.securityGroup.addIngressRule(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.allTraffic());
 
 		const cluster = new ecs.Cluster(this, "Cluster", { containerInsights: true, enableFargateCapacityProviders: true, vpc });
 		const namespace = cluster.addDefaultCloudMapNamespace({
