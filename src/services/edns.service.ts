@@ -97,6 +97,8 @@ export class EdnsService implements IEdnsResolverService {
   }
 
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined> {
+    console.log("service", options);
+
     if (options?.version === "v1") {
       return this._v1ContractService.getTypedTextRecord(input, options);
     }

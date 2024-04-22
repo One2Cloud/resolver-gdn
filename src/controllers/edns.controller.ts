@@ -149,6 +149,8 @@ export default class EdnsController {
       let { fqdn, typed } = req.params;
       if (fqdn.match(FQDN_REGEX)) fqdn = fqdn.slice(0, fqdn.length - 1);
       const options = extract(req);
+      console.log("controller", options);
+
       const service = new EdnsService();
       const output = await service.getTypedTextRecord({ fqdn, typed }, options);
       const response: IGeneralResponse<typeof output> = {

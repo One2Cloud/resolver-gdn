@@ -42,6 +42,8 @@ export class EdnsV2FromRedisService {
       }
       return _chainId;
     }
+    console.log("redis", options);
+
     const subgraph = new EdnsV2FromSubgraphService();
     const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
     const responses = await Promise.all(networks.map((_chainId) => subgraph.isExists(fqdn, { net: options?.net || Net.MAINNET, chainId: _chainId })));
@@ -59,7 +61,8 @@ export class EdnsV2FromRedisService {
     const responses = await Promise.all(networks.map((_chainId) => subgraph.getUrlByPodName(podName, { net: options?.net || Net.MAINNET, chainId: _chainId })));
     const index = responses.findIndex((r: any) => r.podname !== null);
     const chainId = index === -1 ? -1 : networks[index];
-    await redis.set(`${podName}::chain_id`, chainId, { ex: 180 });
+    await redis.set(`${podName}::chain_id`, chainId);
+    // await redis.set(`${podName}::chain_id`, chainId, { ex: 180 });
     if (chainId === -1) throw new Error("Pod not found");
     return chainId;
   }

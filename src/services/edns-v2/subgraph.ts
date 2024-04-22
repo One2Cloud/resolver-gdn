@@ -55,7 +55,10 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   };
 
   public async isExists(fqdn: string, options?: IOptions | undefined, _chainId?: number | undefined): Promise<boolean> {
+    console.log("subgraph", options);
+
     const chainId = options?.chainId || _chainId || (await EdnsV2FromRedisService.getDomainChainId(fqdn, options));
+    console.log("subgraph", chainId);
     const tokensQuery = `
     query MyQuery ($id: ID!){
       host(id: $id) {
@@ -69,10 +72,14 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       exchanges: [cacheExchange, fetchExchange],
     });
 
+    console.log(
+      `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+    );
     const data = await client
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
+
     return !!data?.host;
   }
 
@@ -480,6 +487,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     return { text: data?.textRecord?.text };
   }
   public async getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions | undefined): Promise<IGetTypedTextRecordOutput | undefined> {
+    console.log("options", options);
     const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
     await this._queryPreCheck(chainId, input, { ...options, chainId });
     const tokensQuery = `
