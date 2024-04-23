@@ -1,5 +1,5 @@
 import { createRedisClient } from "../../utils/create-redis-client";
-import _ from "lodash";
+import _, { chain } from "lodash";
 import { IOptions } from "../../interfaces/IOptions.interface";
 import { extractFqdn } from "../../utils/extract-fqdn";
 import { EdnsV2FromSubgraphService } from "./subgraph";
@@ -58,10 +58,27 @@ export class EdnsV2FromRedisService {
     const redis = await createRedisClient();
     const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
     const subgraph = new EdnsV2FromSubgraphService();
-    const responses = await Promise.all(networks.map((_chainId) => subgraph.getUrlByPodName(podName, { net: options?.net || Net.MAINNET, chainId: _chainId })));
-    const index = responses.findIndex((r: any) => r.podname !== null);
-    const chainId = index === -1 ? -1 : networks[index];
-    await redis.set(`${podName}::chain_id`, chainId);
+    const podChain = await redis.get<number>(`${podName}:pod:chain_id`);
+    if (podChain) {
+      if (podChain === -1) {
+        throw new Error("No Pod record found");
+      }
+      console.log("found one");
+      return podChain;
+    }
+    const responses = await Promise.all(networks.map((_chainId) => subgraph.checkpod(podName, { net: options?.net || Net.MAINNET, chainId: _chainId })));
+    console.log(responses);
+
+    const resultArray: number[] = [];
+    const index = responses.map((r, i) => {
+      r === true ? resultArray.push(i) : null;
+    });
+
+    let _chain: any[] | number = [];
+    const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : resultArray.map((_index) => _chain.push(networks[_index]));
+
+    console.log("redis service", _chain);
+    await redis.set(`${podName}:pod:chain_id`, _chain, { ex: 180 });
     // await redis.set(`${podName}::chain_id`, chainId, { ex: 180 });
     if (chainId === -1) throw new Error("Pod not found");
     return chainId;

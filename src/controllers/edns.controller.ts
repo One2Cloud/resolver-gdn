@@ -8,7 +8,7 @@ import { putSqsMessage } from "../utils/put-sqs-message";
 import { EdnsEventType } from "../constants/event-type.constant";
 import { DomainProvider } from "../constants/domain-provider.constant";
 import { Mainnets as EdnsMainnets, Net } from "../network-config";
-import {IDomainDetailsOutput, IGetWalletInfoOutput} from "../services/edns-v2/subgraph.interface";
+import { IDomainDetailsOutput, IGetWalletInfoOutput } from "../services/edns-v2/subgraph.interface";
 
 const FQDN_REGEX = /\.$/;
 
@@ -341,6 +341,8 @@ export default class EdnsController {
       let { podname } = req.params;
       const options = extract(req);
       const service = new EdnsService();
+      console.log("reach controller");
+
       const output = await service.getUrlByPodName(podname, options);
       const response: IGeneralResponse<typeof output> = {
         status: 200,
@@ -385,14 +387,14 @@ export default class EdnsController {
   public static async getWalletInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       let { address } = req.params;
-      const service = new EdnsService()
+      const service = new EdnsService();
 
-      const output = await service.getWalletInfo(address)
+      const output = await service.getWalletInfo(address);
       const response: IGeneralResponse<IGetWalletInfoOutput> = {
         status: 200,
         success: true,
         onchain: false,
-        data:output,
+        data: output,
         empty: false,
       };
       res.status(response.status).json(response);
@@ -404,14 +406,14 @@ export default class EdnsController {
   public static async getDomainDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       let { fqdn } = req.params;
-      const service = new EdnsService()
+      const service = new EdnsService();
 
-      const output = await service.getDomainDetails(fqdn)
+      const output = await service.getDomainDetails(fqdn);
       const response: IGeneralResponse<IDomainDetailsOutput> = {
         status: 200,
         success: true,
         onchain: false,
-        data:output,
+        data: output,
         empty: false,
       };
       res.status(response.status).json(response);

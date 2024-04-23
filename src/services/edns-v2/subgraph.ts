@@ -1,5 +1,5 @@
 import * as luxon from "luxon";
-import _ from "lodash";
+import _, { chain } from "lodash";
 import {
   IGetMultiCoinAddressRecordOutput,
   IGetTextRecordOutput,
@@ -27,7 +27,7 @@ import { DomainNotFoundError } from "../../errors/domain-not-found.error";
 import { DomainExpiredError } from "../../errors/domain-expired.error";
 import { EdnsV2FromRedisService } from "./redis";
 import { extractFqdn } from "../../utils/extract-fqdn";
-import {IDomainDetailsOutput, IDomainType, IGetWalletInfoOutput} from "./subgraph.interface";
+import { IDomainDetailsOutput, IDomainType, IGetWalletInfoOutput } from "./subgraph.interface";
 
 export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsRegistryService {
   private async _queryPreCheck(chainId: number, input: IGenericInput, options?: IOptions): Promise<void> {
@@ -535,60 +535,104 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       ? { chainId: data.nftrecord.chainId, contractAddress: data.nftrecord.contract, tokenId: data.nftrecord.tokenId }
       : { chainId: undefined, contractAddress: undefined, tokenId: undefined };
   }
-  public async getUrlByPodName(podName: string, options?: IOptions | undefined): Promise<string | undefined> {
+  public async getUrlByPodName(podName: string, options?: IOptions | undefined) {
     const chainId = await EdnsV2FromRedisService.getDomainByPodName(podName, options);
+
     const tokensQuery = `
     query Test($id: ID!)    {
       podRecord(id: $id) {
         url
       }
     }
+    `;
+    console.log(typeof chainId, chainId);
+    const getdata = async (_chainId: number): Promise<any> => {
+      const client = createClient({
+        url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${_chainId}`,
+        exchanges: [cacheExchange, fetchExchange],
+      });
+      const data = await client
+        .query(tokensQuery, { id: podName })
+        .toPromise()
+        .then((res) => res.data);
+      return !!data?.podRecord?.url ? data.podRecord.url : undefined;
+    };
+
+    if (typeof chainId === "number") {
+      return getdata(chainId);
+    }
+
+    if (Array.isArray(chainId)) {
+      console.log("in loop", chainId);
+
+      const _r: string[] = [];
+      await Promise.all(
+        chainId.map(async (r) => {
+          _r.push(await getdata(r));
+        }),
+      );
+
+      return _r;
+    }
+  }
+
+  public async checkpod(podName: string, options?: IOptions | undefined): Promise<boolean> {
+    console.log(options?.chainId);
+
+    const tokensQuery = `
+    query Test($id: ID!)    {
+      podRecord(id: $id) {
+        id
+      }
+    }
   `;
+
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${chainId}`,
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
       .query(tokensQuery, { id: podName })
       .toPromise()
       .then((res) => res.data);
-    return !!data?.podRecord?.url ? data.podRecord.url : undefined;
+    console.log(data?.podRecord);
+    return data?.podRecord != null;
   }
 
-
-  public async getWalletInfo(address:string):Promise<IGetWalletInfoOutput>{
+  public async getWalletInfo(address: string): Promise<IGetWalletInfoOutput> {
     //TODO for edns-v3
-    return {
-      address:"0x",
-      resversedDomain:null,
-      domains:{
-        fqdn:"xxx.meta",
-        chainId:136,
-        type:IDomainType.UNIVERSAL,
-        tokenId:'',
-        expiryDate:(new Date()).valueOf(),
-      }
-    }
-  }
 
-  public async getDomainDetails(address:string):Promise<IDomainDetailsOutput>{
-    //TODO for edns-v3
     return {
+      address: "0x",
+      resversedDomain: null,
+      domains: {
+        fqdn: "xxx.meta",
         chainId: 136,
         type: IDomainType.UNIVERSAL,
-        owner: "string",
-        tokenId: "string",
-        expiryDate: (new Date()).valueOf(),
-        records:{
-            text:'',
-            address:'',
-            typedText:{
-                Email:""
-            },
-            typedAddress:{
-                BTC:"0xabxxx...."
-            }
-        }
-    }
+        tokenId: "",
+        expiryDate: new Date().valueOf(),
+      },
+    };
+  }
+
+  public async getDomainDetails(address: string): Promise<IDomainDetailsOutput> {
+    //TODO for edns-v3
+    return {
+      chainId: 136,
+      type: IDomainType.UNIVERSAL,
+      owner: "string",
+      tokenId: "string",
+      expiryDate: new Date().valueOf(),
+      records: {
+        text: "",
+        address: "",
+        typedText: {
+          Email: "",
+        },
+        typedAddress: {
+          BTC: "0xabxxx....",
+        },
+      },
+    };
   }
 }

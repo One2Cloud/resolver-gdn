@@ -236,20 +236,24 @@ export class EdnsService implements IEdnsResolverService {
     return output;
   }
   public async getUrlByPodName(podName: string, options?: IOptions) {
+    console.log("reach service");
     if (options?.version === "v1") {
       throw new Error("Not implemented for v1");
     }
-    if (!options?.onchain) {
+
+    if (options?.onchain) {
+      console.log("reach contract service");
       return this._v2ContractService.getUrlByPodName(podName, options);
     } else {
+      console.log("reach subgraph service");
       return this._v2SubgraphService.getUrlByPodName(podName, options);
     }
   }
-  public async getWalletInfo(address:string){
-    return await this._v2SubgraphService.getWalletInfo(address)
+  public async getWalletInfo(address: string) {
+    return await this._v2SubgraphService.getWalletInfo(address);
   }
 
-  public async getDomainDetails(fqdn:string){
-    return await this._v2SubgraphService.getDomainDetails(fqdn)
+  public async getDomainDetails(fqdn: string) {
+    return await this._v2SubgraphService.getDomainDetails(fqdn);
   }
 }
