@@ -99,7 +99,7 @@ export class EdnsV2FromRedisService {
     const index = responses.map((r, i) => {
       r === true ? resultArray.push(i) : null;
     });
-    console.log("response", resultArray);
+    console.log("response", responses);
 
     let _chain: any[] | number = [];
     const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : resultArray.map((_index) => _chain.push(networks[_index]));

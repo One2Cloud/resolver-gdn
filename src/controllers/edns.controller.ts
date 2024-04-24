@@ -386,8 +386,8 @@ export default class EdnsController {
     try {
       let { address } = req.params;
       const service = new EdnsService();
-
-      const output = await service.getWalletInfo(address);
+      const options = extract(req);
+      const output = await service.getWalletInfo(address, options);
       const response: IGeneralResponse<IGetWalletInfoOutput> = {
         status: 200,
         success: true,

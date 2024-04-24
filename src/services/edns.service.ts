@@ -250,6 +250,7 @@ export class EdnsService implements IEdnsResolverService {
     }
   }
   public async getWalletInfo(address: string, options?: IOptions) {
+    console.log(options);
     return await this._v2SubgraphService.getWalletInfo(address, options);
   }
 
