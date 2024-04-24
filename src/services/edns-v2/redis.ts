@@ -84,7 +84,7 @@ export class EdnsV2FromRedisService {
 
   public static async getWalletChainId(walletAddress: string, options?: IOptions) {
     const redis = await createRedisClient();
-    const _chainId = await redis.get<number>(`${walletAddress}:user:chain_id`);
+    const _chainId = await redis.get<number>(`${walletAddress}:user:${options?.net === Net.TESTNET ? "testnet" : "mainnet"}:chain_id`);
     if (_chainId) {
       if (_chainId === -1) {
         throw new Error(`No Record for ${walletAddress}`);
