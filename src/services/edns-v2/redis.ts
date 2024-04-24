@@ -81,4 +81,32 @@ export class EdnsV2FromRedisService {
     if (chainId === -1) throw new Error("Pod not found");
     return chainId;
   }
+
+  public static async getWalletChainId(walletAddress: string, options?: IOptions) {
+    const redis = await createRedisClient();
+    const _chainId = await redis.get<number>(`${walletAddress}:user:chain_id`);
+    if (_chainId) {
+      if (_chainId === -1) {
+        throw new Error(`No Record for ${walletAddress}`);
+      }
+      return _chainId;
+    }
+    console.log("redis", options);
+    const subgraph = new EdnsV2FromSubgraphService();
+    const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
+    const responses = await Promise.all(networks.map((_chainId) => subgraph.checkAddressChainId(walletAddress, { net: options?.net || Net.MAINNET, chainId: _chainId })));
+    const resultArray: number[] = [];
+    const index = responses.map((r, i) => {
+      r === true ? resultArray.push(i) : null;
+    });
+    console.log("response", resultArray);
+
+    let _chain: any[] | number = [];
+    const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : resultArray.map((_index) => _chain.push(networks[_index]));
+    console.log("redis service", chainId);
+    await redis.set(`${walletAddress}:user:chain_id`, resultArray.length <= 1 ? chainId : _chain, { ex: 180 });
+    // await redis.set(`${podName}::chain_id`, chainId, { ex: 180 });
+    if (chainId === -1) throw new Error("Address not found");
+    return chainId;
+  }
 }

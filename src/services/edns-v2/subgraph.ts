@@ -1,5 +1,5 @@
 import * as luxon from "luxon";
-import _, { chain } from "lodash";
+import _, { add, chain } from "lodash";
 import {
   IGetMultiCoinAddressRecordOutput,
   IGetTextRecordOutput,
@@ -27,7 +27,7 @@ import { DomainNotFoundError } from "../../errors/domain-not-found.error";
 import { DomainExpiredError } from "../../errors/domain-expired.error";
 import { EdnsV2FromRedisService } from "./redis";
 import { extractFqdn } from "../../utils/extract-fqdn";
-import { IDomainDetailsOutput, IDomainType, IGetWalletInfoOutput } from "./subgraph.interface";
+import { IDomainDetailsOutput, IDomainType, IGetWalletInfoOutput, IWalletDomainDetailsOutput } from "./subgraph.interface";
 
 export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsRegistryService {
   private async _queryPreCheck(chainId: number, input: IGenericInput, options?: IOptions): Promise<void> {
@@ -599,20 +599,123 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     return data?.podRecord != null;
   }
 
-  public async getWalletInfo(address: string): Promise<IGetWalletInfoOutput> {
-    //TODO for edns-v3
+  public async getWalletInfo(address: string, options?: IOptions | undefined): Promise<IGetWalletInfoOutput | undefined> {
+    try {
+      const chainId = await EdnsV2FromRedisService.getWalletChainId(address);
+      const tokensQuery = `
+      query MyQuery($id: ID!) {
+        domains(where: {owner_: {id: $id}}) {
+          owner{
+            id
+          }
+          tld {
+            tldClass
+          }
+          fqdn
+          expiry
+        }
+      }
+    `;
 
-    return {
-      address: "0x",
-      resversedDomain: null,
-      domains: {
-        fqdn: "xxx.meta",
-        chainId: 136,
-        type: IDomainType.UNIVERSAL,
-        tokenId: "",
-        expiryDate: new Date().valueOf(),
-      },
-    };
+      const getdata = async (_chainId: number): Promise<any> => {
+        const client = createClient({
+          url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${_chainId}`,
+          exchanges: [cacheExchange, fetchExchange],
+        });
+        const data = await client
+          .query(tokensQuery, { id: address })
+          .toPromise()
+          .then((res) => res.data);
+        return !!data?.domains ? data.domains : undefined;
+      };
+
+      if (typeof chainId === "number") {
+        const _r = await getdata(chainId);
+        if (_r.length === 1) {
+          console.log(_r);
+
+          const data: IGetWalletInfoOutput = {
+            address: address,
+            resversedDomain: null,
+            domains: {
+              fqdn: _r.fqdn,
+              chainId: chainId,
+              type: _r.tld.tldClass,
+              tokenId: "",
+              expiryDate: new Date(_r.expiry * 1000).valueOf(),
+            },
+          };
+          return data;
+        } else {
+          const trimResult: IWalletDomainDetailsOutput[] = [];
+
+          _r.map((r: any) => {
+            console.log(r);
+            trimResult.push({
+              fqdn: r.fqdn,
+              chainId: chainId,
+              type: r.tld.tldClass,
+              tokenId: "",
+              expiryDate: new Date(r.expiry * 1000).valueOf(),
+            });
+          });
+          return {
+            address: address,
+            resversedDomain: null,
+            domains: trimResult,
+          };
+        }
+      }
+
+      if (Array.isArray(chainId)) {
+        const _r: IWalletDomainDetailsOutput[] = [];
+        await Promise.all(
+          chainId.map(async (r, i) => {
+            const loopResult = await getdata(r);
+            loopResult.map((r: any) => {
+              console.log(r);
+              _r.push({
+                fqdn: r.fqdn,
+                chainId: chainId[i],
+                type: r.tld.tldClass,
+                tokenId: "",
+                expiryDate: new Date(r.expiry * 1000).valueOf(),
+              });
+            });
+          }),
+        );
+        return {
+          address: address,
+          resversedDomain: null,
+          domains: _r,
+        };
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async checkAddressChainId(address: string, options?: IOptions | undefined) {
+    console.log("checkChainId subgraph", options?.chainId);
+
+    const tokensQuery = `
+    query Test($id: ID!)    {
+      user(id: $id) {
+        id
+      }
+    }
+  `;
+
+    const client = createClient({
+      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId}`,
+      exchanges: [cacheExchange, fetchExchange],
+    });
+    const data = await client
+      .query(tokensQuery, { id: address })
+      .toPromise()
+      .then((res) => res.data);
+    console.log("checkAddressChainId", data);
+    return data?.user != null;
   }
 
   public async getDomainDetails(address: string): Promise<IDomainDetailsOutput> {
