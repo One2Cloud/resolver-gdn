@@ -601,7 +601,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
 
   public async getWalletInfo(address: string, options?: IOptions | undefined): Promise<IGetWalletInfoOutput | undefined> {
     try {
-      const chainId = await EdnsV2FromRedisService.getWalletChainId(address);
+      const chainId = await EdnsV2FromRedisService.getWalletChainId(address, options);
       const tokensQuery = `
       query MyQuery($id: ID!) {
         domains(where: {owner_: {id: $id}}) {
