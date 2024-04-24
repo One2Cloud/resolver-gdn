@@ -104,7 +104,7 @@ export class EdnsV2FromRedisService {
     let _chain: any[] | number = [];
     const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : resultArray.map((_index) => _chain.push(networks[_index]));
     console.log("redis service", chainId);
-    await redis.set(`${walletAddress}:user:chain_id`, resultArray.length <= 1 ? chainId : _chain, { ex: 180 });
+    await redis.set(`${walletAddress}:user:${options?.net === Net.TESTNET ? "testnet" : "mainnet"}:chain_id`, resultArray.length <= 1 ? chainId : _chain, { ex: 180 });
     // await redis.set(`${podName}::chain_id`, chainId, { ex: 180 });
     if (chainId === -1) throw new Error("Address not found");
     return chainId;
