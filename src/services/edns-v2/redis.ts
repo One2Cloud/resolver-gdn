@@ -92,21 +92,28 @@ export class EdnsV2FromRedisService {
       return _chainId;
     }
     console.log("redis", options);
-    const subgraph = new EdnsV2FromSubgraphService();
-    const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
-    const responses = await Promise.all(networks.map((_chainId) => subgraph.checkAddressChainId(walletAddress, { net: options?.net || Net.MAINNET, chainId: _chainId })));
-    const resultArray: number[] = [];
-    const index = responses.map((r, i) => {
-      r === true ? resultArray.push(i) : null;
-    });
-    console.log("response", responses);
+    try {
+      const subgraph = new EdnsV2FromSubgraphService();
+      const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
+      const responses = await Promise.all(networks.map((_chainId) => subgraph.checkAddressChainId(walletAddress, { net: options?.net || Net.MAINNET, chainId: _chainId })));
+      const resultArray: number[] = [];
+      const index = responses.map((r, i) => {
+        r === true ? resultArray.push(i) : null;
+      });
+      console.log("response", responses);
 
-    let _chain: any[] | number = [];
-    const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : resultArray.map((_index) => _chain.push(networks[_index]));
-    console.log("redis service", chainId);
-    await redis.set(`${walletAddress}:user:${options?.net === Net.TESTNET ? "testnet" : "mainnet"}:chain_id`, resultArray.length <= 1 ? chainId : _chain, { ex: 180 });
-    // await redis.set(`${podName}::chain_id`, chainId, { ex: 180 });
-    if (chainId === -1) throw new Error("Address not found");
-    return chainId;
+      let _chain: any[] | number = [];
+      if (resultArray.length > 1) {
+        resultArray.map((_index) => _chain.push(networks[_index]));
+      }
+      const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : _chain;
+      console.log("redis service", chainId);
+      await redis.set(`${walletAddress}:user:${options?.net === Net.TESTNET ? "testnet" : "mainnet"}:chain_id`, resultArray.length <= 1 ? chainId : _chain, { ex: 180 });
+      // await redis.set(`${podName}::chain_id`, chainId, { ex: 180 });
+      if (chainId === -1) throw new Error("Address not found");
+      return chainId;
+    } catch (error: any) {
+      console.error(error);
+    }
   }
 }

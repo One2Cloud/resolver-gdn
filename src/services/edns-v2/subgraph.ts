@@ -600,6 +600,8 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     return data?.podRecord != null;
   }
 
+  public async getUserDomainByChainId(account: string, chainId: number, options?: IOptions | undefined) {}
+
   public async getWalletInfo(address: string, options?: IOptions | undefined): Promise<IGetWalletInfoOutput | undefined> {
     try {
       const chainId = await EdnsV2FromRedisService.getWalletChainId(address, options);
@@ -675,12 +677,14 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       }
 
       if (Array.isArray(chainId)) {
+        console.log("in service check array", chainId);
+
         const _r: IWalletDomainDetailsOutput[] = [];
         await Promise.all(
           chainId.map(async (r, i) => {
             const loopResult = await getdata(r);
             loopResult.map((r: any) => {
-              console.log(r);
+              console.log("loopResult", r);
               _r.push({
                 fqdn: r.fqdn,
                 chainId: chainId[i],
