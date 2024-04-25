@@ -2,6 +2,7 @@ import { IOptions } from "./IOptions.interface";
 
 export interface IGetDomainOutput {
   fqdn: string | undefined;
+  tokenId: string | undefined;
   chain: number | undefined;
   owner: string | undefined;
   expiry: luxon.DateTime | undefined;

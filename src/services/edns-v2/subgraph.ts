@@ -151,8 +151,15 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .toPromise()
       .then((res) => res.data);
 
+    const getTokenId = (fqdn: string) => {
+      const bytes32 = ethers.utils.solidityKeccak256(["bytes"], [ethers.utils.toUtf8Bytes(fqdn)]);
+      const tokenId = ethers.BigNumber.from(bytes32).toString();
+      return tokenId;
+    };
+
     result = {
       fqdn: data.domain.fqdn,
+      tokenId: getTokenId(fqdn),
       chain: chainId,
       owner: data.domain.owner.address,
       expiry: data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry)),
@@ -170,6 +177,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       ? result
       : {
           fqdn: undefined,
+          tokenId: undefined,
           chain: undefined,
           owner: undefined,
           expiry: undefined,
