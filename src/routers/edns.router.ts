@@ -3,11 +3,15 @@ import * as express from "express";
 import EdnsController from "../controllers/edns.controller";
 import { errorHandler } from "../middleware/returnHandler";
 import { UnknownOperationError } from "../errors/operation-not-found.error";
+import { PostCacheHandler, PreCacheHandler } from "../middleware/cache.middleware";
 
 const router = express.Router();
+
+router.use(PreCacheHandler);
+router.use(PostCacheHandler);
+
 router.get("/record/:fqdn", EdnsController.getAllRecords, errorHandler);
 router.get("/record/:fqdn/chain", EdnsController.getUrlRecord, errorHandler);
-
 router.get("/record/:address/domain", EdnsController.getReverseAddressRecord, errorHandler);
 router.get("/record/:fqdn/address/list", EdnsController.getMultiCoinAddressList, errorHandler);
 router.get("/record/:fqdn/address/:coin", EdnsController.getMultiCoinAddressRecord, errorHandler);
