@@ -151,6 +151,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .then((res) => res.data);
 
     result = {
+      fqdn: data.domain.fqdn,
       chain: chainId,
       owner: data.domain.owner.address,
       expiry: data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry)),
@@ -166,7 +167,17 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
 
     return !!data.domain
       ? result
-      : { chain: undefined, owner: undefined, expiry: undefined, resolver: undefined, bridging: undefined, operators: undefined, user: undefined, hosts: undefined };
+      : {
+          fqdn: undefined,
+          chain: undefined,
+          owner: undefined,
+          expiry: undefined,
+          resolver: undefined,
+          bridging: undefined,
+          operators: undefined,
+          user: undefined,
+          hosts: undefined,
+        };
   }
   public async getDomainsByAccount(account: string, options?: IOptions | undefined): Promise<IGetDomainOutputSubgraph[] | undefined> {
     const tokensQuery = `

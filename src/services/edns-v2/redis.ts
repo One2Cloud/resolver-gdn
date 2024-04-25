@@ -47,6 +47,7 @@ export class EdnsV2FromRedisService {
     const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
     const responses = await Promise.all(networks.map((_chainId) => subgraph.isExists(fqdn, { net: options?.net || Net.MAINNET, chainId: _chainId })));
     const index = responses.findIndex((r) => r === true);
+    console.log(index);
     const chainId = index === -1 ? -1 : networks[index];
     await redis.set(`${name}.${tld}:chain_id`, chainId, { ex: 300 });
     if (chainId === -1) throw new DomainNotFoundError(fqdn);

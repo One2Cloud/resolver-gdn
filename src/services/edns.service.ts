@@ -122,13 +122,10 @@ export class EdnsService implements IEdnsResolverService {
 
   public async getDomain(fqdn: string, options?: IOptions): Promise<IGetDomainOutput | undefined> {
     let output: IGetDomainOutput | undefined;
-    if (options?.version === "v1") {
-      throw new Error("Not available for v1.");
-    }
-    if (!output && options?.onchain) {
+    if (options?.onchain) {
       throw new Error("Not available on chain.");
-    }
-    if (!output && !options?.onchain) {
+    } else {
+      console.log(options);
       output = await this._v2SubgraphService.getDomain(fqdn, options);
       if (!output) throw new DomainNotFoundError(fqdn);
     }
