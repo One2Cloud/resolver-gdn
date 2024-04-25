@@ -15,7 +15,7 @@ export class EdnsV2FromRedisService {
     } else {
       const subgraph = new EdnsV2FromSubgraphService();
       const isExists = await subgraph.isExists(fqdn, options, _chainId);
-      await redis.set(`${fqdn}:is_exists`, isExists ? "1" : "0", { ex: 60 });
+      await redis.set(`${fqdn}:is_exists`, isExists ? "1" : "0", { ex: 300 });
       return isExists;
     }
   }
@@ -27,7 +27,7 @@ export class EdnsV2FromRedisService {
     } else {
       const subgraph = new EdnsV2FromSubgraphService();
       const isExpired = await subgraph.isExpired(fqdn, options, _chainId);
-      await redis.set(`${fqdn}:is_expired`, isExpired ? "1" : "0", { ex: 60 });
+      await redis.set(`${fqdn}:is_expired`, isExpired ? "1" : "0", { ex: 300 });
       return isExpired;
     }
   }
@@ -48,7 +48,7 @@ export class EdnsV2FromRedisService {
     const responses = await Promise.all(networks.map((_chainId) => subgraph.isExists(fqdn, { net: options?.net || Net.MAINNET, chainId: _chainId })));
     const index = responses.findIndex((r) => r === true);
     const chainId = index === -1 ? -1 : networks[index];
-    await redis.set(`${name}.${tld}:chain_id`, chainId, { ex: 60 });
+    await redis.set(`${name}.${tld}:chain_id`, chainId, { ex: 300 });
     if (chainId === -1) throw new DomainNotFoundError(fqdn);
     return chainId;
   }
@@ -76,7 +76,7 @@ export class EdnsV2FromRedisService {
     const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : resultArray.map((_index) => _chain.push(networks[_index]));
 
     console.log("redis service", _chain);
-    await redis.set(`${podName}:pod:chain_id`, _chain, { ex: 60 });
+    await redis.set(`${podName}:pod:chain_id`, _chain, { ex: 300 });
     if (chainId === -1) throw new Error("Pod not found");
     return chainId;
   }
@@ -107,7 +107,7 @@ export class EdnsV2FromRedisService {
       }
       const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : _chain;
       console.log("redis service", chainId);
-      await redis.set(`${walletAddress}:user:${options?.net === Net.TESTNET ? "testnet" : "mainnet"}:chain_id`, resultArray.length <= 1 ? chainId : _chain, { ex: 180 });
+      await redis.set(`${walletAddress}:user:${options?.net === Net.TESTNET ? "testnet" : "mainnet"}:chain_id`, resultArray.length <= 1 ? chainId : _chain, { ex: 300 });
       if (chainId === -1) throw new Error("Address not found");
       return chainId;
     } catch (error: any) {
