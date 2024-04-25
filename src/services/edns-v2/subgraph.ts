@@ -22,7 +22,7 @@ import { IOptions } from "../../interfaces/IOptions.interface";
 import { IEdnsRegistryService, IGetDomainOutput, IGetDomainOutputSubgraph, IGetHostOutput } from "../../interfaces/IEdnsRegistryService.interface";
 import { createClient, cacheExchange, fetchExchange } from "urql";
 import config from "../../config";
-import { Net } from "../../network-config";
+import { Mainnets, Net, Testnets } from "../../network-config";
 import { DomainNotFoundError } from "../../errors/domain-not-found.error";
 import { DomainExpiredError } from "../../errors/domain-expired.error";
 import { EdnsV2FromRedisService } from "./redis";
@@ -36,6 +36,13 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     if (!isExists) throw new DomainNotFoundError(input.fqdn);
     const isExpired = await EdnsV2FromRedisService.isExpired(input.fqdn, { ...options, chainId }, chainId);
     if (isExpired) throw new DomainExpiredError(input.fqdn);
+  }
+
+  private _getSubgraphEndpoint(chainId: number, options?: IOptions): string {
+    if (options?.net === Net.TESTNET) return `${config.subgraph.testnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`;
+    if (Mainnets.includes(chainId)) return `${config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`;
+    if (Testnets.includes(chainId)) return `${config.subgraph.testnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`;
+    throw new Error("Invalid chainId");
   }
 
   private groupByDomainWithCombinedHosts = (data: any): IGetDomainOutputSubgraph[] => {
@@ -57,10 +64,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   };
 
   public async isExists(fqdn: string, options?: IOptions | undefined, _chainId?: number | undefined): Promise<boolean> {
-    console.log("subgraph", options);
-
     const chainId = options?.chainId || _chainId || (await EdnsV2FromRedisService.getDomainChainId(fqdn, options));
-    console.log("subgraph", chainId);
     const tokensQuery = `
     query MyQuery ($id: ID!){
       host(id: $id) {
@@ -70,13 +74,10 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
-    console.log(
-      `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
-    );
     const data = await client
       .query(tokensQuery, { id: fqdn })
       .toPromise()
@@ -97,7 +98,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -140,7 +141,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -255,7 +256,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -270,13 +271,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
         _record.push(key);
       }
     }
-
     return !!data?.host
       ? {
           operators: data.host.operator?.address,
           user: {
             address: data.host.user?.address,
-            expiry: data?.host.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.host.expiry)) : luxon.DateTime.fromMillis(Number(data.host.expiry)),
+            expiry: data?.host.user?.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.host.expiry)) : luxon.DateTime.fromMillis(Number(data.host.expiry)),
           },
           records: _record,
         }
@@ -295,7 +295,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -320,7 +320,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -343,7 +343,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -388,7 +388,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -441,7 +441,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -466,7 +466,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -489,7 +489,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
   `;
 
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
 
@@ -512,7 +512,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
@@ -536,7 +536,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
   `;
     const client = createClient({
-      url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${options?.chainId || chainId}`,
+      url: this._getSubgraphEndpoint(chainId, options),
       exchanges: [cacheExchange, fetchExchange],
     });
     const data = await client
