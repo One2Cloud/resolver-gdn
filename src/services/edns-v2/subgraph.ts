@@ -28,6 +28,7 @@ import { DomainExpiredError } from "../../errors/domain-expired.error";
 import { EdnsV2FromRedisService } from "./redis";
 import { extractFqdn } from "../../utils/extract-fqdn";
 import { IDomainDetailsOutput, IDomainType, IGetWalletInfoOutput, IWalletDomainDetailsOutput } from "./subgraph.interface";
+import { ethers } from "ethers";
 
 export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsRegistryService {
   private async _queryPreCheck(chainId: number, input: IGenericInput, options?: IOptions): Promise<void> {
@@ -629,6 +630,12 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
         return !!data?.domains ? data.domains : undefined;
       };
 
+      const getTokenId = (fqdn: string) => {
+        const bytes32 = ethers.utils.solidityKeccak256(["bytes"], [ethers.utils.toUtf8Bytes(fqdn)]);
+        const tokenId = ethers.BigNumber.from(bytes32).toString();
+        return tokenId;
+      };
+
       if (typeof chainId === "number") {
         const _r = await getdata(chainId);
         if (_r.length === 1) {
@@ -641,7 +648,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               fqdn: _r.fqdn,
               chainId: chainId,
               type: _r.tld.tldClass,
-              tokenId: "",
+              tokenId: getTokenId(_r.fqdn),
               expiryDate: new Date(_r.expiry * 1000).valueOf(),
             },
           };
@@ -655,7 +662,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               fqdn: r.fqdn,
               chainId: chainId,
               type: r.tld.tldClass,
-              tokenId: "",
+              tokenId: getTokenId(r.fqdn),
               expiryDate: new Date(r.expiry * 1000).valueOf(),
             });
           });
@@ -678,7 +685,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
                 fqdn: r.fqdn,
                 chainId: chainId[i],
                 type: r.tld.tldClass,
-                tokenId: "",
+                tokenId: getTokenId(r.fqdn),
                 expiryDate: new Date(r.expiry * 1000).valueOf(),
               });
             });
