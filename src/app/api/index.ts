@@ -3,7 +3,6 @@ require("source-map-support/register");
 import app from "./app";
 
 if (process.env.GLOBAL_SECRET_VALUE) {
-  console.log(process.env.GLOBAL_SECRET_VALUE);
   const vars: { [key: string]: string } = JSON.parse(process.env.GLOBAL_SECRET_VALUE);
   for (const _var in vars) {
     process.env[_var] = vars[_var];

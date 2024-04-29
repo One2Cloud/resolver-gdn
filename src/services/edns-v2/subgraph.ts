@@ -108,7 +108,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: `${name}.${tld}` })
       .toPromise()
       .then((res) => res.data);
-    const expiry = unifyTimestamp(data.domain.expiry)
+    const expiry = unifyTimestamp(Number(data.domain.expiry));
     return luxon.DateTime.now() > expiry;
   }
 
@@ -166,13 +166,13 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       tokenId: getTokenId(fqdn),
       chainId: chainId,
       owner: data.domain.owner.address,
-      expiryDate: unifyTimestamp(data.domain.expiry),
+      expiryDate: unifyTimestamp(Number(data.domain.expiry)),
       resolver: data.domain.resolver ? data.domain.resolver : null,
       bridging: undefined,
       operators: data.domain.operator ? [data.domain.operator.address] : null,
       user: {
         address: data.domain.owner.address,
-        expiryDate: unifyTimestamp(data.domain.expiry),
+        expiryDate: unifyTimestamp(Number(data.domain.expiry)),
       },
       hosts: data.hosts.map((host: { host: string }) => host.host),
       createAt: new Date(99999),
@@ -292,7 +292,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
           operators: data.host.operator?.address,
           user: {
             address: data.host.user?.address,
-            expiry: unifyTimestamp(data.host.expiry),
+            expiry: unifyTimestamp(Number(data.host.expiry)),
           },
           records: _record,
         }
@@ -367,7 +367,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    return unifyTimestamp(data.domain.expiry).toSeconds()
+    return unifyTimestamp(Number(data.domain.expiry)).toSeconds();
   }
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
     const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
@@ -572,7 +572,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
     `;
 
-    console.log("subgraph getUrlPodname",typeof chainId, chainId);
+    console.log("subgraph getUrlPodname", typeof chainId, chainId);
     const getdata = async (_chainId: number): Promise<any> => {
       const client = createClient({
         url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${_chainId}`,
@@ -584,8 +584,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
         .then((res) => res.data);
       return !!data?.podRecord?.url ? data.podRecord.url : undefined;
     };
-
-
 
     if (Array.isArray(chainId)) {
       console.log("in loop", chainId);
@@ -675,7 +673,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               chainId: chainId,
               type: _r.tld.tldClass,
               tokenId: getTokenId(_r.fqdn),
-              expiryDate: unifyTimestamp(_r.expiry).toSeconds(),
+              expiryDate: unifyTimestamp(Number(_r.expiry)).toSeconds(),
             },
           };
           return data;
@@ -689,7 +687,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               chainId: chainId,
               type: r.tld.tldClass,
               tokenId: getTokenId(r.fqdn),
-              expiryDate: unifyTimestamp(_r.expiry).toSeconds(),
+              expiryDate: unifyTimestamp(Number(_r.expiry)).toSeconds(),
             });
           });
           return {
@@ -701,7 +699,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       }
 
       if (Array.isArray(chainId)) {
-        console.log("in service check array", chainId);
 
         const _r: IWalletDomainDetailsOutput[] = [];
         await Promise.all(
@@ -714,7 +711,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
                 chainId: chainId[i],
                 type: r.tld.tldClass,
                 tokenId: getTokenId(r.fqdn),
-                expiryDate: unifyTimestamp(r.expiry).toSeconds(),
+                expiryDate: unifyTimestamp(Number(r.expiry)).toSeconds(),
               });
             });
           }),
