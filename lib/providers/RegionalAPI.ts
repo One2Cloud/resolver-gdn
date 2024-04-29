@@ -112,34 +112,6 @@ export class RegionalAPI extends Construct {
 									name: "GLOBAL_SECRET_VALUE",
 									value: props.secret.secretArn,
 								},
-								// {
-								// 	name: "INFURA_API_KEY",
-								// 	value: cdk.Fn.join(":", [props.secret.secretArn, "INFURA_API_KEY"]),
-								// },
-								// {
-								// 	name: "GETBLOCK_API_KEY",
-								// 	value: cdk.Fn.join(":", [props.secret.secretArn, "GETBLOCK_API_KEY"]),
-								// },
-								// {
-								// 	name: "POKT_PORTAL_ID",
-								// 	value: cdk.Fn.join(":", [props.secret.secretArn, "POKT_PORTAL_ID"]),
-								// },
-								// {
-								// 	name: "GETBLOCK_CONFIG",
-								// 	value: cdk.Fn.join(":", [props.secret.secretArn, "GETBLOCK_CONFIG"]),
-								// },
-								// {
-								// 	name: "GROVE_CITY_APP_ID",
-								// 	value: cdk.Fn.join(":", [props.secret.secretArn, "GROVE_CITY_APP_ID"]),
-								// },
-								// {
-								// 	name: "UPSTASH_REDIS_REST_URL",
-								// 	value: cdk.Fn.join(":", [props.secret.secretArn, "UPSTASH_REDIS_REST_URL"]),
-								// },
-								// {
-								// 	name: "UPSTASH_REDIS_REST_TOKEN",
-								// 	value: cdk.Fn.join(":", [props.secret.secretArn, "UPSTASH_REDIS_REST_TOKEN"]),
-								// },
 							],
 						},
 					},
