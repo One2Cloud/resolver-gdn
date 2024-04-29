@@ -1,24 +1,35 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import * as ecra from "aws-cdk-lib/aws-ecr-assets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import path from "path";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as apigw2_integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53targets from "aws-cdk-lib/aws-route53-targets";
-// import { TheGraphQueryNode } from "./TheGraphQueryNode";
 
 interface IConstructProps {
 	vpc: ec2.IVpc;
 	secret: secretsmanager.ISecret;
 	certificate: acm.Certificate;
-	// graph: TheGraphQueryNode;
 }
+
+const LambdaLayer: { [key: string]: { [key: string]: string } } = {
+	LambdaInsight: {
+		"us-west-2": "arn:aws:lambda:us-west-2:580247275435:layer:LambdaInsightsExtension-Arm64:19",
+		"ap-southeast-1": "arn:aws:lambda:ap-southeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:19",
+		"ap-northeast-1": "arn:aws:lambda:ap-northeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:30",
+		"eu-central-1": "arn:aws:lambda:eu-central-1:580247275435:layer:LambdaInsightsExtension-Arm64:19",
+	},
+	ParameterAndSecrets: {
+		"us-west-2": "arn:aws:lambda:us-west-2:345057560386:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:11",
+		"ap-southeast-1": "arn:aws:lambda:ap-southeast-1:044395824272:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:11",
+		"ap-northeast-1": "arn:aws:lambda:ap-northeast-1:133490724326:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:11",
+		"eu-central-1": "arn:aws:lambda:eu-central-1:187925254637:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:11",
+	},
+};
 
 export class RegionalAPI extends Construct {
 	public readonly lambdaFunction: lambda.Function;
@@ -27,25 +38,18 @@ export class RegionalAPI extends Construct {
 	constructor(scope: Construct, id: string, props: IConstructProps) {
 		super(scope, id);
 
-		const image = new ecra.DockerImageAsset(this, "Image", {
-			directory: path.join(process.cwd(), "src"),
-			file: "docker/Dockerfile.lambda",
-			platform: ecra.Platform.LINUX_AMD64,
-			buildArgs: {
-				AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
-				AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
-				AWS_SESSION_TOKEN: process.env.AWS_SESSION_TOKEN!,
-			},
-		});
+		const lambdaInsight = lambda.LayerVersion.fromLayerVersionArn(this, "LambdaInsight", LambdaLayer.LambdaInsight[cdk.Stack.of(this).region]);
+		const parameterAndSecrets = lambda.LayerVersion.fromLayerVersionArn(this, "ParameterAndSecrets", LambdaLayer.ParameterAndSecrets[cdk.Stack.of(this).region]);
 
 		const lambdaFunction = new lambda.Function(this, "LambdaFunction", {
 			functionName: "Resolver-GDN-Regional-API",
-			code: lambda.Code.fromEcrImage(image.repository, {
-				tagOrDigest: image.imageTag,
-				cmd: ["handler.index"],
+			code: lambda.Code.fromDockerBuild(path.join(process.cwd(), "src"), {
+				file: "docker/Dockerfile.lambda.esbuild",
 			}),
-			handler: lambda.Handler.FROM_IMAGE,
-			runtime: lambda.Runtime.FROM_IMAGE,
+			layers: [lambdaInsight, parameterAndSecrets],
+			handler: "handler.index",
+			runtime: lambda.Runtime.NODEJS_20_X,
+			architecture: lambda.Architecture.ARM_64,
 			timeout: cdk.Duration.seconds(30),
 			memorySize: 256,
 			environment: {
@@ -60,7 +64,7 @@ export class RegionalAPI extends Construct {
 			aliasName: "app",
 			version: lambdaFunction.currentVersion,
 		});
-		const as = alias.addAutoScaling({ minCapacity: 1, maxCapacity: 1 });
+		const as = alias.addAutoScaling({ minCapacity: 3, maxCapacity: 10 });
 		as.scaleOnUtilization({
 			utilizationTarget: 0.8,
 		});

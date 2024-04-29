@@ -43,7 +43,6 @@ export class RegionalStack extends cdk.Stack {
 				},
 			],
 		});
-		// fckNatProvider.securityGroup.addIngressRule(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.allTraffic());
 
 		const cluster = new ecs.Cluster(this, "Cluster", { containerInsights: true, enableFargateCapacityProviders: true, vpc });
 		const namespace = cluster.addDefaultCloudMapNamespace({
@@ -55,13 +54,6 @@ export class RegionalStack extends cdk.Stack {
 			"Secret",
 			`arn:aws:secretsmanager:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:secret:resolver-gdn-secret-ROby3i`
 		);
-
-		// const graph = new TheGraphQueryNode(this, "TheGraphQueryNode", {
-		// 	vpc,
-		// 	cluster,
-		// 	namespace,
-		// 	secret,
-		// });
 
 		const api = new RegionalAPI(this, "API", { vpc, secret, certificate });
 	}

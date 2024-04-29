@@ -1,0 +1,8 @@
+FROM node:lts-alpine as builder
+WORKDIR /app
+COPY . .
+RUN npm ci &&\
+    npm run build:lambda-api &&\
+    mkdir /asset &&\
+    cp /app/index.js /asset/handler.js &&\
+    cp -r /app/static/ /asset/static/
