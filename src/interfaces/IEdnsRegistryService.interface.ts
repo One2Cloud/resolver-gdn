@@ -3,19 +3,21 @@ import { IOptions } from "./IOptions.interface";
 export interface IGetDomainOutput {
   fqdn: string | undefined;
   tokenId: string | undefined;
-  chain: number | undefined;
+  chainId: number | undefined;
   owner: string | undefined;
-  expiry: luxon.DateTime | undefined;
+  expiryDate: luxon.DateTime | undefined;
   resolver: string | undefined | null;
   bridging: boolean | undefined;
   operators: string[] | undefined | null;
   user:
     | {
         address: string;
-        expiry: luxon.DateTime;
+        expiryDate: luxon.DateTime;
       }
     | undefined;
   hosts: string[] | undefined;
+  type: string | undefined
+  createAt: Date | null
 }
 
 export interface IGetDomainOutputSubgraph {

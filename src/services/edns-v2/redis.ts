@@ -64,18 +64,25 @@ export class EdnsV2FromRedisService {
       return podChain;
     }
     const responses = await Promise.all(networks.map((_chainId) => subgraph.checkpod(podName, { net: options?.net || Net.MAINNET, chainId: _chainId })));
+    console.log("🚀 ~ EdnsV2FromRedisService ~ getDomainByPodName ~ responses:", responses)
 
     const resultArray: number[] = [];
     const index = responses.map((r, i) => {
       r === true ? resultArray.push(i) : null;
     });
-
-    let _chain: any[] | number = [];
-    const chainId = resultArray.length == 0 ? -1 : resultArray.length == 1 ? networks[resultArray[0]] : resultArray.map((_index) => _chain.push(networks[_index]));
-
+    
+    
+    let _chain: number[] | number = [];
+    const chainId = resultArray.length == 0 ? -1 : resultArray.map((_index) => {_chain.push(networks[_index])
+      console.log("🚀 ~ EdnsV2FromRedisService ~ getDomainByPodName ~ _chain:", _chain)
+    });
+    
+    console.log("🚀 ~ EdnsV2FromRedisService ~ getDomainByPodName ~ resultArray:", resultArray)
+    console.log("🚀 ~ EdnsV2FromRedisService ~ getDomainByPodName ~ chainId:", chainId)
+    
     await redis.set(`${podName}:pod:chain_id`, _chain, { ex: 300 });
     if (chainId === -1) throw new Error("Pod not found");
-    return chainId;
+    return _chain;
   }
 
   public static async getWalletChainId(walletAddress: string, options?: IOptions) {

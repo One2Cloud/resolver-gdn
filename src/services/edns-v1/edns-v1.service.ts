@@ -30,7 +30,7 @@ import { ReverseRegistrar } from "../../contracts/ethereum/edns-v1/typechain/Rev
 import { MissingChainIdError } from "../../errors/missing-chain-id.error";
 
 export class EdnsV1FromContractService implements IEdnsResolverService {
-  getUrlByPodName(podName: string, options?: IOptions): Promise<string | undefined> {
+  getUrlByPodName(podName: string, options?: IOptions): Promise<string[] | undefined> {
     throw new Error("Method not implemented.");
   }
   private async _getProvider(fqdn: string, net: Net): Promise<ethers.providers.JsonRpcProvider> {

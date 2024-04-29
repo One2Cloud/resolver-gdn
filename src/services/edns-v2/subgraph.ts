@@ -136,6 +136,9 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
           address
           expiry
         }
+        tld {
+          tldClass
+        }
       }
     }
     `;
@@ -160,17 +163,19 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     result = {
       fqdn: data.domain.fqdn,
       tokenId: getTokenId(fqdn),
-      chain: chainId,
+      chainId: chainId,
       owner: data.domain.owner.address,
-      expiry: data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry)),
+      expiryDate: data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry)),
       resolver: data.domain.resolver ? data.domain.resolver : null,
       bridging: undefined,
       operators: data.domain.operator ? [data.domain.operator.address] : null,
       user: {
         address: data.domain.owner.address,
-        expiry: data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry)),
+        expiryDate: data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)) : luxon.DateTime.fromMillis(Number(data.domain.expiry)),
       },
       hosts: data.hosts.map((host: { host: string }) => host.host),
+      createAt: new Date(99999),
+      type: data.domain.tld.tldClass,
     };
 
     return !!data.domain
@@ -178,14 +183,16 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       : {
           fqdn: undefined,
           tokenId: undefined,
-          chain: undefined,
+          chainId: undefined,
           owner: undefined,
-          expiry: undefined,
+          expiryDate: undefined,
           resolver: undefined,
           bridging: undefined,
           operators: undefined,
           user: undefined,
           hosts: undefined,
+          createAt: null,
+          type: undefined,
         };
   }
   public async getDomainsByAccount(account: string, options?: IOptions | undefined): Promise<IGetDomainOutputSubgraph[] | undefined> {
@@ -565,7 +572,8 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       }
     }
     `;
-    console.log(typeof chainId, chainId);
+
+    console.log("subgraph getUrlPodname",typeof chainId, chainId);
     const getdata = async (_chainId: number): Promise<any> => {
       const client = createClient({
         url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${_chainId}`,
@@ -578,9 +586,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       return !!data?.podRecord?.url ? data.podRecord.url : undefined;
     };
 
-    if (typeof chainId === "number") {
-      return getdata(chainId);
-    }
+
 
     if (Array.isArray(chainId)) {
       console.log("in loop", chainId);

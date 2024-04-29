@@ -85,5 +85,5 @@ export interface IEdnsResolverService {
   getTypedTextRecord(input: IGetTypedTextRecordInput, options?: IOptions): Promise<IGetTypedTextRecordOutput | undefined>;
   getNftRecord(input: IGetNftRecordInput, options?: IOptions): Promise<IGetNftRecordOutput | undefined>;
   // getAllRecords(fqdn: string): Promise<IGetAddressRecordOutput[] | undefined>;
-  getUrlByPodName(podName: string, options?: IOptions): Promise<string | undefined>;
+  getUrlByPodName(podName: string, options?: IOptions): Promise<string[] | undefined>;
 }
