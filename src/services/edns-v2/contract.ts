@@ -38,7 +38,7 @@ export class EdnsV2FromContractService implements IEdnsResolverService, IEdnsReg
     return EdnsV2FromRedisService.getDomainChainId(domain, options);
   }
 
-  public async getUrlByPodName(podName: string, options?: IOptions): Promise<string | undefined> {
+  public async getUrlByPodName(podName: string, options?: IOptions): Promise<string[] | undefined> {
     return new EdnsV2FromSubgraphService().getUrlByPodName(podName, options);
   }
 

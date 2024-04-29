@@ -197,7 +197,12 @@ export interface IConfig {
 export const getNetworkConfig = async (): Promise<INetworkConfig> => {
   let GetBlockConfig: IGetBlockConfig = { shared: {} };
 
-  const { GETBLOCK_CONFIG, GROVE_CITY_APP_ID } = JSON.parse(await getSecretInLambda(process.env.GLOBAL_SECRET_ARN!));
+  let { GETBLOCK_CONFIG, GROVE_CITY_APP_ID } = process.env;
+  if (!GETBLOCK_CONFIG || !GROVE_CITY_APP_ID) {
+    const secerts = JSON.parse(await getSecretInLambda(process.env.GLOBAL_SECRET_ARN!));
+    GETBLOCK_CONFIG = secerts.GETBLOCK_CONFIG as string;
+    GROVE_CITY_APP_ID = secerts.GROVE_CITY_APP_ID as string;
+  }
 
   GetBlockConfig = JSON.parse(GETBLOCK_CONFIG);
 
