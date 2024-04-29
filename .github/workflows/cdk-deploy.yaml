@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - @deploy/master
+      - "@deploy/master"
 
 permissions:
   id-token: write
