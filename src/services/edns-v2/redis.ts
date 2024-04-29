@@ -51,6 +51,7 @@ export class EdnsV2FromRedisService {
     if (chainId === -1) throw new DomainNotFoundError(fqdn);
     return chainId;
   }
+  
   public static async getDomainByPodName(podName: string, options?: IOptions) {
     const redis = await createRedisClient();
     const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
