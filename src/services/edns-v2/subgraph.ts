@@ -671,7 +671,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               chainId: chainId,
               type: _r[0].tld.tldClass,
               tokenId: getTokenId(_r[0].fqdn),
-              expiryDate: unifyTimestamp(Number(_r[0].expiry)).toSeconds(),
+              expiryDate: unifyTimestamp(Number(_r[0].expiry)).toMillis(),
             },
           };
           return data;
@@ -685,7 +685,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               chainId: chainId,
               type: r.tld.tldClass,
               tokenId: getTokenId(r.fqdn),
-              expiryDate: unifyTimestamp(Number(_r.expiry)).toSeconds(),
+              expiryDate: unifyTimestamp(Number(_r.expiry)).toMillis(),
             });
           });
           return {
