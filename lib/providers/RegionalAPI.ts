@@ -47,78 +47,80 @@ export class RegionalAPI extends Construct {
 	constructor(scope: Construct, id: string, props: IConstructProps) {
 		super(scope, id);
 
-		const autoScalingConfiguration = new apprunner.CfnAutoScalingConfiguration(this, "AutoScalingConfiguration", {
-			autoScalingConfigurationName: "Resolver-GDN-ASC",
-			maxConcurrency: 100,
-			maxSize: 10,
-			minSize: 1,
-		});
+		if (cdk.Stack.of(this).region === "ap-southeast-1") {
+			const autoScalingConfiguration = new apprunner.CfnAutoScalingConfiguration(this, "AutoScalingConfiguration", {
+				autoScalingConfigurationName: "Resolver-GDN-ASC",
+				maxConcurrency: 100,
+				maxSize: 10,
+				minSize: 1,
+			});
 
-		const instanceRole = new iam.Role(this, "InstanceRole", {
-			assumedBy: new iam.ServicePrincipal("tasks.apprunner.amazonaws.com"),
-		});
-		props.secret.grantRead(instanceRole);
+			const instanceRole = new iam.Role(this, "InstanceRole", {
+				assumedBy: new iam.ServicePrincipal("tasks.apprunner.amazonaws.com"),
+			});
+			props.secret.grantRead(instanceRole);
 
-		const service = new apprunner.CfnService(this, "Service", {
-			serviceName: "Resolver-GDN-API",
-			autoScalingConfigurationArn: autoScalingConfiguration.attrAutoScalingConfigurationArn,
-			healthCheckConfiguration: {
-				healthyThreshold: 2,
-				interval: 5,
-				path: "/healthcheck",
-				protocol: "HTTP",
-				timeout: 1,
-				unhealthyThreshold: 2,
-			},
-			instanceConfiguration: {
-				cpu: "0.25 vCPU",
-				memory: "0.5 GB",
-				instanceRoleArn: instanceRole.roleArn,
-			},
-			networkConfiguration: {
-				ingressConfiguration: {
-					isPubliclyAccessible: true,
+			const service = new apprunner.CfnService(this, "Service", {
+				serviceName: "Resolver-GDN-API",
+				autoScalingConfigurationArn: autoScalingConfiguration.attrAutoScalingConfigurationArn,
+				healthCheckConfiguration: {
+					healthyThreshold: 2,
+					interval: 5,
+					path: "/healthcheck",
+					protocol: "HTTP",
+					timeout: 1,
+					unhealthyThreshold: 2,
 				},
-				ipAddressType: "DUAL_STACK",
-			},
-			sourceConfiguration: {
-				autoDeploymentsEnabled: true,
-				authenticationConfiguration: {
-					connectionArn: AppRunnerConnectionArn[cdk.Stack.of(this).region],
+				instanceConfiguration: {
+					cpu: "0.25 vCPU",
+					memory: "0.5 GB",
+					instanceRoleArn: instanceRole.roleArn,
 				},
-				codeRepository: {
-					repositoryUrl: "https://github.com/One2Cloud/resolver-gdn",
-					sourceDirectory: "src",
-					sourceCodeVersion: { type: "BRANCH", value: "@deploy/master" },
-					codeConfiguration: {
-						configurationSource: "API",
-						codeConfigurationValues: {
-							buildCommand: "npm ci && npm run build:api",
-							startCommand: "node index.js",
-							port: "8080",
-							runtime: "NODEJS_18",
-							runtimeEnvironmentVariables: [
-								{
-									name: "THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT",
-									value: "http://34.239.95.30:8000",
-								},
-								{
-									name: "THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT",
-									value: "https://mainnet.graph.query.node.resolver.gdn",
-								},
-							],
-							runtimeEnvironmentSecrets: [
-								{
-									name: "GLOBAL_SECRET_VALUE",
-									value: props.secret.secretArn,
-								},
-							],
+				networkConfiguration: {
+					ingressConfiguration: {
+						isPubliclyAccessible: true,
+					},
+					ipAddressType: "DUAL_STACK",
+				},
+				sourceConfiguration: {
+					autoDeploymentsEnabled: true,
+					authenticationConfiguration: {
+						connectionArn: AppRunnerConnectionArn[cdk.Stack.of(this).region],
+					},
+					codeRepository: {
+						repositoryUrl: "https://github.com/One2Cloud/resolver-gdn",
+						sourceDirectory: "src",
+						sourceCodeVersion: { type: "BRANCH", value: "@deploy/master" },
+						codeConfiguration: {
+							configurationSource: "API",
+							codeConfigurationValues: {
+								buildCommand: "npm ci && npm run build:api",
+								startCommand: "node index.js",
+								port: "8080",
+								runtime: "NODEJS_18",
+								runtimeEnvironmentVariables: [
+									{
+										name: "THE_GRAPH_QUERY_HTTP_API_TESTNET_ENDPOINT",
+										value: "http://34.239.95.30:8000",
+									},
+									{
+										name: "THE_GRAPH_QUERY_HTTP_API_MAINNET_ENDPOINT",
+										value: "https://mainnet.graph.query.node.resolver.gdn",
+									},
+								],
+								runtimeEnvironmentSecrets: [
+									{
+										name: "GLOBAL_SECRET_VALUE",
+										value: props.secret.secretArn,
+									},
+								],
+							},
 						},
 					},
 				},
-			},
-		});
-
+			});
+		}
+		
 		const lambdaInsight = lambda.LayerVersion.fromLayerVersionArn(this, "LambdaInsight", LambdaLayer.LambdaInsight[cdk.Stack.of(this).region]);
 		const parameterAndSecrets = lambda.LayerVersion.fromLayerVersionArn(this, "ParameterAndSecrets", LambdaLayer.ParameterAndSecrets[cdk.Stack.of(this).region]);
 
