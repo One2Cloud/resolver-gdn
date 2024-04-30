@@ -31,12 +31,12 @@ router.get("/record/:fqdn", EdnsController.getDomainDetails, errorHandler);
 
 router.post("/revalidate/:fqdn", EdnsController.revalidate, errorHandler);
 
-router.get(
-  "/*",
-  (req: Request, res: Response, next: NextFunction) => {
-    next(new UnknownOperationError());
-  },
-  errorHandler,
-);
+// router.get(
+//   "/*",
+//   (req: Request, res: Response, next: NextFunction) => {
+//     next(new UnknownOperationError());
+//   },
+//   errorHandler,
+// );
 
 export default router;

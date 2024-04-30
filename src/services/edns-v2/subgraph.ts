@@ -154,8 +154,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn, _id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    console.log("🚀 ~ getDomain ~ data:", data);
-
     const getTokenId = (fqdn: string) => {
       const bytes32 = ethers.utils.solidityKeccak256(["bytes"], [ethers.utils.toUtf8Bytes(fqdn)]);
       const tokenId = ethers.BigNumber.from(bytes32).toString();
@@ -368,7 +366,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    return unifyTimestamp(Number(data.domain.expiry)).toSeconds();
+    return unifyTimestamp(Number(data.domain.expiry)).toMillis();
   }
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
     const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
@@ -664,18 +662,16 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       if (typeof chainId === "number") {
         const _r = await getdata(chainId);
         if (_r.length === 1) {
-          console.log(_r);
-
           const data: IGetWalletInfoOutput = {
             address: address,
             resversedDomain: null,
             domains: [
               {
-                fqdn: _r.fqdn,
+                fqdn: _r[0].fqdn,
                 chainId: chainId,
-                type: _r.tld.tldClass,
-                tokenId: getTokenId(_r.fqdn),
-                expiryDate: unifyTimestamp(Number(_r.expiry)).toSeconds(),
+                type: _r[0].tld.tldClass,
+                tokenId: getTokenId(_r[0].fqdn),
+                expiryDate: unifyTimestamp(Number(_r[0].expiry)).toMillis(),
               },
             ],
           };
@@ -690,7 +686,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               chainId: chainId,
               type: r.tld.tldClass,
               tokenId: getTokenId(r.fqdn),
-              expiryDate: unifyTimestamp(Number(_r.expiry)).toSeconds(),
+              expiryDate: unifyTimestamp(Number(_r.expiry)).toMillis(),
             });
           });
           return {
