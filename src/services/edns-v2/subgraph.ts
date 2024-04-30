@@ -662,17 +662,18 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       if (typeof chainId === "number") {
         const _r = await getdata(chainId);
         if (_r.length === 1) {
-
           const data: IGetWalletInfoOutput = {
             address: address,
             resversedDomain: null,
-            domains: {
-              fqdn: _r[0].fqdn,
-              chainId: chainId,
-              type: _r[0].tld.tldClass,
-              tokenId: getTokenId(_r[0].fqdn),
-              expiryDate: unifyTimestamp(Number(_r[0].expiry)).toSeconds(),
-            },
+            domains: [
+              {
+                fqdn: _r[0].fqdn,
+                chainId: chainId,
+                type: _r[0].tld.tldClass,
+                tokenId: getTokenId(_r[0].fqdn),
+                expiryDate: unifyTimestamp(Number(_r[0].expiry)).toMillis(),
+              },
+            ],
           };
           return data;
         } else {
@@ -685,7 +686,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               chainId: chainId,
               type: r.tld.tldClass,
               tokenId: getTokenId(r.fqdn),
-              expiryDate: unifyTimestamp(Number(_r.expiry)).toSeconds(),
+              expiryDate: unifyTimestamp(Number(_r.expiry)).toMillis(),
             });
           });
           return {
@@ -697,7 +698,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       }
 
       if (Array.isArray(chainId)) {
-
         const _r: IWalletDomainDetailsOutput[] = [];
         await Promise.all(
           chainId.map(async (r, i) => {
