@@ -401,22 +401,22 @@ export default class EdnsController {
     }
   }
 
-  public static async getDomainDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      let { fqdn } = req.params;
-      const service = new EdnsService();
+  // public static async getDomainDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+  //   try {
+  //     let { fqdn } = req.params;
+  //     const service = new EdnsService();
 
-      const output = await service.getDomainDetails(fqdn);
-      const response: IGeneralResponse<IDomainDetailsOutput> = {
-        status: 200,
-        success: true,
-        onchain: false,
-        data: output,
-        empty: false,
-      };
-      res.status(response.status).json(response);
-    } catch (error) {
-      next(error);
-    }
-  }
+  //     const output = await service.getDomainDetails(fqdn);
+  //     const response: IGeneralResponse<IDomainDetailsOutput> = {
+  //       status: 200,
+  //       success: true,
+  //       onchain: false,
+  //       data: output,
+  //       empty: false,
+  //     };
+  //     res.status(response.status).json(response);
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // }
 }

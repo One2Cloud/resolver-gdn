@@ -5,14 +5,14 @@ export interface IGetDomainOutput {
   tokenId: string | undefined;
   chainId: number | undefined;
   owner: string | undefined;
-  expiryDate: luxon.DateTime | undefined;
+  expiry: luxon.DateTime | undefined;
   resolver: string | undefined | null;
   bridging: boolean | undefined;
   operators: string[] | undefined | null;
   user:
     | {
         address: string;
-        expiryDate: luxon.DateTime;
+        expiry: luxon.DateTime;
       }
     | undefined;
   hosts: string[] | undefined;
@@ -57,7 +57,7 @@ export interface IEdnsRegistryService {
   getHost(fqdn: string, options?: IOptions): Promise<IGetHostOutput | undefined>;
   getTtl(fqdn: string, options?: IOptions): Promise<number | undefined>;
   getOwner(fqdn: string, options?: IOptions): Promise<string | undefined>;
-  getExpiry(fqdn: string, options?: IOptions): Promise<number | undefined>;
+  getExpiry(fqdn: string, options?: IOptions): Promise<number | undefined | luxon.DateTime>;
   // getHostsByDomain(fqdn: string, options?: IOptions): Promise<IGetHostOutput[] | undefined>;
   // getRecordsByHost(fqdn: string, options?: IOptions): Promise<string[] | undefined>;
 }

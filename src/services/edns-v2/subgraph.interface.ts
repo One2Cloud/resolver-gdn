@@ -1,3 +1,4 @@
+import * as luxon from 'luxon'
 export enum IDomainType {
   UNIVERSAL = "universal",
   CLASSICAL = "classical",
@@ -15,7 +16,7 @@ export interface IWalletDomainDetailsOutput {
   chainId: number;
   type: IDomainType;
   tokenId: string;
-  expiryDate: number;
+  expiry: luxon.DateTime;
 }
 
 export interface IDomainDetailsOutput {
@@ -23,7 +24,7 @@ export interface IDomainDetailsOutput {
   type: IDomainType;
   owner: string; //Address
   tokenId: string;
-  expiryDate: number;
+  expiry: luxon.DateTime;
   records: {
     text: string;
     address: string;
