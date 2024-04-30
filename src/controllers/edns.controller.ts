@@ -62,7 +62,7 @@ export default class EdnsController {
       const service = new EdnsService();
       console.log(options);
 
-      const output = await service.getReverseAddressRecord({ address }, options);
+      const output = await service.getReverseAddressRecord({ address: address.toLocaleLowerCase() }, options);
       const response: IGeneralResponse<typeof output> = {
         status: 200,
         success: true,
@@ -387,7 +387,7 @@ export default class EdnsController {
       let { address } = req.params;
       const service = new EdnsService();
       const options = extract(req);
-      const output = await service.getWalletInfo(address, options);
+      const output = await service.getWalletInfo(address.toLocaleLowerCase(), options);
       const response: IGeneralResponse<IGetWalletInfoOutput> = {
         status: 200,
         success: true,
