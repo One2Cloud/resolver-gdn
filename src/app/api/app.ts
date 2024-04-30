@@ -4,6 +4,7 @@ import compression from "compression";
 import cors from "cors";
 import morgan from "morgan";
 import { errorHandler } from "../../middleware/returnHandler";
+import { UnknownOperationError } from "../../errors/operation-not-found.error";
 
 const app: Application = express();
 
@@ -20,7 +21,13 @@ app.get("/healthcheck", (req: Request, res: Response): Response => {
 });
 
 app.use(routers);
-
+app.get(
+  "/*",
+  (req: Request, res: Response, next: NextFunction) => {
+    next(new UnknownOperationError());
+  },
+  errorHandler,
+)
 app.use(errorHandler);
 
 export default app;
