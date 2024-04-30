@@ -165,13 +165,13 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       tokenId: getTokenId(fqdn),
       chainId: chainId,
       owner: data.domain.owner.address,
-      expiryDate: unifyTimestamp(Number(data.domain.expiry)),
+      expiry: unifyTimestamp(Number(data.domain.expiry)),
       resolver: data.domain.resolver ? data.domain.resolver : null,
       bridging: undefined,
       operators: data.domain.operator ? [data.domain.operator.address] : null,
       user: {
         address: data.domain.owner.address,
-        expiryDate: unifyTimestamp(Number(data.domain.expiry)),
+        expiry: unifyTimestamp(Number(data.domain.expiry)),
       },
       hosts: data.hosts.map((host: { host: string }) => host.host),
       createAt: new Date(99999),
@@ -185,7 +185,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
           tokenId: undefined,
           chainId: undefined,
           owner: undefined,
-          expiryDate: undefined,
+          expiry: undefined,
           resolver: undefined,
           bridging: undefined,
           operators: undefined,
@@ -345,7 +345,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .then((res) => res.data);
     return data?.host?.owner?.address;
   }
-  public async getExpiry(fqdn: string, options?: IOptions | undefined): Promise<number | undefined> {
+  public async getExpiry(fqdn: string, options?: IOptions | undefined): Promise<number | undefined | luxon.DateTime> {
     const chainId = await EdnsV2FromRedisService.getDomainChainId(fqdn, options);
     await this._queryPreCheck(chainId, { fqdn }, options);
 
@@ -366,7 +366,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    return unifyTimestamp(Number(data.domain.expiry)).toMillis();
+    return unifyTimestamp(Number(data.domain.expiry));
   }
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
     const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
@@ -650,6 +650,8 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
           .query(tokensQuery, { id: address })
           .toPromise()
           .then((res) => res.data);
+        console.log("🚀 ~ getdata ~ data:", data)
+      
         return !!data?.domains ? data.domains : undefined;
       };
 
@@ -660,40 +662,47 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       };
 
       if (typeof chainId === "number") {
-        const _r = await getdata(chainId);
-        if (_r.length === 1) {
-          const data: IGetWalletInfoOutput = {
-            address: address,
-            resversedDomain: null,
-            domains: [
-              {
-                fqdn: _r[0].fqdn,
+        console.log("🚀 ~ getWalletInfo ~ chainId:", chainId)
+        try {
+          
+          const _r = await getdata(chainId);
+          console.log("🚀 ~ getWalletInfo ~ _r:", _r)
+          if (_r.length === 1) {
+            const data: IGetWalletInfoOutput = {
+              address: address,
+              resversedDomain: null,
+              domains: [
+                {
+                  fqdn: _r[0].fqdn,
+                  chainId: chainId,
+                  type: _r[0].tld.tldClass,
+                  tokenId: getTokenId(_r[0].fqdn),
+                  expiry: unifyTimestamp(Number(_r[0].expiry))
+                },
+              ],
+            };
+            return data;
+          } else {
+            const trimResult: IWalletDomainDetailsOutput[] = [];
+  
+            _r.map((r: any) => {
+              console.log(r);
+              trimResult.push({
+                fqdn: r.fqdn,
                 chainId: chainId,
-                type: _r[0].tld.tldClass,
-                tokenId: getTokenId(_r[0].fqdn),
-                expiryDate: unifyTimestamp(Number(_r[0].expiry)).toMillis(),
-              },
-            ],
-          };
-          return data;
-        } else {
-          const trimResult: IWalletDomainDetailsOutput[] = [];
-
-          _r.map((r: any) => {
-            console.log(r);
-            trimResult.push({
-              fqdn: r.fqdn,
-              chainId: chainId,
-              type: r.tld.tldClass,
-              tokenId: getTokenId(r.fqdn),
-              expiryDate: unifyTimestamp(Number(_r.expiry)).toMillis(),
+                type: r.tld.tldClass,
+                tokenId: getTokenId(r.fqdn),
+                expiry: unifyTimestamp(Number(_r.expiry)),
+              });
             });
-          });
-          return {
-            address: address,
-            resversedDomain: null,
-            domains: trimResult,
-          };
+            return {
+              address: address,
+              resversedDomain: null,
+              domains: trimResult,
+            };
+          }
+        } catch (error) {
+          console.log("🚀 ~ getWalletInfo ~ error:", error)
         }
       }
 
@@ -709,7 +718,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
                 chainId: chainId[i],
                 type: r.tld.tldClass,
                 tokenId: getTokenId(r.fqdn),
-                expiryDate: unifyTimestamp(Number(r.expiry)).toMillis(),
+                expiry: unifyTimestamp(Number(r.expiry)),
               });
             });
           }),
@@ -748,24 +757,24 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     return data?.user != null;
   }
 
-  public async getDomainDetails(address: string): Promise<IDomainDetailsOutput> {
-    //TODO for edns-v3
-    return {
-      chainId: 136,
-      type: IDomainType.UNIVERSAL,
-      owner: "string",
-      tokenId: "string",
-      expiryDate: new Date().valueOf(),
-      records: {
-        text: "",
-        address: "",
-        typedText: {
-          Email: "",
-        },
-        typedAddress: {
-          BTC: "0xabxxx....",
-        },
-      },
-    };
-  }
+  // public async getDomainDetails(address: string): Promise<IDomainDetailsOutput> {
+  //   //TODO for edns-v3
+  //   return {
+  //     chainId: 136,
+  //     type: IDomainType.UNIVERSAL,
+  //     owner: "string",
+  //     tokenId: "string",
+  //     expiry: new Date().valueOf(),
+  //     records: {
+  //       text: "",
+  //       address: "",
+  //       typedText: {
+  //         Email: "",
+  //       },
+  //       typedAddress: {
+  //         BTC: "0xabxxx....",
+  //       },
+  //     },
+  //   };
+  // }
 }

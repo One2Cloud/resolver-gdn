@@ -23,11 +23,11 @@ router.get("/record/:fqdn/text", EdnsController.getTextRecord, errorHandler);
 router.get("/domain/:fqdn", EdnsController.getDomain, errorHandler);
 router.get("/owner/:fqdn", EdnsController.getOwner, errorHandler);
 router.get("/expiry/:fqdn", EdnsController.getExpiry, errorHandler);
-router.get("/account/:account", EdnsController.getDomainsByAccount, errorHandler);
 router.get("/host/:fqdn", EdnsController.getHost, errorHandler);
 router.get("/pod/:podname", EdnsController.getByPodname, errorHandler);
-router.get("/record/:address/domains", EdnsController.getWalletInfo, errorHandler);
-router.get("/record/:fqdn", EdnsController.getDomainDetails, errorHandler);
+router.get("/account/:address/domains", EdnsController.getWalletInfo, errorHandler);
+// router.get("/account/:account", EdnsController.getDomainsByAccount, errorHandler);
+// router.get("/record/:fqdn", EdnsController.getDomainDetails, errorHandler);
 
 router.post("/revalidate/:fqdn", EdnsController.revalidate, errorHandler);
 

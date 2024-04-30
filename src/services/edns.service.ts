@@ -146,8 +146,8 @@ export class EdnsService implements IEdnsResolverService {
     return output;
   }
 
-  public async getExpiry(fqdn: string, options?: IOptions): Promise<number | undefined> {
-    let output: number | undefined;
+  public async getExpiry(fqdn: string, options?: IOptions): Promise<number | undefined | luxon.DateTime> {
+    let output: number | undefined |luxon.DateTime;
     if (options?.version === "v1") {
       throw new Error("Not implemented for v1");
     }
@@ -251,7 +251,7 @@ export class EdnsService implements IEdnsResolverService {
     return await this._v2SubgraphService.getWalletInfo(address, options);
   }
 
-  public async getDomainDetails(fqdn: string) {
-    return await this._v2SubgraphService.getDomainDetails(fqdn);
-  }
+  // public async getDomainDetails(fqdn: string) {
+  //   return await this._v2SubgraphService.getDomainDetails(fqdn);
+  // }
 }
