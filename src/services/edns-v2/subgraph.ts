@@ -154,6 +154,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn, _id: fqdn })
       .toPromise()
       .then((res) => res.data);
+    console.log("🚀 ~ getDomain ~ data:", data)
 
     const getTokenId = (fqdn: string) => {
       const bytes32 = ethers.utils.solidityKeccak256(["bytes"], [ethers.utils.toUtf8Bytes(fqdn)]);
