@@ -709,7 +709,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
                 chainId: chainId[i],
                 type: r.tld.tldClass,
                 tokenId: getTokenId(r.fqdn),
-                expiryDate: unifyTimestamp(Number(r.expiry)).toSeconds(),
+                expiryDate: unifyTimestamp(Number(r.expiry)).toMillis(),
               });
             });
           }),
