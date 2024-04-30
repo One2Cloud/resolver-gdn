@@ -108,8 +108,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: `${name}.${tld}` })
       .toPromise()
       .then((res) => res.data);
-    console.log("🚀 ~ isExpired ~ data:", data?.domain.expiry.toString().length === 10 ? luxon.DateTime.fromSeconds(Number(data.domain.expiry)).toISODate() : luxon.DateTime.fromMillis(Number(data.domain.expiry)).toISODate())
-    const expiry = unifyTimestamp(Number(data.domain.expiry))
+    const expiry = unifyTimestamp(Number(data.domain.expiry));
     return luxon.DateTime.now() > expiry;
   }
 
@@ -369,7 +368,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       .query(tokensQuery, { id: fqdn })
       .toPromise()
       .then((res) => res.data);
-    return unifyTimestamp(Number(data.domain.expiry)).toSeconds()
+    return unifyTimestamp(Number(data.domain.expiry)).toSeconds();
   }
   public async getAllRecords(input: IGetAllRecordsInput, options?: IOptions | undefined): Promise<IGetAllRecordsOutput | undefined> {
     const chainId = await EdnsV2FromRedisService.getDomainChainId(input.fqdn, options);
@@ -574,7 +573,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
     }
     `;
 
-    console.log("subgraph getUrlPodname",typeof chainId, chainId);
+    console.log("subgraph getUrlPodname", typeof chainId, chainId);
     const getdata = async (_chainId: number): Promise<any> => {
       const client = createClient({
         url: `${options?.net === Net.TESTNET ? config.subgraph.testnet.http.endpoint : config.subgraph.mainnet.http.endpoint}/subgraphs/name/edns-${_chainId}`,
@@ -586,8 +585,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
         .then((res) => res.data);
       return !!data?.podRecord?.url ? data.podRecord.url : undefined;
     };
-
-
 
     if (Array.isArray(chainId)) {
       console.log("in loop", chainId);
@@ -677,7 +674,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               chainId: chainId,
               type: _r.tld.tldClass,
               tokenId: getTokenId(_r.fqdn),
-              expiryDate: unifyTimestamp(_r.expiry).toSeconds(),
+              expiryDate: unifyTimestamp(Number(_r.expiry)).toSeconds(),
             },
           };
           return data;
@@ -691,7 +688,7 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
               chainId: chainId,
               type: r.tld.tldClass,
               tokenId: getTokenId(r.fqdn),
-              expiryDate: unifyTimestamp(_r.expiry).toSeconds(),
+              expiryDate: unifyTimestamp(Number(_r.expiry)).toSeconds(),
             });
           });
           return {
@@ -703,7 +700,6 @@ export class EdnsV2FromSubgraphService implements IEdnsResolverService, IEdnsReg
       }
 
       if (Array.isArray(chainId)) {
-        console.log("in service check array", chainId);
 
         const _r: IWalletDomainDetailsOutput[] = [];
         await Promise.all(

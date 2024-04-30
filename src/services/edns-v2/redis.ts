@@ -45,12 +45,12 @@ export class EdnsV2FromRedisService {
     const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
     const responses = await Promise.all(networks.map((_chainId) => subgraph.isExists(fqdn, { net: options?.net || Net.MAINNET, chainId: _chainId })));
     const index = responses.findIndex((r) => r === true);
-    console.log(index);
     const chainId = index === -1 ? -1 : networks[index];
     await redis.set(`${name}.${tld}:chain_id`, chainId, { ex: 300 });
     if (chainId === -1) throw new DomainNotFoundError(fqdn);
     return chainId;
   }
+  
   public static async getDomainByPodName(podName: string, options?: IOptions) {
     const redis = await createRedisClient();
     const networks = options?.net === Net.TESTNET ? Testnets : Mainnets;
@@ -60,11 +60,9 @@ export class EdnsV2FromRedisService {
       if (podChain === -1) {
         throw new Error("No Pod record found");
       }
-      console.log("found one");
       return podChain;
     }
     const responses = await Promise.all(networks.map((_chainId) => subgraph.checkpod(podName, { net: options?.net || Net.MAINNET, chainId: _chainId })));
-    console.log("🚀 ~ EdnsV2FromRedisService ~ getDomainByPodName ~ responses:", responses)
 
     const resultArray: number[] = [];
     const index = responses.map((r, i) => {
